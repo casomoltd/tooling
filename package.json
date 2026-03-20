@@ -1,0 +1,10 @@
+{
+  "name": "@casomo/tooling",
+  "version": "0.1.0",
+  "private": true,
+  "exports": {
+    "./eslint": "./eslint/index.mjs",
+    "./prettier": "./prettier/index.js",
+    "./commitlint": "./commitlint/index.cjs"
+  }
+}
