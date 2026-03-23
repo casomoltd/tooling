@@ -10,8 +10,11 @@
   },
   "exports": {
     "./eslint": "./eslint/index.mjs",
+    "./eslint-lib": "./eslint/lib.mjs",
     "./prettier": "./prettier/index.js",
-    "./commitlint": "./commitlint/index.cjs"
+    "./commitlint": "./commitlint/index.cjs",
+    "./knip": "./knip/index.json",
+    "./jscpd": "./jscpd/index.json"
   },
   "bin": {
     "check-version": "./bin/check-version.sh"
@@ -20,6 +23,8 @@
     "@commitlint/cli": ">=20",
     "eslint": ">=9",
     "eslint-config-next": ">=16",
-    "eslint-plugin-sonarjs": ">=3"
+    "eslint-plugin-sonarjs": ">=3",
+    "jscpd": ">=4",
+    "knip": ">=5"
   }
 }
