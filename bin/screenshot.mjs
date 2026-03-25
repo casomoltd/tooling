@@ -4,15 +4,20 @@
  * Capture a screenshot of the running dev server.
  *
  * Usage:
- *   npm run ss [page]
+ *   npm run ss [page] [--width <n>] [--height <n>]
  *
  * Arguments:
  *   page  Optional path segment appended to the base URL. Also used as the
  *         filename prefix. Defaults to "base" (captures the root page).
  *
+ * Options:
+ *   --width <n>   Viewport width in pixels (default: 1280)
+ *   --height <n>  Viewport height in pixels (default: 800)
+ *
  * Examples:
- *   npm run ss            # localhost:3000 → base-{timestamp}.png
- *   npm run ss calculator # localhost:3000/calculator → calculator-{timestamp}.png
+ *   npm run ss                          # 1280×800 desktop capture
+ *   npm run ss -- --width 390 --height 844  # iPhone-sized capture
+ *   npm run ss contact --width 390      # mobile capture of /contact
  *
  * Environment:
  *   SCREENSHOT_URL  Base URL to capture (default: http://localhost:3000)
@@ -22,6 +27,7 @@
  *   .claude/screenshots/latest.png              Always the most recent capture
  */
 
+import { parseArgs } from "node:util";
 import puppeteer from "puppeteer";
 import path from "path";
 import fs from "fs";
@@ -34,8 +40,18 @@ const OUTPUT_DIR = path.join(
   "screenshots",
 );
 
+const { values, positionals } = parseArgs({
+  options: {
+    width: { type: "string", default: "1280" },
+    height: { type: "string", default: "800" },
+  },
+  allowPositionals: true,
+});
+
 async function screenshot() {
-  const pageName = process.argv[2] || "base";
+  const pageName = positionals[0] || "base";
+  const width = Number(values.width);
+  const height = Number(values.height);
   const safePrefix = pageName.replace(/\//g, "-");
   const timestamp = new Date()
     .toISOString()
@@ -51,7 +67,7 @@ async function screenshot() {
 
   try {
     const page = await browser.newPage();
-    await page.setViewport({ width: 1280, height: 800 });
+    await page.setViewport({ width, height });
 
     const url =
       pageName === "base"

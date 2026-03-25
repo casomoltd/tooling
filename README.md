@@ -73,9 +73,18 @@ its own bin commands via `node_modules/.bin`.
 Capture the running dev server for visual inspection:
 
 ```bash
-npm run ss              # localhost:3000 → base-{timestamp}.png
-npm run ss contact      # localhost:3000/contact → contact-{timestamp}.png
+npm run ss              # 1280×800 desktop capture
+npm run ss contact      # desktop capture of /contact
+npm run ss -- --width 390 --height 844   # mobile capture
+npm run ss contact --width 390           # mobile /contact
 ```
+
+**Options:**
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--width <n>` | 1280 | Viewport width in pixels |
+| `--height <n>` | 800 | Viewport height in pixels |
 
 Add these scripts to your `package.json`:
 
