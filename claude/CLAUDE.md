@@ -53,3 +53,5 @@ runs whatever validation that project needs.
 
 - Do NOT include "Generated with Claude Code" or "Co-Authored-By"
 - Keep commit messages concise and focused on the change
+- Always push with `--follow-tags` so version tags reach the
+  remote alongside the commits
