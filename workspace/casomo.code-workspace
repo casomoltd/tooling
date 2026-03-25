@@ -1,0 +1,41 @@
+{
+	"folders": [
+		{
+			"name": "claude-config",
+			"path": ".claude"
+		},
+		{
+			"name": "hub-site",
+			"path": "hub-site"
+		},
+		{
+			"name": "ltd-site",
+			"path": "ltd-site"
+		},
+		{
+			"name": "infra",
+			"path": "infra"
+		},
+		{
+			"name": "design-tokens",
+			"path": "design-tokens"
+		},
+		{
+			"name": "tooling",
+			"path": "tooling"
+		},
+		{
+			"name": "foundry",
+			"path": "foundry"
+		},
+		{
+			"name": "paye-calc",
+			"path": "paye-calc"
+		},
+	],
+	"settings": {
+		"editor.rulers": [
+			88
+		]
+	}
+}

@@ -21,6 +21,17 @@ silence the tool. Never weaken strict checks (`strict: false`,
 `skipLibCheck: true`, `noImplicitAny: false`, blanket `type: ignore`)
 to make errors disappear.
 
+### Framework-First Development
+
+Always leverage frameworks and libraries instead of custom
+solutions. Use what the framework provides — don't reinvent
+components, utilities, or patterns that already exist in your
+chosen libraries.
+
+### Assertions
+
+Use `invariant()` for preconditions, not `if/throw`.
+
 ### Documentation: Explain WHY, Not WHAT
 
 Comments and docstrings should explain reasoning and context, not
@@ -32,6 +43,11 @@ restate what the code already shows.
 - **File naming:** `.ts` for logic, `.tsx` for React components
 - **Package installs:** Always project-local (`npm i` / `npm i -D`),
   never global
+
+## Before Committing
+
+Run `npm run check` before committing. Each repo's `check` script
+runs whatever validation that project needs.
 
 ## Git Commits
 

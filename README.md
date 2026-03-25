@@ -135,18 +135,42 @@ The `claude/` directory contains shared Claude Code instructions
 ### Workspace setup
 
 All repos are cloned into a single workspace directory
-(`~/dev/casomo/`). A symlink at the workspace root points to the
-shared config:
+(`~/dev/casomo/`). Symlinks at the workspace root point to
+shared config checked into this repo:
 
 ```
 ~/dev/casomo/
-  CLAUDE.md -> tooling/claude/CLAUDE.md   # symlink
+  CLAUDE.md                    -> tooling/claude/CLAUDE.md
+  casomo.code-workspace        -> tooling/workspace/casomo.code-workspace
   tooling/claude/CLAUDE.md                # source of truth
+  tooling/workspace/casomo.code-workspace # source of truth
   hub-site/CLAUDE.md                      # project-specific
   ...
+```
+
+Create the symlinks:
+
+```bash
+ln -sf tooling/claude/CLAUDE.md CLAUDE.md
+ln -sf tooling/workspace/casomo.code-workspace casomo.code-workspace
 ```
 
 Claude Code loads `CLAUDE.md` from the working directory. When
 launched from the workspace root, it picks up the shared
 conventions. Each repo also has its own `CLAUDE.md` for
 project-specific instructions.
+
+### GitHub Packages auth
+
+Casomo packages are published to GitHub Packages under the
+`@casomoltd` scope. To install them, add the registry and an
+auth token to your user-level `~/.npmrc`:
+
+```
+@casomoltd:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=<YOUR_GITHUB_TOKEN>
+```
+
+The token needs the `read:packages` scope. This is a one-time
+setup — all repos in the workspace will pick it up
+automatically.
