@@ -10,7 +10,7 @@
   },
   "scripts": {
     "check": "true",
-    "prepare": "node -e \"try{require.resolve('husky')}catch{process.exit(0)}\" && husky"
+    "prepare": "husky || true"
   },
   "exports": {
     "./eslint": "./eslint/index.mjs",
