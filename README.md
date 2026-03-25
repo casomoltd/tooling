@@ -1,14 +1,30 @@
 # @casomoltd/tooling
 
-Shared linting, formatting, and commit config for Casomo repos.
+Shared linting, formatting, commit config, and CLI tools for
+Casomo repos.
 
 ## What's included
+
+### Exports
 
 | Export | Description |
 |---|---|
 | `@casomoltd/tooling/eslint` | `createBaseConfig()` — ESLint flat config with Next.js, TypeScript, and SonarJS |
+| `@casomoltd/tooling/eslint-lib` | ESLint config variant for library packages |
 | `@casomoltd/tooling/prettier` | Prettier config object |
 | `@casomoltd/tooling/commitlint` | commitlint config with `no-ai-attribution` plugin |
+| `@casomoltd/tooling/knip` | Knip config for unused exports/dependencies |
+| `@casomoltd/tooling/jscpd` | Copy-paste detection config |
+
+### Bin commands
+
+| Command | Description |
+|---|---|
+| `check-version` | Pre-push guard — rejects push if `package.json` version hasn't changed vs `origin/main` |
+| `pre-push` | Husky pre-push hook — runs `npm run check` then `check-version` |
+| `pre-commit` | Husky pre-commit hook — runs `npm run check` |
+| `commit-msg` | Husky commit-msg hook — runs commitlint |
+| `screenshot` | Capture a dev server page via Puppeteer |
 
 ## Install
 
@@ -24,22 +40,50 @@ Then install as a dev dependency:
 npm install -D @casomoltd/tooling
 ```
 
-## Local development
+## Husky hooks
 
-Changes to tooling require a push to `main` to publish (the
-workflow runs automatically). Consuming repos then pick up
-changes with `npm update @casomoltd/tooling`.
+The package provides shared hook commands so all repos enforce
+the same standards. Wire them up in `.husky/`:
 
-For fast iteration while editing tooling config locally, use
-`npm link` to temporarily symlink your local checkout:
-
-```bash
-# in the consuming repo
-npm link ../tooling
+**.husky/pre-commit**
+```
+pre-commit
 ```
 
-This overrides the published version until the next
-`npm install`, which restores the registry version.
+**.husky/commit-msg**
+```
+commit-msg $1
+```
+
+**.husky/pre-push**
+```
+pre-push
+```
+
+Each repo defines its own `check` script in `package.json` —
+the hooks call `npm run check` which runs whatever checks that
+repo needs (lint, typecheck, spell, etc.).
+
+## Screenshot tool
+
+Capture the running dev server for visual inspection:
+
+```bash
+npm run ss              # localhost:3000 → base-{timestamp}.png
+npm run ss contact      # localhost:3000/contact → contact-{timestamp}.png
+```
+
+Add these scripts to your `package.json`:
+
+```json
+{
+  "screenshot": "screenshot",
+  "ss": "npm run screenshot --"
+}
+```
+
+Screenshots are saved to `.claude/screenshots/`. Set
+`SCREENSHOT_URL` to override the default `http://localhost:3000`.
 
 ## Usage
 
@@ -61,6 +105,23 @@ import { createBaseConfig } from '@casomoltd/tooling/eslint';
 The ESLint config uses a factory function that receives
 resolved imports from the consumer to avoid module resolution
 issues across package boundaries.
+
+## Local development
+
+Changes to tooling require a push to `main` to publish (the
+workflow runs automatically). Consuming repos then pick up
+changes with `npm update @casomoltd/tooling`.
+
+For fast iteration while editing tooling config locally, use
+`npm link` to temporarily symlink your local checkout:
+
+```bash
+# in the consuming repo
+npm link ../tooling
+```
+
+This overrides the published version until the next
+`npm install`, which restores the registry version.
 
 ## Claude Code config
 
@@ -85,8 +146,3 @@ Claude Code loads `CLAUDE.md` from the working directory. When
 launched from the workspace root, it picks up the shared
 conventions. Each repo also has its own `CLAUDE.md` for
 project-specific instructions.
-
-## No runtime dependencies
-
-This package has no `dependencies` of its own. ESLint plugins
-and other tools are installed by each consuming site.
