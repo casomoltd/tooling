@@ -64,6 +64,10 @@ Each repo defines its own `check` script in `package.json` —
 the hooks call `npm run check` which runs whatever checks that
 repo needs (lint, typecheck, spell, etc.).
 
+**Note:** The tooling repo itself calls scripts by path in its
+hooks (e.g. `./bin/check-version.sh`) because it can't resolve
+its own bin commands via `node_modules/.bin`.
+
 ## Screenshot tool
 
 Capture the running dev server for visual inspection:

@@ -1,1 +1,1 @@
-pre-push
+npm run check && ./bin/check-version.sh
