@@ -1,6 +1,6 @@
 {
   "name": "@casomoltd/tooling",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/casomoltd/tooling.git"
@@ -17,7 +17,11 @@
     "./jscpd": "./jscpd/index.json"
   },
   "bin": {
-    "check-version": "./bin/check-version.sh"
+    "check-version": "./bin/check-version.sh",
+    "screenshot": "./bin/screenshot.mjs"
+  },
+  "dependencies": {
+    "puppeteer": "^24.36.1"
   },
   "peerDependencies": {
     "@commitlint/cli": ">=20",
