@@ -1,21 +1,10 @@
 #!/bin/sh
-# Reject push if local version tags exist that aren't being pushed.
-# Reminds the user to use --follow-tags.
+# Ensure push.followTags is enabled so version tags reach the remote.
 
-LOCAL_VERSION=$(node -p "require('./package.json').version")
-TAG="v$LOCAL_VERSION"
+FOLLOW=$(git config --get push.followTags 2>/dev/null)
 
-# If the tag doesn't exist locally, nothing to check
-if ! git rev-parse "$TAG" >/dev/null 2>&1; then
-  exit 0
+if [ "$FOLLOW" != "true" ]; then
+  echo "push.followTags is not enabled."
+  echo "Run: git config push.followTags true"
+  exit 1
 fi
-
-# If the tag already exists on the remote, nothing to do
-if git ls-remote --tags origin "$TAG" 2>/dev/null \
-    | grep -q "$TAG"; then
-  exit 0
-fi
-
-echo "Tag $TAG exists locally but is not being pushed."
-echo "Run: git push --follow-tags"
-exit 1
