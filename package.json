@@ -21,6 +21,7 @@
     "./jscpd": "./jscpd/index.json"
   },
   "bin": {
+    "check-tags": "./bin/check-tags.sh",
     "check-version": "./bin/check-version.sh",
     "commit-msg": "./bin/commit-msg.sh",
     "pre-commit": "./bin/pre-commit.sh",

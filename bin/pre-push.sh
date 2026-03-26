@@ -1,2 +1,2 @@
 #!/bin/sh
-npm run check && check-version
+npm run check && check-version && check-tags
