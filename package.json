@@ -18,7 +18,8 @@
     "./prettier": "./prettier/index.js",
     "./commitlint": "./commitlint/index.cjs",
     "./knip": "./knip/index.json",
-    "./jscpd": "./jscpd/index.json"
+    "./jscpd": "./jscpd/index.json",
+    "./readability": "./readability/index.mjs"
   },
   "bin": {
     "check-tags": "./bin/check-tags.sh",
@@ -26,10 +27,12 @@
     "commit-msg": "./bin/commit-msg.sh",
     "pre-commit": "./bin/pre-commit.sh",
     "pre-push": "./bin/pre-push.sh",
+    "readability": "./bin/readability.mjs",
     "screenshot": "./bin/screenshot.mjs"
   },
   "dependencies": {
-    "puppeteer": "^24.36.1"
+    "puppeteer": "^24.36.1",
+    "text-readability": "^1.1.1"
   },
   "peerDependencies": {
     "@commitlint/cli": ">=20",
