@@ -49,6 +49,21 @@ restate what the code already shows.
 Run `npm run check` before committing. Each repo's `check` script
 runs whatever validation that project needs.
 
+## Versioning
+
+Use `npm version patch` or `npm version minor` to bump versions.
+This updates `package.json`, creates a commit, and tags atomically
+— never edit the version field manually or create tags by hand.
+**Never run `npm version major`** — major bumps require explicit
+user approval.
+
+## Publishing to GitHub Packages
+
+Packages publish via GitHub Actions on push to main. After pushing
+a new version of a dependency (e.g. design-tokens), wait for the
+publish workflow to complete before running `npm i` in consumers.
+Check workflow status with `gh run list -L 1`.
+
 ## Git Commits
 
 - Do NOT include "Generated with Claude Code" or "Co-Authored-By"
