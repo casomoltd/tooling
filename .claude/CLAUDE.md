@@ -70,3 +70,11 @@ Check workflow status with `gh run list -L 1`.
 - Keep commit messages concise and focused on the change
 - Always push with `--follow-tags` so version tags reach the
   remote alongside the commits
+
+## Skills
+
+Skills live in `tooling/.claude/skills/` and are available at the
+workspace root via the `.claude` symlink. Available skills:
+- `/frontend-design` — design-thinking-first UI development
+- `/copy-writing-style` — Casomo voice and tone for all prose
+- `/commit` — check, version bump, commit, push workflow
