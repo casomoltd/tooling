@@ -76,5 +76,5 @@ Check workflow status with `gh run list -L 1`.
 Skills live in `tooling/.claude/skills/` and are available at the
 workspace root via the `.claude` symlink. Available skills:
 - `/frontend-design` — design-thinking-first UI development
-- `/copy-writing-style` — Casomo voice and tone for all prose
+- `/write-copy` — Casomo voice and tone for all prose
 - `/commit` — check, version bump, commit, push workflow

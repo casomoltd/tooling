@@ -1,5 +1,5 @@
 ---
-name: copy-writing-style
+name: write-copy
 description: Use this skill whenever writing copy, content, messaging, or any prose on behalf of the user — including website pages, LinkedIn posts, emails to clients, service descriptions, blog posts, bios, pitches, or any text that will carry the user's name or voice. Also trigger when the user asks to "write in my style", "match my tone", or references wanting something to sound like them. Do NOT use for purely technical documentation (READMEs, API docs, code comments) unless the user explicitly asks for their voice in those contexts.
 ---
 
