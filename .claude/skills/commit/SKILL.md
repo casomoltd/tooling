@@ -4,7 +4,6 @@ description: >-
   Run checks, bump version, commit, and push following
   Casomo conventions
 user-invocable: true
-disable-model-invocation: true
 argument-hint: "[patch|minor] [message]"
 allowed-tools:
   - Bash(npm run check)
