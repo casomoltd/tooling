@@ -15,16 +15,20 @@ Casomo repos.
 | `@casomoltd/tooling/commitlint` | commitlint config with `no-ai-attribution` plugin |
 | `@casomoltd/tooling/knip` | Knip config for unused exports/dependencies |
 | `@casomoltd/tooling/jscpd` | Copy-paste detection config |
+| `@casomoltd/tooling/readability` | `scoreText()` — readability scoring for page content |
+| `@casomoltd/tooling/link-checker` | `checkLinks()` — crawl built sites for broken links |
 
 ### Bin commands
 
 | Command | Description |
 |---|---|
 | `check-version` | Pre-push guard — rejects push if `package.json` version hasn't changed vs `origin/main` |
-| `pre-push` | Husky pre-push hook — runs `npm run check` then `check-version` |
+| `pre-push` | Husky pre-push hook — runs check, build, link-checker, then version/tag guards |
 | `pre-commit` | Husky pre-commit hook — runs `npm run check` |
 | `commit-msg` | Husky commit-msg hook — runs commitlint |
+| `readability` | Measure reading difficulty of page content |
 | `screenshot` | Capture a dev server page via Puppeteer |
+| `link-checker` | Crawl a built site for broken links |
 
 ## Install
 
@@ -97,6 +101,60 @@ Add these scripts to your `package.json`:
 
 Screenshots are saved to `.claude/screenshots/`. Set
 `SCREENSHOT_URL` to override the default `http://localhost:3000`.
+
+## Link checker
+
+Crawl the built site to find broken internal and external links:
+
+```bash
+npm run check:links                    # JSON output
+npm run check:links -- --pretty        # human-readable summary
+npm run check:links -- --timeout 15000 # custom timeout
+```
+
+**Options:**
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--pretty` | false | Print summary to stderr |
+| `--timeout <ms>` | 10000 | Per-request timeout |
+
+Add these scripts to your `package.json`:
+
+```json
+{
+  "check:links": "link-checker"
+}
+```
+
+### Per-repo config
+
+Create `link-checker.config.mjs` in the project root to skip
+URLs that block bots or are known false positives:
+
+```js
+export const skip = [
+  /tax\.service\.gov\.uk/,
+  /example\.com/,
+];
+export const timeout = 10_000;
+```
+
+The checker runs against `.next/` build output by default,
+so `npm run build` must complete first.
+
+## Quality gates
+
+There is no CI — all quality gates run locally via git hooks.
+Code should be deployment-ready by the time it's pushed to
+the remote.
+
+- **pre-commit**: Runs commitlint only (fast).
+- **pre-push**: Runs the full suite — `npm run check`,
+  `npm run build`, `link-checker`, then version and tag
+  guards. This ensures lint, typecheck, spelling, link
+  integrity, and version bumps are all verified before
+  code reaches the remote.
 
 ## Usage
 

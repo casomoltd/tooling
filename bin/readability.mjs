@@ -23,8 +23,7 @@
 
 import {parseArgs} from "node:util";
 import path from "node:path";
-import fs from "node:fs";
-import {pathToFileURL} from "node:url";
+import {loadConfig} from "./utils.mjs";
 import {
   discoverSlugs,
   extractText,
@@ -36,20 +35,6 @@ import {
 
 const PROJECT_ROOT = process.cwd();
 const SRC_APP = path.join(PROJECT_ROOT, "src", "app");
-
-// ---------------------------------------------------------------
-// Load optional per-repo config
-// ---------------------------------------------------------------
-
-async function loadConfig() {
-  const cfgPath = path.join(
-    PROJECT_ROOT,
-    "readability.config.mjs",
-  );
-  if (!fs.existsSync(cfgPath)) return {};
-  const mod = await import(pathToFileURL(cfgPath).href);
-  return mod;
-}
 
 // ---------------------------------------------------------------
 // Main
@@ -64,7 +49,7 @@ async function main() {
     allowPositionals: true,
   });
 
-  const config = await loadConfig();
+  const config = await loadConfig("readability.config.mjs");
 
   const wordSubs = config.wordSubs ?? DEFAULT_WORD_SUBS;
   const maxGrade =
