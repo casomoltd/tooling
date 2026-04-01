@@ -32,6 +32,10 @@
 			"name": "paye-calc",
 			"path": "paye-calc"
 		},
+		{
+			"name": ".github",
+			"path": ".github"
+		},
 	],
 	"settings": {
 		"editor.rulers": [
