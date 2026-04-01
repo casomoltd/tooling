@@ -62,3 +62,20 @@ git push --follow-tags
 
 This pushes both the commits and the version tag. The
 `--follow-tags` flag is required by the Casomo pre-push hook.
+
+## Error recovery
+
+When something goes wrong, **never** use destructive git
+commands to "fix" it. No `git tag -d`, `git reset --hard`,
+`git push --force`, or history rewrites — version numbers
+are cheap, clean history is not.
+
+- **`npm version` bumped twice or at the wrong level:**
+  Accept the higher version number and move on.
+- **`npm version` ran in the wrong directory:** Accept
+  the accidental bump in that repo (it's harmless), then
+  run the intended bump in the correct directory.
+- **Pre-commit hook fails after staging:** Fix the issue
+  and create a **new** commit — never amend.
+- **Push fails:** Investigate the cause (upstream changes,
+  hook rejection) and resolve without rewriting history.
