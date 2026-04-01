@@ -11,13 +11,17 @@
  *         filename prefix. Defaults to "base" (captures the root page).
  *
  * Options:
- *   --width <n>   Viewport width in pixels (default: 1280)
- *   --height <n>  Viewport height in pixels (default: 800)
+ *   --preset <name>  Viewport preset: mobile (390×844),
+ *                    tablet (768×1024), desktop (1280×800)
+ *   --width <n>      Viewport width in pixels (default: 1280)
+ *   --height <n>     Viewport height in pixels (default: 800)
+ *
+ * When --preset is given it overrides --width and --height.
  *
  * Examples:
- *   npm run ss                          # 1280×800 desktop capture
- *   npm run ss -- --width 390 --height 844  # iPhone-sized capture
- *   npm run ss contact --width 390      # mobile capture of /contact
+ *   npm run ss                          # 1280×800 desktop
+ *   npm run ss --preset mobile          # 390×844 mobile
+ *   npm run ss contact --preset tablet  # /contact at 768×1024
  *
  * Environment:
  *   SCREENSHOT_URL  Base URL to capture (default: http://localhost:3000)
@@ -40,8 +44,15 @@ const OUTPUT_DIR = path.join(
   "screenshots",
 );
 
+const PRESETS = {
+  mobile: { width: 390, height: 844 },
+  tablet: { width: 768, height: 1024 },
+  desktop: { width: 1280, height: 800 },
+};
+
 const { values, positionals } = parseArgs({
   options: {
+    preset: { type: "string" },
     width: { type: "string", default: "1280" },
     height: { type: "string", default: "800" },
   },
@@ -50,8 +61,18 @@ const { values, positionals } = parseArgs({
 
 async function screenshot() {
   const pageName = positionals[0] || "base";
-  const width = Number(values.width);
-  const height = Number(values.height);
+  const preset = values.preset
+    ? PRESETS[values.preset]
+    : undefined;
+  if (values.preset && !preset) {
+    const names = Object.keys(PRESETS).join(", ");
+    throw new Error(
+      `Unknown preset "${values.preset}". ` +
+        `Choose from: ${names}`,
+    );
+  }
+  const width = preset?.width ?? Number(values.width);
+  const height = preset?.height ?? Number(values.height);
   const safePrefix = pageName.replace(/\//g, "-");
   const timestamp = new Date()
     .toISOString()

@@ -78,3 +78,4 @@ workspace root via the `.claude` symlink. Available skills:
 - `/frontend-design` — design-thinking-first UI development
 - `/write-copy` — Casomo voice and tone for all prose
 - `/commit` — check, version bump, commit, push workflow
+- `/screenshot` — capture and analyse dev server pages
