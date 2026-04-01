@@ -4,7 +4,7 @@ description: >-
   Run checks, bump version, commit, and push following
   Casomo conventions
 user-invocable: true
-argument-hint: "[patch|minor] [message]"
+argument-hint: "<repo> [patch|minor] [message]"
 allowed-tools:
   - Bash(npm run check)
   - Bash(npm version *)
@@ -15,10 +15,25 @@ allowed-tools:
 
 Follow these steps in order. Do NOT skip or reorder steps.
 
+## 0. Identify the target repo
+
+The first word in `$ARGUMENTS` is the **repo name** — a
+subdirectory of `$WORKSPACE_ROOT` (e.g. `tooling`,
+`hub-site`, `ltd-site`, `design-tokens`, `paye-calc`,
+`foundry`, `infra`).
+
+**All commands below must run from that directory.**
+
+If `WORKSPACE_ROOT` is not set, **stop and ask the user**
+to set it before continuing.
+
+If no repo name is given, **stop and ask the user** which
+repo to commit in. Do not guess.
+
 ## 1. Run checks
 
 ```bash
-npm run check
+cd "$WORKSPACE_ROOT/<repo>" && npm run check
 ```
 
 If checks fail, fix the issues and re-run until they pass.

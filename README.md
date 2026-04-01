@@ -201,14 +201,21 @@ The `claude/` directory contains shared Claude Code instructions
 
 ### Workspace setup
 
-All repos are cloned into a single workspace directory
-(`~/dev/casomo/`). Symlinks at the workspace root point to
-shared config checked into this repo:
+All repos are cloned into a single workspace directory.
+Export `WORKSPACE_ROOT` in your shell profile so that
+skills and scripts can find it:
+
+```bash
+export WORKSPACE_ROOT=~/dev/casomo
+```
+
+Symlinks at the workspace root point to shared config
+checked into this repo:
 
 ```
-~/dev/casomo/
+$WORKSPACE_ROOT/
   CLAUDE.md                    -> tooling/claude/CLAUDE.md
-  casomo.code-workspace        -> tooling/workspace/casomo.code-workspace
+  casomo.code-workspace        -> tooling/workspace/…
   tooling/claude/CLAUDE.md                # source of truth
   tooling/workspace/casomo.code-workspace # source of truth
   hub-site/CLAUDE.md                      # project-specific
@@ -222,10 +229,10 @@ ln -sf tooling/claude/CLAUDE.md CLAUDE.md
 ln -sf tooling/workspace/casomo.code-workspace casomo.code-workspace
 ```
 
-Claude Code loads `CLAUDE.md` from the working directory. When
-launched from the workspace root, it picks up the shared
-conventions. Each repo also has its own `CLAUDE.md` for
-project-specific instructions.
+Claude Code loads `CLAUDE.md` from the working directory.
+When launched from the workspace root, it picks up the
+shared conventions. Each repo also has its own `CLAUDE.md`
+for project-specific instructions.
 
 ### GitHub Packages auth
 
