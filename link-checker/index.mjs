@@ -1,30 +1,35 @@
 /**
- * Link checking for built Next.js sites.
+ * Link checking for Next.js sites.
  *
- * Wraps linkinator to crawl static build output and verify
- * both internal and external links. Designed to be called
- * from the CLI wrapper or programmatically.
+ * Wraps linkinator to crawl a running dev/preview server and
+ * verify both internal and external links. The server must
+ * already be running — this tool does NOT start one.
  */
 
 import {LinkChecker} from "linkinator";
 
 export const DEFAULT_TIMEOUT = 10_000;
 export const DEFAULT_CONCURRENCY = 10;
+export const DEFAULT_ORIGIN = "http://localhost:3000";
 
 /**
- * Crawl a built site directory and check all links.
+ * Crawl a running site and check all links.
  *
  * @param {object} options
- * @param {string} [options.path=".next/"]
- *   Path to the build output directory.
+ * @param {string} [options.origin="http://localhost:3000"]
+ *   Base URL of the running server.
  * @param {(string|RegExp)[]} [options.skip=[]]
  *   URL patterns to skip (bot-blockers, etc.).
  * @param {number} [options.concurrency=10]
  * @param {number} [options.timeout=10000]
- * @returns {Promise<{passed: boolean, broken: object[], ok: object[]}>}
+ * @returns {Promise<{
+ *   passed: boolean,
+ *   broken: object[],
+ *   ok: object[],
+ * }>}
  */
 export async function checkLinks({
-  path: sitePath = ".next/",
+  origin = DEFAULT_ORIGIN,
   skip = [],
   concurrency = DEFAULT_CONCURRENCY,
   timeout = DEFAULT_TIMEOUT,
@@ -32,11 +37,13 @@ export async function checkLinks({
   const checker = new LinkChecker();
 
   const linksToSkip = skip.map((pattern) =>
-    pattern instanceof RegExp ? pattern.source : pattern,
+    pattern instanceof RegExp
+      ? pattern.source
+      : pattern,
   );
 
   const result = await checker.check({
-    path: sitePath,
+    path: origin,
     recurse: true,
     concurrency,
     timeout,
@@ -61,10 +68,7 @@ export async function checkLinks({
   return {passed: result.passed, broken, ok};
 }
 
-// -----------------------------------------------------------------
 // Pretty-print a human-readable summary
-// -----------------------------------------------------------------
-
 export function formatPretty(results) {
   const lines = [];
 
