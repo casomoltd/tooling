@@ -17,10 +17,6 @@
 			"path": "infra"
 		},
 		{
-			"name": "design-tokens",
-			"path": "design-tokens"
-		},
-		{
 			"name": "tooling",
 			"path": "tooling"
 		},
