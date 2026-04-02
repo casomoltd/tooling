@@ -25,6 +25,7 @@
     "check-tags": "./bin/check-tags.sh",
     "check-version": "./bin/check-version.sh",
     "commit-msg": "./bin/commit-msg.sh",
+    "link-checker": "./bin/link-checker.mjs",
     "pre-commit": "./bin/pre-commit.sh",
     "pre-push": "./bin/pre-push.sh",
     "readability": "./bin/readability.mjs",
