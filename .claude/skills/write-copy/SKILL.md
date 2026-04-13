@@ -32,10 +32,10 @@ The voice reads like an engineer explaining something clearly to someone they re
 
 ## Punctuation and Formatting
 
-- Heavy use of em dashes for asides and pivots — not parentheses, not semicolons.
+- Em dashes are fine occasionally for a single aside or pivot, but should not appear more than once or twice per page. If you notice multiple em dashes creeping in, rewrite using full stops, commas or shorter sentences instead. Overusing em dashes is a tell for AI-generated text.
 - Sparing with bold. Never uses it for emphasis mid-sentence. Uses it only for structural labels or key phrases that anchor a section.
 - No exclamation marks in professional copy.
-- Minimal use of commas — only where needed for clarity. Prefers shorter sentences over long ones broken up by commas.
+- Minimal use of commas. Only where needed for clarity. Prefers shorter sentences over long ones broken up by commas.
 - No Oxford comma (follows UK convention).
 
 ## Word Choice
@@ -68,6 +68,13 @@ The voice reads like an engineer explaining something clearly to someone they re
 - Do not use rhetorical questions as a persuasion device ("But what if there was a better way?").
 - Do not write calls to action that sound desperate or salesy. Invitations, not urgency.
 - Do not claim things that haven't been demonstrated. Credibility comes from what's been done, not from asserting quality.
+
+## References and Links
+
+- When referencing NHS pay, pension, or workforce data, always cite authoritative government sources: healthcareers.nhs.uk, NHS Employers (nhsemployers.org), gov.uk, gov.scot, gov.wales.
+- Never link to competitor sites (nhsbands.co.uk, nhspayband.co.uk, etc.). Outbound links pass authority to the target domain. Link only to sources that strengthen our credibility.
+- Prefer canonical HTML pages over PDFs where both exist.
+- Data claims need a source. If a figure comes from HMRC, NHS Employers, or another body, cite it.
 
 ## Calibrating for Context
 
