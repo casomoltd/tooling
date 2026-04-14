@@ -21,10 +21,6 @@
 			"path": "tooling"
 		},
 		{
-			"name": "foundry",
-			"path": "foundry"
-		},
-		{
 			"name": "paye-calc",
 			"path": "paye-calc"
 		},
