@@ -37,6 +37,13 @@ Use `invariant()` for preconditions, not `if/throw`.
 Comments and docstrings should explain reasoning and context, not
 restate what the code already shows.
 
+### Typed Identifiers
+
+Use `as const` objects for domain keys and derive the union
+type — never pass bare `string` between modules:
+`const THINGS = { A: 'a', B: 'b' } as const` then
+`type ThingId = (typeof THINGS)[keyof typeof THINGS]`.
+
 ### Code Style
 
 - **Line length:** 88 characters maximum
@@ -79,3 +86,4 @@ workspace root via the `.claude` symlink. Available skills:
 - `/write-copy` — Casomo voice and tone for all prose
 - `/commit` — check, version bump, commit, push workflow
 - `/screenshot` — capture and analyse dev server pages
+- `/typescript` — TypeScript data modelling and type design
