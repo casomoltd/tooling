@@ -59,6 +59,10 @@ Create a commit with a concise message:
 - **Body** (optional): wrap at 72 characters, explain WHY
 - **No AI attribution** — no "Co-Authored-By" or
   "Generated with Claude Code" lines
+- **Issue reference**: if the conversation mentions an
+  issue number (e.g. from a work plan), include a
+  `Closes #<number>` or `Refs #<number>` footer.
+  Don't prompt for one if it's not already in context.
 
 If `$ARGUMENTS` contains a quoted message or text after the
 version keyword, use it as the commit message.
