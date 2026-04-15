@@ -46,7 +46,13 @@ Stage files explicitly by name. **Never** use `git add -A` or
 
 Review what you are staging with `git diff --stat` first.
 
-## 3. Commit code changes
+## 3. Show diff and wait for approval
+
+Run `git diff --staged` and present it to the user. **Stop and
+wait for the user to approve** before committing. Do NOT
+proceed until the user explicitly confirms the diff is OK.
+
+## 4. Commit code changes
 
 Create a commit with a concise message:
 - **Header**: max 50 characters, imperative mood
@@ -57,7 +63,7 @@ Create a commit with a concise message:
 If `$ARGUMENTS` contains a quoted message or text after the
 version keyword, use it as the commit message.
 
-## 4. Bump version
+## 5. Bump version
 
 Run the appropriate version bump:
 
@@ -66,9 +72,9 @@ Run the appropriate version bump:
 - **Never run `npm version major`** — ask the user first
 
 `npm version` creates its own commit and tag automatically.
-This is why code changes must be committed first (step 3).
+This is why code changes must be committed first (step 4).
 
-## 5. Push
+## 6. Push
 
 ```bash
 git push --follow-tags
