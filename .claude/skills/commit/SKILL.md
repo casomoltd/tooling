@@ -20,7 +20,7 @@ Follow these steps in order. Do NOT skip or reorder steps.
 The first word in `$ARGUMENTS` is the **repo name** — a
 subdirectory of `$WORKSPACE_ROOT` (e.g. `tooling`,
 `hub-site`, `ltd-site`, `design-tokens`, `paye-calc`,
-`foundry`, `infra`).
+`infra`).
 
 **All commands below must run from that directory.**
 
