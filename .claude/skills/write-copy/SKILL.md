@@ -68,6 +68,8 @@ The voice reads like an engineer explaining something clearly to someone they re
 - Do not use rhetorical questions as a persuasion device ("But what if there was a better way?").
 - Do not write calls to action that sound desperate or salesy. Invitations, not urgency.
 - Do not claim things that haven't been demonstrated. Credibility comes from what's been done, not from asserting quality.
+- Do not frame factual statements with opinion words like "but," "only," or "just" when the facts speak for themselves. Present information neutrally and let the reader draw conclusions. "There are several unofficial calculators" not "Yes, but they're all unofficial."
+- Every factual claim (statistics, dates, policy details, costs) must be backed by a hyperlink to an authoritative source. Do not state figures like "CPI was 3%" or "thresholds have been frozen since 2021/22" without linking to the source. If no source URL is available, flag the claim for the user rather than publishing it unreferenced.
 
 ## References and Links
 
