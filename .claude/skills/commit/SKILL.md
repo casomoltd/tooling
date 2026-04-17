@@ -46,13 +46,22 @@ Stage files explicitly by name. **Never** use `git add -A` or
 
 Review what you are staging with `git diff --stat` first.
 
-## 3. Show diff and wait for approval
+## 3. Check for remaining unstaged changes
+
+After staging, run `git diff --stat` to see if there are
+**other** uncommitted changes in the working tree. If there
+are related changes that should go out together, make
+**multiple commits first** (repeat steps 2–4 for each batch)
+before bumping the version. The version bump and push cover
+the entire changeset — don't bump between commits.
+
+## 4. Show diff and wait for approval
 
 Run `git diff --staged` and present it to the user. **Stop and
 wait for the user to approve** before committing. Do NOT
 proceed until the user explicitly confirms the diff is OK.
 
-## 4. Commit code changes
+## 5. Commit code changes
 
 Create a commit with a concise message:
 - **Header**: max 50 characters, imperative mood
@@ -67,7 +76,7 @@ Create a commit with a concise message:
 If `$ARGUMENTS` contains a quoted message or text after the
 version keyword, use it as the commit message.
 
-## 5. Bump version
+## 6. Bump version
 
 Run the appropriate version bump:
 
@@ -78,7 +87,7 @@ Run the appropriate version bump:
 `npm version` creates its own commit and tag automatically.
 This is why code changes must be committed first (step 4).
 
-## 6. Push
+## 7. Push
 
 ```bash
 git push --follow-tags
