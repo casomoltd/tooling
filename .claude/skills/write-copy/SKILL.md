@@ -69,7 +69,7 @@ The voice reads like an engineer explaining something clearly to someone they re
 - Do not write calls to action that sound desperate or salesy. Invitations, not urgency.
 - Do not claim things that haven't been demonstrated. Credibility comes from what's been done, not from asserting quality.
 - Do not frame factual statements with opinion words like "but," "only," or "just" when the facts speak for themselves. Present information neutrally and let the reader draw conclusions. "There are several unofficial calculators" not "Yes, but they're all unofficial."
-- Every factual claim (statistics, dates, policy details, costs) must be backed by a hyperlink to an authoritative source. Do not state figures like "CPI was 3%" or "thresholds have been frozen since 2021/22" without linking to the source. If no source URL is available, flag the claim for the user rather than publishing it unreferenced.
+- Every factual claim (statistics, dates, policy details, costs) must include an inline hyperlink to an authoritative primary source in the rendered page. This applies to policy statements and dates just as much as to numbers. The reader should never have to take a factual statement on trust. If no source URL is available, flag the claim for the user rather than publishing it unreferenced.
 
 ## References and Links
 
@@ -77,6 +77,7 @@ The voice reads like an engineer explaining something clearly to someone they re
 - Never link to competitor sites (nhsbands.co.uk, nhspayband.co.uk, etc.). Outbound links pass authority to the target domain. Link only to sources that strengthen our credibility.
 - Prefer canonical HTML pages over PDFs where both exist.
 - Data claims need a source. If a figure comes from HMRC, NHS Employers, or another body, cite it.
+- **Cross-check before publishing.** Never rely on a single secondary source for figures. Verify statistics, salary tables, dates and rates against the primary source (official government pages, HMRC, NHS Employers). If the primary source is a PDF that can't be parsed, triangulate across multiple secondary sources and flag discrepancies for the user.
 
 ## Calibrating for Context
 
