@@ -196,8 +196,23 @@ This overrides the published version until the next
 
 ## Claude Code config
 
-The `claude/` directory contains shared Claude Code instructions
-(`CLAUDE.md`) that apply across all Casomo repos.
+The `.claude/` directory contains shared Claude Code instructions
+(`CLAUDE.md`) and skills that apply across all Casomo repos.
+
+### Skills
+
+Skills live in `.claude/skills/` and are invoked as slash commands
+in Claude Code. Each skill has a `SKILL.md` with trigger rules and
+domain-specific instructions.
+
+| Skill | Description |
+|---|---|
+| `/commit` | Check, version bump, commit, and push workflow |
+| `/frontend-design` | Design-thinking-first UI development |
+| `/screenshot` | Capture and analyse dev server pages |
+| `/seo` | On-page SEO checklist and content rules |
+| `/typescript` | TypeScript data modelling and type design |
+| `/write-copy` | Casomo voice and tone for all prose |
 
 ### Workspace setup
 

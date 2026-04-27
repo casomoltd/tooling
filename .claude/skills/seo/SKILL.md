@@ -9,6 +9,41 @@ Rules for creating search-optimised content on the
 Casomo hub site. These complement the write-copy skill
 (voice and tone) with search-specific guidance.
 
+Full checklist: `hub-site/docs/seo-checklist.md`
+
+## On-Page Checklist
+
+Before considering a page done, verify each item:
+
+1. **Target query confirmed.** One primary, optionally
+   1-2 secondary. Volume >200/mo (tools) or >500/mo
+   (content), KD <10.
+2. **URL slug:** short, lowercase, hyphenated, contains
+   the core noun phrase of the query.
+3. **Title tag:** under 60 chars, primary query near
+   front, brand suffix (` | Casomo`) if space.
+4. **Meta description:** 140-160 chars, includes primary
+   query naturally, sells the click.
+5. **H1:** exactly one, contains the primary query or
+   close variant, different from the title tag.
+6. **First 100 words:** primary query appears naturally;
+   the page answers the query in the opening paragraph.
+7. **H2 hierarchy:** reflects natural sub-questions;
+   secondary queries live in H2s where they fit.
+8. **Body copy:** substantive (1,000+ words for content
+   pages, parity with competitors otherwise), genuine
+   info gain over what's already ranking.
+9. **Internal links:** 2-5 outbound with descriptive
+   anchor text. Identify 2-3 existing pages that should
+   link to this page and add those links.
+10. **Structured data:** Article, WebApplication, FAQ,
+    or BreadcrumbList as applicable. No fake FAQs.
+11. **Canonicals:** self-referencing canonical, Open
+    Graph tags, Twitter card, `lang="en-GB"`.
+12. **Images:** descriptive filenames, meaningful alt
+    text, compressed, lazy-loaded below the fold.
+13. **Flag any item you can't satisfy** and explain why.
+
 ## Authoritative Sources Only
 
 Link to first-party government and institutional
@@ -55,17 +90,6 @@ readers and signals accuracy to search engines.
 Prefer canonical HTML pages over PDFs where both exist.
 PDFs change URLs more often and are harder for readers
 to navigate.
-
-## Content Structure
-
-- H1 should include the primary keyword naturally
-- H2s should target related queries and long-tail
-  variations
-- Use structured data (Article, BreadcrumbList,
-  FAQPage) where appropriate
-- Keep meta descriptions under 155 characters and
-  include the primary keyword
-- Ensure every page has a canonical URL set
 
 ## Keyword Targeting
 
