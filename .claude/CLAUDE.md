@@ -78,12 +78,32 @@ Check workflow status with `gh run list -L 1`.
 - Always push with `--follow-tags` so version tags reach the
   remote alongside the commits
 
+## Workspace Configuration
+
+`~/dev/casomo/.claude` is a symlink to `tooling/.claude`,
+making this directory the single source of truth for workspace
+Claude Code config. Structure:
+
+- **`settings.json`** — committed permissions (allow/deny).
+  Edit here to change what tools are pre-approved.
+- **`settings.local.json`** — gitignored. Only for secrets
+  (`env` block with `NPM_TOKEN`) and machine-local overrides.
+  Auto-approvals during a session land here — promote useful
+  ones to `settings.json` via a reviewed commit, or delete.
+- **`CLAUDE.md`** — this file (committed)
+- **`skills/`** — skill definitions (committed)
+
+Individual repos (e.g. hub-site) should NOT have their own
+`.claude/settings.local.json` — they inherit workspace
+permissions through the symlink.
+
 ## Skills
 
 Skills live in `tooling/.claude/skills/` and are available at the
 workspace root via the `.claude` symlink. Available skills:
-- `/frontend-design` — design-thinking-first UI development
-- `/write-copy` — Casomo voice and tone for all prose
 - `/commit` — check, version bump, commit, push workflow
+- `/frontend-design` — design-thinking-first UI development
 - `/screenshot` — capture and analyse dev server pages
+- `/seo` — on-page SEO checklist and content rules
 - `/typescript` — TypeScript data modelling and type design
+- `/write-copy` — Casomo voice and tone for all prose
