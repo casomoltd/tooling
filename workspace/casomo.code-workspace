@@ -25,6 +25,10 @@
 			"path": "paye-calc"
 		},
 		{
+			"name": "nhs-pay",
+			"path": "nhs-pay",
+		},
+		{
 			"name": ".github",
 			"path": ".github"
 		},
