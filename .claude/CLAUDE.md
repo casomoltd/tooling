@@ -85,11 +85,15 @@ making this directory the single source of truth for workspace
 Claude Code config. Structure:
 
 - **`settings.json`** — committed permissions (allow/deny).
-  Edit here to change what tools are pre-approved.
+  All Bash commands are allowed via `Bash(*)` since this is a
+  local dev workspace. Destructive Git operations (force merge,
+  repo delete) are blocked via the deny list. WebFetch, MCP
+  tools, and Skills are allowed per-domain/per-tool.
 - **`settings.local.json`** — gitignored. Only for secrets
-  (`env` block with `NPM_TOKEN`) and machine-local overrides.
-  Auto-approvals during a session land here — promote useful
-  ones to `settings.json` via a reviewed commit, or delete.
+  (`env` block with `NPM_TOKEN`), machine-local overrides, and
+  non-Bash tool approvals (WebFetch domains, MCP tools) that
+  accumulate during sessions. Promote useful ones to
+  `settings.json` via a reviewed commit, or delete.
 - **`CLAUDE.md`** — this file (committed)
 - **`skills/`** — skill definitions (committed)
 
