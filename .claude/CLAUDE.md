@@ -28,6 +28,10 @@ solutions. Use what the framework provides — don't reinvent
 components, utilities, or patterns that already exist in your
 chosen libraries.
 
+Never hardcode financial constants (tax thresholds, salary
+figures, pension rates, NI limits) in consumer repos — import
+them from the library that owns the data.
+
 ### Assertions
 
 Use `invariant()` for preconditions, not `if/throw`.
