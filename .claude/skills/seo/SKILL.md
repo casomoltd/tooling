@@ -99,3 +99,52 @@ to navigate.
   (e.g. "nhs band 5 pay 2025/26")
 - Use the keyword naturally in H1, first paragraph,
   and at least one H2
+
+## Structured Data Extended Rules
+
+Beyond the basics in the on-page checklist:
+
+- **Organization** (homepage): must include `logo`,
+  `foundingDate`, `sameAs` (director LinkedIn URLs),
+  and `contactPoint`.
+- **WebSite** (root layout): present on every page via
+  the root layout `<JsonLd>`. Includes `name`, `url`,
+  and `publisher`. Add `SearchAction` only when a search
+  endpoint exists.
+- **WebApplication** (tool pages): calculators and
+  interactive tools use `WebApplication` with
+  `applicationCategory`, `operatingSystem`, and a free
+  `Offer`.
+- **DefinedTermSet** (glossaries): glossary index pages
+  use `DefinedTermSet`; individual entries use
+  `DefinedTerm`.
+
+## Performance / Core Web Vitals
+
+- Add `priority` to every `<Image>` that renders above
+  the fold (hero images, author avatars on about pages).
+- Add `sizes` to responsive images so the browser can
+  pick the right source without layout shift.
+- Set immutable cache headers (`Cache-Control: public,
+  max-age=31536000, immutable`) for `/assets/` and
+  `/screenshots/` in `vercel.json`. Next.js handles
+  `_next/static` automatically.
+- Prefer AVIF over WebP via `images.formats` in
+  `next.config.ts`. ~80 % of browsers get smaller AVIF;
+  the rest fall back to WebP.
+- Do not defer CSS for Material Symbols or flag-icons —
+  they load on nearly every page and deferring causes
+  icon flash.
+
+## Internal Linking — Structural Rules
+
+In addition to the per-page guidance above:
+
+- The **homepage** must link to the content cluster:
+  Agenda for Change overview, glossary, and articles
+  index (via a "Start here" section).
+- The **footer** must include a link to the calculator
+  so every page has a path to the primary tool.
+- Band pages, resource pages, and article pages should
+  cross-link within their cluster as described in the
+  Internal Linking section above.

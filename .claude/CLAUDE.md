@@ -70,10 +70,17 @@ user approval.
 
 ## Publishing to GitHub Packages
 
-Packages publish via GitHub Actions on push to main. After pushing
-a new version of a dependency (e.g. design-tokens), wait for the
-publish workflow to complete before running `npm i` in consumers.
-Check workflow status with `gh run list -L 1`.
+Packages publish via GitHub Actions on **release** (not on
+push). After `npm version patch` and `git push --follow-tags`,
+create a GitHub Release to trigger the publish workflow:
+
+```bash
+gh release create v<version> --title "v<version>" --notes "..."
+```
+
+Wait for the publish workflow to complete before running
+`npm i` in consumers. Check workflow status with
+`gh run list -L 1`.
 
 ## Git Commits
 
