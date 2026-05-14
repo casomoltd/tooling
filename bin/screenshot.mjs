@@ -59,7 +59,24 @@ const { values, positionals } = parseArgs({
   allowPositionals: true,
 });
 
+async function serverIsUp(url) {
+  try {
+    await fetch(url, {signal: AbortSignal.timeout(3000)});
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function screenshot() {
+  if (!(await serverIsUp(BASE_URL))) {
+    console.error(
+      `screenshot: server not reachable at ${BASE_URL}\n` +
+      `Start the dev server first (npm run dev).`,
+    );
+    process.exit(1);
+  }
+
   const pageName = positionals[0] || "base";
   const preset = values.preset
     ? PRESETS[values.preset]

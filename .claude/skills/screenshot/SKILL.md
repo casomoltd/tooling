@@ -29,6 +29,19 @@ Pass `--preset <name>` or raw `--width`/`--height` flags.
 When no preset or dimensions are given the default is
 desktop (1280 × 800).
 
+## Prerequisites
+
+The dev server **must already be running** — never start
+one yourself (`npm run dev`, `npx next dev`, etc.).
+Before taking a screenshot, verify the server is up:
+
+```bash
+lsof -ti:3000
+```
+
+If nothing is returned, tell the user to start their dev
+server and stop.
+
 ## Steps
 
 1. **Take the screenshot** — run `npm run ss` with the
