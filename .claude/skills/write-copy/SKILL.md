@@ -79,6 +79,16 @@ The voice reads like an engineer explaining something clearly to someone they re
 - Data claims need a source. If a figure comes from HMRC, NHS Employers, or another body, cite it.
 - **Cross-check before publishing.** Never rely on a single secondary source for figures. Verify statistics, salary tables, dates and rates against the primary source (official government pages, HMRC, NHS Employers). If the primary source is a PDF that can't be parsed, triangulate across multiple secondary sources and flag discrepancies for the user.
 
+## Numbers and Worked Examples
+
+Concrete numbers reassure readers; abstract notation scares them off. The thing people fear is not arithmetic — it is *notation*. A lettered formula like `P = S × M × (1/80)` reads like a maths exam. The same calculation written as `£40,000 pay × 20 years ÷ 80 = £10,000 a year` reads as a simple sum, and the reader who would flinch at the formula will happily follow it.
+
+- **Plain words carry the meaning first.** The prose must make complete sense to someone who skips every number. The maths is never load-bearing.
+- **Worked examples, not formulas.** Use real figures (pound signs, actual years), never lettered variables or stacked fraction notation.
+- **Make the maths visibly optional.** Put a worked example in its own labelled box or callout, so a reader can step over it without losing the thread.
+- **One example where it earns its place.** Add a worked example only where it genuinely clarifies a mechanic. Do not force one into every section.
+- When a calculation is too involved to show as a clean sum, prefer a simplified version or a visual (a chart) over exposing the full formula.
+
 ## Calibrating for Context
 
 - **Website copy:** Most polished version of the voice. Every sentence earns its place. Short paragraphs, clear structure, no filler.
