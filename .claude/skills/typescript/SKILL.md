@@ -44,6 +44,21 @@ Call sites reference the const object for individual
 lookups (`STATUSES.Draft`) and the derived array for
 iteration.
 
+## No Magic Literals
+
+Repeated literals — route/page paths, storage keys, query
+params, event names — belong in one exported constant,
+imported at every call site. Never hardcode the same
+literal across multiple files.
+
+```ts
+// Good: one source of truth, imported everywhere
+export const ROUTES = { CALCULATOR: '/calculator' } as const;
+// pathname.startsWith(ROUTES.CALCULATOR)
+
+// Bad: '/calculator' copied across pages, nav, helpers
+```
+
 ## Separate Static from Varying
 
 Metadata that doesn't change per variant (labels, slugs,
