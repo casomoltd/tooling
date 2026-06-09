@@ -42,6 +42,22 @@ lsof -ti:3000
 If nothing is returned, tell the user to start their dev
 server and stop.
 
+## Known limitation: client-only components
+
+The screenshot tool uses Puppeteer with
+`waitUntil: "networkidle0"`, which fires when there are
+no outstanding network requests for 500 ms. It does **not**
+wait for React hydration or client-side rendering to
+complete. Components that render entirely on the client
+(e.g. Recharts charts inside a `'use client'` boundary)
+may appear empty, partially rendered, or clipped in
+screenshots even though they display correctly in a real
+browser.
+
+If a screenshot shows a client-rendered component looking
+wrong, **do not chase layout or sizing fixes** — verify
+manually in the browser instead.
+
 ## Steps
 
 1. **Take the screenshot** — run `npm run ss` with the
