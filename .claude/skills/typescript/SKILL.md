@@ -103,3 +103,32 @@ const items: Record<ItemId, Detail[]>;
 // Avoid: unnecessary nesting
 const data: { items: { id: string; details: ... }[] };
 ```
+
+## Don't Swallow Exceptions
+
+A bare `catch {}` discards the error and hides real failures. A
+caught error is typed `unknown` — report it, then decide whether
+to recover or rethrow. Never leave an empty catch.
+
+```ts
+// Good: surface the failure, then degrade
+try {
+  return parseWorkspace(raw);
+} catch (error) {
+  captureError(error, { context: 'parse_workspace' });
+  return null;
+}
+
+// Bad: the failure is now invisible
+try {
+  return parseWorkspace(raw);
+} catch {
+  return null;
+}
+```
+
+Empty catches are acceptable only for expected, benign cases
+(e.g. `localStorage` in private mode) — and then add a comment
+saying why. In hub-site, report with `captureError` from
+`@/lib/capture-error`; PostHog exception autocapture covers
+unhandled errors and rejections.
