@@ -5,6 +5,8 @@ description: Use this skill when creating or editing page content that targets o
 
 # SEO Content Rules
 
+**Scope:** hub-site (casomo.co.uk) only. Lives in the shared `tooling` config because skills are discovered from the workspace root, not per repo.
+
 Rules for creating search-optimised content on the
 Casomo hub site. These complement the write-copy skill
 (voice and tone) with search-specific guidance.

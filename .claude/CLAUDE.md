@@ -118,6 +118,7 @@ Skills live in `tooling/.claude/skills/` and are available at the
 workspace root via the `.claude` symlink. Available skills:
 - `/commit` — check, version bump, commit, push workflow
 - `/frontend-design` — design-thinking-first UI development
+- `/keyword-map` — portfolio keyword-ownership & cannibalisation audit
 - `/screenshot` — capture and analyse dev server pages
 - `/seo` — on-page SEO checklist and content rules
 - `/typescript` — TypeScript data modelling and type design
