@@ -8,6 +8,8 @@ argument-hint: "<repo> [patch|minor] [message]"
 allowed-tools:
   - Bash(npm run check)
   - Bash(npm version *)
+  - Bash(uv run *)
+  - Bash(uv version *)
   - Bash(git *)
 ---
 
