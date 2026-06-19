@@ -1,6 +1,6 @@
 ---
 name: seo
-description: Use this skill when creating or editing page content that targets organic search, including page titles, meta descriptions, headings, structured data, internal linking, and source citations. Also trigger when the user asks about SEO strategy, keyword targeting, or content structure for search visibility.
+description: Use this skill when optimising a SINGLE page's on-page elements for organic search — page title, meta description, headings, structured data, internal linking, and source citations — once that page's target query is already assigned. Also trigger for on-page SEO and content structure for a given page. Do NOT use for portfolio-wide keyword assignment, deciding which page should own a term, or cannibalisation audits across pages — use the `keyword-map` skill for that ("who should own this term", "are we cannibalising", "audit the pages"). In short: `keyword-map` assigns the target term; `seo` optimises one page to it.
 ---
 
 # SEO Content Rules
