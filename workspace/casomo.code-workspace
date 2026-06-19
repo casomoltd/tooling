@@ -32,6 +32,14 @@
 			"name": ".github",
 			"path": ".github"
 		},
+		// Throwaway scratch space, NOT a versioned repo. One-off tools and
+		// experiments that don't belong in any product repo. Currently holds
+		// nn-reclaim (a backlink-reclamation pipeline built for the dead
+		// nursingnotes.co.uk domain — see its README). Safe to delete.
+		{
+			"name": "scratch",
+			"path": "scratch"
+		},
 	],
 	"settings": {
 		"editor.rulers": [
