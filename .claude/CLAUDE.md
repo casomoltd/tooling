@@ -57,16 +57,32 @@ type — never pass bare `string` between modules:
 
 ## Before Committing
 
-Run `npm run check` before committing. Each repo's `check` script
-runs whatever validation that project needs.
+Run the repo's checks before committing. The command depends on
+the toolchain:
+
+- **npm repos** (`package.json`): `npm run check` — each repo's
+  `check` script runs whatever validation that project needs.
+- **Python/uv repos** (`pyproject.toml`, no `package.json`, e.g.
+  `infra`): there is no `npm run check`; run the strict suite
+  directly — `uv run ruff check && uv run ruff format --check &&
+  uv run pyright && uv run pytest`.
 
 ## Versioning
 
-Use `npm version patch` or `npm version minor` to bump versions.
-This updates `package.json`, creates a commit, and tags atomically
-— never edit the version field manually or create tags by hand.
-**Never run `npm version major`** — major bumps require explicit
-user approval.
+Bump versions with the repo's own tooling — never edit the
+version field manually or create tags by hand. **Never bump
+major** (`npm version major` / `uv version --bump major`) —
+major bumps require explicit user approval.
+
+- **npm repos:** `npm version patch` / `npm version minor`
+  updates `package.json`, commits, and creates an annotated tag
+  atomically.
+- **Python/uv repos:** `uv version --bump patch` (or `minor`)
+  only edits `pyproject.toml` + `uv.lock` — it does **not**
+  commit or tag. Stage those files, commit `v<version>`, then
+  create an **annotated** tag (`git tag -a v<version> -m
+  v<version>`). A lightweight tag won't reach the remote via
+  `git push --follow-tags`.
 
 ## Publishing to GitHub Packages
 

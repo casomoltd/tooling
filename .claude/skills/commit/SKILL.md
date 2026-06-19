@@ -32,9 +32,20 @@ repo to commit in. Do not guess.
 
 ## 1. Run checks
 
-```bash
-cd "$WORKSPACE_ROOT/<repo>" && npm run check
-```
+Pick the command by toolchain — detect it from the repo root:
+
+- **npm repo** (`package.json` present — `hub-site`,
+  `paye-calc`, `tooling`, …):
+  ```bash
+  cd "$WORKSPACE_ROOT/<repo>" && npm run check
+  ```
+- **Python/uv repo** (`pyproject.toml`, no `package.json` —
+  e.g. `infra`): there is no `npm run check`. Run the strict
+  suite directly:
+  ```bash
+  cd "$WORKSPACE_ROOT/<repo>" && uv run ruff check && \
+    uv run ruff format --check && uv run pyright && uv run pytest
+  ```
 
 If checks fail, fix the issues and re-run until they pass.
 Do NOT proceed until checks pass.
@@ -78,14 +89,32 @@ version keyword, use it as the commit message.
 
 ## 6. Bump version
 
-Run the appropriate version bump:
+The level comes from `$ARGUMENTS`: `minor` → minor, else
+`patch`. **Never run a major bump** (`npm version major` /
+`uv version --bump major`) — ask the user first. The
+mechanics differ by toolchain:
 
-- Default: `npm version patch`
-- If `$ARGUMENTS` contains "minor": `npm version minor`
-- **Never run `npm version major`** — ask the user first
+- **npm repo** — atomic: `npm version` updates
+  `package.json`, commits, and creates an **annotated** tag
+  in one step:
+  ```bash
+  npm version patch   # or: npm version minor
+  ```
+  This is why code changes must be committed first (step 5).
 
-`npm version` creates its own commit and tag automatically.
-This is why code changes must be committed first (step 4).
+- **Python/uv repo** — `uv version` only edits files; it does
+  **not** commit or tag. Do those steps by hand:
+  ```bash
+  uv version --bump patch        # or minor; e.g. 0.1.0 -> 0.2.0
+  git add pyproject.toml uv.lock
+  git commit -m "v<new-version>"
+  git tag -a "v<new-version>" -m "v<new-version>"
+  ```
+  The tag **must be annotated** (`-a`) — `git push
+  --follow-tags` silently skips lightweight tags (a bare
+  `git tag v0.2.0` will not reach the remote). A pure ops
+  repo with no prior tags is fine; the first bump just
+  establishes versioning.
 
 ## 7. Push
 
@@ -95,6 +124,16 @@ git push --follow-tags
 
 This pushes both the commits and the version tag. The
 `--follow-tags` flag is required by the Casomo pre-push hook.
+Confirm the tag actually landed — `--follow-tags` carries
+only annotated tags:
+
+```bash
+git ls-remote --tags origin | grep "v<new-version>"
+```
+
+If the tag is missing (e.g. it was created lightweight),
+push it explicitly — non-destructive — rather than deleting
+and recreating it: `git push origin v<new-version>`.
 
 ## Error recovery
 
@@ -103,11 +142,14 @@ commands to "fix" it. No `git tag -d`, `git reset --hard`,
 `git push --force`, or history rewrites — version numbers
 are cheap, clean history is not.
 
-- **`npm version` bumped twice or at the wrong level:**
+- **Version bumped twice or at the wrong level:**
   Accept the higher version number and move on.
-- **`npm version` ran in the wrong directory:** Accept
+- **The bump ran in the wrong directory:** Accept
   the accidental bump in that repo (it's harmless), then
   run the intended bump in the correct directory.
+- **Tag created lightweight / didn't reach the remote:**
+  Push it explicitly with `git push origin v<version>`. Do
+  not delete and recreate it.
 - **Pre-commit hook fails after staging:** Fix the issue
   and create a **new** commit — never amend.
 - **Push fails:** Investigate the cause (upstream changes,
