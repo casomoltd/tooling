@@ -5,9 +5,6 @@
     "type": "git",
     "url": "https://github.com/casomoltd/tooling.git"
   },
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
-  },
   "files": [
     "bin/",
     "eslint/",
@@ -20,7 +17,7 @@
     "README.md"
   ],
   "scripts": {
-    "check": "true",
+    "check": "node bin/verify-pack.mjs",
     "prepare": "husky || true"
   },
   "exports": {

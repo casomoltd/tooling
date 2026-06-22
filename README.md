@@ -32,17 +32,16 @@ Casomo repos.
 
 ## Install
 
-Published to GitHub Packages. Add to your `.npmrc`:
+Consumed as a **git dependency** — it's shared config + CLI scripts,
+not a registry package. Add it to a consumer's `devDependencies`:
 
-```
-@casomoltd:registry=https://npm.pkg.github.com
+```json
+"@casomoltd/tooling": "github:casomoltd/tooling#semver:^0.10.0"
 ```
 
-Then install as a dev dependency:
-
-```bash
-npm install -D @casomoltd/tooling
-```
+The repo is public, so installs need no token. The `files` allowlist
+plus the `verify-pack` leak-gate keep the installed surface to
+configs/CLI only.
 
 ## Husky hooks
 
@@ -249,17 +248,9 @@ When launched from the workspace root, it picks up the
 shared conventions. Each repo also has its own `CLAUDE.md`
 for project-specific instructions.
 
-### GitHub Packages auth
+### Package distribution
 
-Casomo packages are published to GitHub Packages under the
-`@casomoltd` scope. To install them, add the registry and an
-auth token to your user-level `~/.npmrc`:
-
-```
-@casomoltd:registry=https://npm.pkg.github.com
-//npm.pkg.github.com/:_authToken=<YOUR_GITHUB_TOKEN>
-```
-
-The token needs the `read:packages` scope. This is a one-time
-setup — all repos in the workspace will pick it up
-automatically.
+The product libraries (`@casomoltd/paye-calc`, `@casomoltd/nhs-pay`,
+`@casomoltd/design-tokens`) publish to the public npm registry — install
+with no auth or `.npmrc`. `@casomoltd/tooling` is **not** published; it's
+consumed as a git dependency from this (public) repo.

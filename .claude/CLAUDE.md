@@ -84,26 +84,25 @@ major bumps require explicit user approval.
   v<version>`). A lightweight tag won't reach the remote via
   `git push --follow-tags`.
 
-## Publishing to GitHub Packages
+## Publishing
 
-Packages publish via GitHub Actions, but the **trigger differs
-per repo** — read each repo's `.github/workflows/publish.yml`
-`on:` block rather than assuming:
+The three product libraries — **`paye-calc`, `nhs-pay`,
+`design-tokens`** — publish to the **public npm registry**
+(`registry.npmjs.org`) via GitHub Actions, authed by the
+`NPM_PUBLISH_TOKEN` org secret. Public installs need no token or
+`.npmrc` — consumers just `npm i @casomoltd/<pkg>`.
 
-- **Publish-on-release** (`paye-calc`, `nhs-pay`) — `publish.yml`
-  triggers on `release:`. A push does **not** publish; after
-  `npm version patch` and `git push --follow-tags`, create a
-  GitHub Release to trigger the workflow:
-  ```bash
-  gh release create v<version> --title "v<version>" --notes "..."
-  ```
-- **Publish-on-push** (`design-tokens`) — `publish.yml` triggers
-  on `push:` to `main`. The push itself publishes; **no** Release
-  step is needed.
+- **Trigger: publish on push to `main`** (uniform across the three).
+  Safe because the pre-push `check-version` hook rejects a push to main
+  unless the version bumped vs `origin/main`, so every main push is a
+  new version. Flow: `npm version patch` → `git push --follow-tags`
+  (the push publishes). Wait for the workflow before `npm i` in
+  consumers (`gh run list -L 1`).
 
-Either way, wait for the publish workflow to complete before
-running `npm i` in consumers. Check workflow status with
-`gh run list -L 1`.
+**`tooling` is not published.** It's shared config + CLI, consumed as a
+**git dependency** from its public repo
+(`github:casomoltd/tooling#semver:^0.10.0`). Bump + push (`npm version
+patch` → `git push --follow-tags`) and consumers resolve the new tag.
 
 ## Git Commits
 
