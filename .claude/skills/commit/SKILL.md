@@ -1,8 +1,8 @@
 ---
 name: commit
 description: >-
-  Run checks, bump version, commit, and push following
-  Casomo conventions
+  Run checks, bump version, and commit following Casomo
+  conventions. Pushing is a separate, explicitly-requested step
 user-invocable: true
 argument-hint: "<repo> [patch|minor] [message]"
 allowed-tools:
@@ -118,16 +118,22 @@ mechanics differ by toolchain:
   repo with no prior tags is fine; the first bump just
   establishes versioning.
 
-## 7. Push
+## 7. Stop — do NOT push automatically
+
+Pushing is **never** part of the default flow. After the version
+bump, **stop and report the local state** — the new commits and
+tag — and show the exact push command for the user:
 
 ```bash
 git push --follow-tags
 ```
 
-This pushes both the commits and the version tag. The
-`--follow-tags` flag is required by the Casomo pre-push hook.
-Confirm the tag actually landed — `--follow-tags` carries
-only annotated tags:
+Only run it **if the user explicitly asks to push** ("push", "ship
+it", etc.). Running `/commit`, or being asked to "commit", is NOT
+permission to push. `--follow-tags` is required (the Casomo pre-push
+hook needs it; it carries only annotated tags).
+
+When the user does ask, push and confirm the tag landed:
 
 ```bash
 git ls-remote --tags origin | grep "v<new-version>"

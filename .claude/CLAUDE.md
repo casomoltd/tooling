@@ -102,8 +102,18 @@ Wait for the publish workflow to complete before running
 
 - Do NOT include "Generated with Claude Code" or "Co-Authored-By"
 - Keep commit messages concise and focused on the change
-- Always push with `--follow-tags` so version tags reach the
-  remote alongside the commits
+
+## Pushing (never automatic)
+
+**Never `git push` without an explicit request from the user.**
+Committing, bumping the version, and tagging locally are fine
+within a workflow the user asked for — but pushing is an
+outward-facing action and must be its own explicit instruction
+("push", "push it", "ship it"). Do not treat "commit" or running
+`/commit` as permission to push. When the user *does* ask to push,
+use `--follow-tags` so annotated version tags reach the remote
+alongside the commits. If unsure, stop after the local commit and
+report the state with the exact push command for the user to run.
 
 ## Workspace Configuration
 
