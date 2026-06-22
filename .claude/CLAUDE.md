@@ -86,16 +86,23 @@ major bumps require explicit user approval.
 
 ## Publishing to GitHub Packages
 
-Packages publish via GitHub Actions on **release** (not on
-push). After `npm version patch` and `git push --follow-tags`,
-create a GitHub Release to trigger the publish workflow:
+Packages publish via GitHub Actions, but the **trigger differs
+per repo** — read each repo's `.github/workflows/publish.yml`
+`on:` block rather than assuming:
 
-```bash
-gh release create v<version> --title "v<version>" --notes "..."
-```
+- **Publish-on-release** (`paye-calc`, `nhs-pay`) — `publish.yml`
+  triggers on `release:`. A push does **not** publish; after
+  `npm version patch` and `git push --follow-tags`, create a
+  GitHub Release to trigger the workflow:
+  ```bash
+  gh release create v<version> --title "v<version>" --notes "..."
+  ```
+- **Publish-on-push** (`design-tokens`) — `publish.yml` triggers
+  on `push:` to `main`. The push itself publishes; **no** Release
+  step is needed.
 
-Wait for the publish workflow to complete before running
-`npm i` in consumers. Check workflow status with
+Either way, wait for the publish workflow to complete before
+running `npm i` in consumers. Check workflow status with
 `gh run list -L 1`.
 
 ## Git Commits
@@ -145,7 +152,9 @@ workspace root via the `.claude` symlink. Available skills:
 - `/commit` — check, version bump, commit, push workflow
 - `/frontend-design` — design-thinking-first UI development
 - `/keyword-map` — portfolio keyword-ownership & cannibalisation audit
+- `/release-version` — version bump → push → Release tail (after `/commit`)
 - `/screenshot` — capture and analyse dev server pages
 - `/seo` — on-page SEO checklist and content rules
+- `/triage-backlog` — triage the execution backlog (TODO.md)
 - `/typescript` — TypeScript data modelling and type design
 - `/write-copy` — Casomo voice and tone for all prose

@@ -120,9 +120,12 @@ mechanics differ by toolchain:
 
 ## 7. Stop — do NOT push automatically
 
-Pushing is **never** part of the default flow. After the version
-bump, **stop and report the local state** — the new commits and
-tag — and show the exact push command for the user:
+Pushing is **never** part of the default flow. The whole release
+tail — version bump → push → (for package repos) GitHub Release — has
+its own skill, **`/release-version`**; running a release after a commit
+is a deliberate, separate invocation. After the version bump here,
+**stop and report the local state** — the new commits and tag — and
+show the exact push command for the user:
 
 ```bash
 git push --follow-tags

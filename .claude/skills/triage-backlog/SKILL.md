@@ -2,9 +2,10 @@
 name: triage-backlog
 description: >-
   Triage the Casomo execution backlog file (TODO.md) — route Notion
-  Inbox captures into it, verify drift against the repos, prune done
-  work, reorder, and keep a dated changelog. NOT for the Notion Idea
-  Backlog, PR/issue queues, or generic task lists.
+  Inbox captures into it, reconcile against the Notion Tasks DB, verify
+  drift against the repos, prune done work, reorder, and keep a dated
+  changelog. NOT for the Notion Idea Backlog, PR/issue queues, or
+  generic task lists.
 user-invocable: true
 argument-hint: "[add \"<item>\"]  (no arg = full triage cycle)"
 allowed-tools:
@@ -17,6 +18,7 @@ allowed-tools:
   - Agent
   - mcp__plugin_Notion_notion__notion-fetch
   - mcp__plugin_Notion_notion__notion-search
+  - mcp__plugin_Notion_notion__notion-query-data-sources
   - mcp__plugin_Notion_notion__notion-create-pages
   - mcp__plugin_Notion_notion__notion-update-page
 ---
@@ -40,7 +42,11 @@ separation — this backlog is one layer in it, not a replacement:
   Claude). Routed, then cleared.
 - **This backlog file** = the single home for rich dev specs/state.
 - **Notion Tasks "Now"** = the 1–3 items actually in flight, as *thin
-  pointers* ("short, vague is fine"). Completed tasks disappear.
+  pointers* ("short, vague is fine"). Completed tasks disappear. Triage
+  **reads** this DB to reconcile (a Task gone Done/Closed → close its
+  backlog item; an active Task → confirm the backlog reflects it; an
+  existing live pointer → don't duplicate it) as well as **writing** new
+  pointers at finalize.
 - **Decisions** → the Casomo **Decisions DB**. **SEO data** → the
   **Pages DB**. Backlog items **link** to these by id — never duplicate
   their content here.
@@ -75,10 +81,14 @@ and gates drift checks.
 
 If `WORKSPACE_ROOT` is unset, stop and ask the user to set it.
 
-## 1. Intake — route captures (kills double-entry)
+## 1. Intake & Notion sync (kills double-entry)
 
-Pull new captures into the backlog so the user only ever captures once:
+Two-way sync with Notion so the user only ever captures once and the
+backlog matches what's actually in flight. Both halves are read-only
+here — any *writes* (clearing the Inbox, creating pointers) wait for
+the finalize stage (step 5).
 
+**1a. Inbox — route captures in.**
 - `fetch` the Notion **Inbox** page (find it via `notion-search` for
   "Inbox" under the user's Life & Work OS). Identify items that are
   Casomo dev/product work.
@@ -88,6 +98,21 @@ Pull new captures into the backlog so the user only ever captures once:
 - **List exactly what you routed** so the user can clear those Inbox
   items (per the OS, Inbox is cleared at review — you don't delete it
   for them unless asked).
+
+**1b. Tasks DB — reconcile against in-flight work.**
+- Find the **Tasks** DB (under Life & Work OS via `notion-search`) and
+  `query-data-sources` it for the Company-domain rows that matter:
+  active pointers (Status `Now`/`Soon`/`Waiting`/`Paused`) and recently
+  `Done`/`Closed` ones.
+- Use them to reconcile, not to duplicate:
+  - a Task gone **Done/Closed** whose backlog item is still open →
+    flag the backlog item to close (verify in step 2, prune in step 3);
+  - an **active** Task → confirm a matching backlog item exists and is
+    tiered sensibly (promote if it's live but buried);
+  - note backlog items that **already** have a live pointer so the
+    finalize step doesn't create a duplicate.
+- Report the reconciliation (what Tasks map to which backlog items,
+  what's orphaned either way).
 
 If Notion is unavailable, say so and continue with session/`add` items
 only — never block the triage on it.
@@ -138,8 +163,9 @@ stop and wait:
 
 - **Notion sync:** which active items (≤ 3, within the OS's 3–5 "Now"
   cap) to create as thin Task pointers (Domain = `Company`, Status =
-  `Now`, body links back to the backlog); and any genuine architectural/
-  product **decision** to log to the Casomo Decisions DB
+  `Now`, body links back to the backlog) — **skip any that step 1b found
+  already have a live pointer**; and any genuine architectural/product
+  **decision** to log to the Casomo Decisions DB
   (`[[notion-decisions-db]]`). Don't mirror the whole backlog — only
   what's live. Completed pointers are deleted, not marked done.
 - **Backlog commit:** the `TODO.md` diff to commit, in its **private**
