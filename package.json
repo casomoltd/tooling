@@ -8,6 +8,17 @@
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
   },
+  "files": [
+    "bin/",
+    "eslint/",
+    "prettier/",
+    "commitlint/",
+    "knip/",
+    "jscpd/",
+    "readability/",
+    "link-checker/",
+    "README.md"
+  ],
   "scripts": {
     "check": "true",
     "prepare": "husky || true"
