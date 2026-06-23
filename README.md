@@ -193,64 +193,34 @@ npm link ../tooling
 This overrides the published version until the next
 `npm install`, which restores the registry version.
 
-## Claude Code config
+## Claude Code skills (plugin)
 
-The `.claude/` directory contains shared Claude Code instructions
-(`CLAUDE.md`) and skills that apply across all Casomo repos.
-
-### Skills
-
-Skills live in `.claude/skills/` and are invoked as slash commands
-in Claude Code. Each skill has a `SKILL.md` with trigger rules and
-domain-specific instructions.
+This repo is a Claude Code skills plugin (`.claude-plugin/`). It ships
+the **generic, public engineering-standard skills** under `skills/` —
+the standards we work to. Business-specific skills are kept in private
+workspace config, not here.
 
 | Skill | Description |
 |---|---|
-| `/commit` | Check, version bump, commit, and push workflow |
-| `/frontend-design` | Design-thinking-first UI development |
-| `/screenshot` | Capture and analyse dev server pages |
-| `/seo` | On-page SEO checklist and content rules |
-| `/typescript` | TypeScript data modelling and type design |
-| `/write-copy` | Casomo voice and tone for all prose |
+| `/casomoltd:commit` | Run checks and commit cleanly (no bump, no push) |
+| `/casomoltd:release-version` | Bump → push → CI publish/deploy (the release tail) |
+| `/casomoltd:frontend-design` | Distinctive, production-grade frontend UI |
+| `/casomoltd:python-style` | Python code-generation style rules |
+| `/casomoltd:typescript` | TypeScript data modelling and type design |
+| `/casomoltd:screenshot` | Capture and analyse a dev server page |
 
-### Workspace setup
-
-All repos are cloned into a single workspace directory.
-Export `WORKSPACE_ROOT` in your shell profile so that
-skills and scripts can find it:
+Enable the plugin by adding this repo as a marketplace and installing it:
 
 ```bash
-export WORKSPACE_ROOT=~/dev/casomo
+/plugin marketplace add github:casomoltd/tooling
+/plugin install casomoltd@casomo-tooling
 ```
 
-Symlinks at the workspace root point to shared config
-checked into this repo:
+Skills then load namespaced as `/casomoltd:<name>`.
 
-```
-$WORKSPACE_ROOT/
-  CLAUDE.md                    -> tooling/claude/CLAUDE.md
-  casomo.code-workspace        -> tooling/workspace/…
-  tooling/claude/CLAUDE.md                # source of truth
-  tooling/workspace/casomo.code-workspace # source of truth
-  hub-site/CLAUDE.md                      # project-specific
-  ...
-```
+## Package distribution
 
-Create the symlinks:
-
-```bash
-ln -sf tooling/claude/CLAUDE.md CLAUDE.md
-ln -sf tooling/workspace/casomo.code-workspace casomo.code-workspace
-```
-
-Claude Code loads `CLAUDE.md` from the working directory.
-When launched from the workspace root, it picks up the
-shared conventions. Each repo also has its own `CLAUDE.md`
-for project-specific instructions.
-
-### Package distribution
-
-The product libraries (`@casomoltd/paye-calc`, `@casomoltd/nhs-pay`,
-`@casomoltd/design-tokens`) publish to the public npm registry — install
+The product libraries (`@casomoltd/paye-calc`, `@casomoltd/nhs-pay`)
+publish to the public npm registry via OIDC trusted publishing — install
 with no auth or `.npmrc`. `@casomoltd/tooling` is **not** published; it's
 consumed as a git dependency from this (public) repo.

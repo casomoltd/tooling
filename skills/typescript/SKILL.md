@@ -9,9 +9,9 @@ user-invocable: false
 # TypeScript Data Modelling
 
 Apply these principles when creating or restructuring types,
-constants, or domain data in TypeScript. For general code
-conventions (line length, file naming, assertions), follow
-the Code Conventions section in CLAUDE.md.
+constants, or domain data in TypeScript. (Scope: data and type
+design — general formatting such as line length and file naming is
+out of this skill's scope.)
 
 ## Typed Identifiers
 
@@ -53,10 +53,10 @@ literal across multiple files.
 
 ```ts
 // Good: one source of truth, imported everywhere
-export const ROUTES = { CALCULATOR: '/calculator' } as const;
-// pathname.startsWith(ROUTES.CALCULATOR)
+export const ROUTES = { DASHBOARD: '/dashboard' } as const;
+// pathname.startsWith(ROUTES.DASHBOARD)
 
-// Bad: '/calculator' copied across pages, nav, helpers
+// Bad: '/dashboard' copied across pages, nav, helpers
 ```
 
 ## Separate Static from Varying
@@ -113,15 +113,15 @@ to recover or rethrow. Never leave an empty catch.
 ```ts
 // Good: surface the failure, then degrade
 try {
-  return parseWorkspace(raw);
+  return parseConfig(raw);
 } catch (error) {
-  captureError(error, { context: 'parse_workspace' });
+  reportError(error, { context: 'parse_config' });
   return null;
 }
 
 // Bad: the failure is now invisible
 try {
-  return parseWorkspace(raw);
+  return parseConfig(raw);
 } catch {
   return null;
 }
@@ -129,6 +129,5 @@ try {
 
 Empty catches are acceptable only for expected, benign cases
 (e.g. `localStorage` in private mode) — and then add a comment
-saying why. In hub-site, report with `captureError` from
-`@/lib/capture-error`; PostHog exception autocapture covers
-unhandled errors and rejections.
+saying why. Otherwise route caught errors to your app's error
+reporter rather than swallowing them.

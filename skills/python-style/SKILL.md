@@ -9,8 +9,11 @@ paths: "**/*.py"
 
 # Python Code Generation — Style Rules
 
-Follow the [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html)
-with the project-specific preferences below.
+The rules below are self-contained — apply them directly. They take the
+[Google Python Style Guide](https://google.github.io/styleguide/pyguide.html)
+as the baseline (assume its conventions wherever this file is silent),
+but what's written here is what's enforced; don't rely on fetching the
+guide at runtime.
 
 ## Design
 
@@ -89,19 +92,19 @@ any code is written.
   lookup-by-key → `Mapping`; dedup + membership → `Set`/`Collection`;
   ordered + indexed → `Sequence`. The ABC gives you the full interface
   (`keys`/`values`/`get`/`__contains__`, set algebra, …) from a few
-  methods, and lets the type own domain operations (`new_since`,
-  `unseen`). Don't reach for `Mapping` just because the elements have a
+  methods, and lets the type own domain operations (e.g. `unseen`,
+  `since`). Don't reach for `Mapping` just because the elements have a
   key — only if something genuinely looks them up by it; if you only
   iterate and dedupe, that's a `Collection`/`Set`.
 
   ```python
   # ids ARE looked up (set-difference then recover the object) → Mapping
-  class Publications(Mapping[PublicationId, Publication]):
-      def __init__(self, items=()): self._by_id = {p.id: p for p in items}
+  class Records(Mapping[RecordId, Record]):
+      def __init__(self, items=()): self._by_id = {r.id: r for r in items}
       def __getitem__(self, k): return self._by_id[k]
       def __iter__(self): return iter(self._by_id)
       def __len__(self): return len(self._by_id)
-      def new_since(self, seen) -> list[Publication]:
+      def unseen(self, seen) -> list[Record]:
           return [self[k] for k in self if k not in seen]
   ```
 

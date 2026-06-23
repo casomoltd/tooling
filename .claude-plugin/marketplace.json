@@ -1,0 +1,11 @@
+{
+  "name": "casomo-tooling",
+  "owner": { "name": "Casomo Ltd" },
+  "plugins": [
+    {
+      "name": "casomoltd",
+      "description": "Casomo shared engineering-standard skills",
+      "source": "."
+    }
+  ]
+}

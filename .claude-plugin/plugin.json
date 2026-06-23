@@ -1,0 +1,5 @@
+{
+  "name": "casomoltd",
+  "description": "Casomo shared engineering-standard skills (the standards we work to): commit, release-version, frontend-design, python-style, typescript, screenshot",
+  "author": { "name": "Casomo Ltd" }
+}
