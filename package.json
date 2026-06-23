@@ -13,7 +13,6 @@
     "knip/",
     "jscpd/",
     "readability/",
-    "link-checker/",
     "README.md"
   ],
   "scripts": {
@@ -33,14 +32,12 @@
     "check-tags": "./bin/check-tags.sh",
     "check-version": "./bin/check-version.sh",
     "commit-msg": "./bin/commit-msg.sh",
-    "link-checker": "./bin/link-checker.mjs",
     "pre-commit": "./bin/pre-commit.sh",
     "pre-push": "./bin/pre-push.sh",
     "readability": "./bin/readability.mjs",
     "screenshot": "./bin/screenshot.mjs"
   },
   "dependencies": {
-    "linkinator": "^7.6.1",
     "puppeteer": "^24.36.1",
     "text-readability": "^1.1.1"
   },
