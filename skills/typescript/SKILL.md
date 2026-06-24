@@ -1,17 +1,18 @@
 ---
 name: typescript
 description: >-
-  TypeScript data modelling and type design — typed
-  identifiers, clean domain data, structured constants
+  TypeScript data, type, and component-variant design — typed
+  identifiers, clean domain data, variants over mode flags
 user-invocable: false
 ---
 
 # TypeScript Data Modelling
 
 Apply these principles when creating or restructuring types,
-constants, or domain data in TypeScript. (Scope: data and type
-design — general formatting such as line length and file naming is
-out of this skill's scope.)
+constants, domain data, or component variants in TypeScript /
+TSX. (Scope: data, type, and component-API design — general
+formatting such as line length and file naming is out of this
+skill's scope.)
 
 ## Typed Identifiers
 
@@ -58,6 +59,91 @@ export const ROUTES = { DASHBOARD: '/dashboard' } as const;
 
 // Bad: '/dashboard' copied across pages, nav, helpers
 ```
+
+## Variants over Mode Flags
+
+When a unit varies along a small fixed axis of behaviour,
+model each variant explicitly — don't thread a stringly-typed
+`mode` flag through the body. A `mode: 'a' | 'b'` string pushes
+a runtime branch into the body, duplicates logic across
+branches, and leaks an untyped contract callers must decode.
+Prefer distinct named variants (or a typed-constant-keyed
+config) so callers select intent **by type, not a magic
+string**.
+
+```ts
+// Bad: a magic-string mode + an internal branch
+function label(id: ItemId, mode: 'short' | 'long') {
+  return mode === 'long' ? LONG[id] : SHORT[id];
+}
+
+// Good: distinct variants; the caller picks intent by name
+export const shortLabel = (id: ItemId) => SHORT[id];
+export const longLabel = (id: ItemId) => LONG[id];
+```
+
+When variants share structure, keep the shared part in one
+place and let each variant carry only its *difference*. For
+React components, the Server→Client boundary adds a constraint
+— see the next section.
+
+## Component Variants & the Server/Client Boundary
+
+The same rule applies to React components, with a runtime
+twist: you **cannot pass a function** (event handler, render
+prop) from a Server Component to a Client Component —
+non-serializable props are rejected at that boundary, and it
+fails late. So when a client component's behaviour varies and
+its host is a server component, you can't inject a callback
+from the page. Two correct options:
+
+1. a **serializable discriminator** (a typed constant, never a
+   bare string) the client switches on internally; or
+2. **(preferred when variants are cohesive)** distinct client
+   **subtype components**, each injecting its behaviour into a
+   shared client **shell**. Function injection is fine
+   client→client, so the shell stays DRY and the server page
+   imports the variant it needs.
+
+Choose (2) when the variants render genuinely **different
+elements** — e.g. a `<button onClick>` vs a crawlable
+`<a href>`; a single mode-switch can't unify those without
+losing one's semantics (you'd downgrade the link to a JS
+click).
+
+```tsx
+// Bad: magic-string mode + branch + duplicated styling
+function Widget({mode}: {mode: 'link' | 'action'}) {
+  return mode === 'link'
+    ? <Link href="/x" className={CTA}>Go</Link>
+    : <button onClick={doThing} className={CTA}>Go</button>;
+}
+
+// Good: shared shell, behaviour injected per subtype
+function WidgetShell(
+  {renderCta, ...rest}: Props & {renderCta: (s: Sel) => ReactNode},
+) {
+  return <div>{/* shared state + UI */}{renderCta(selection)}</div>;
+}
+
+export function LinkWidget(props: Props) {
+  return <WidgetShell {...props} renderCta={(s) =>
+    <Link href={s.href} className={CTA}>Go</Link>} />;
+}
+
+export function ActionWidget(props: Props) {
+  const onThing = useCallback(/* … */, []);
+  return <WidgetShell {...props} renderCta={(s) =>
+    <button onClick={() => onThing(s)} className={CTA}>Go</button>} />;
+}
+```
+
+`CTA` is one shared class constant — each variant carries only
+its difference (element + behaviour), never a copy of the
+styling. Flag: a `mode`/`variant` string prop with an
+`if (mode === …)` branch; a callback passed to a client
+component from a server component; duplicated markup across
+branches instead of one shared shell.
 
 ## Separate Static from Varying
 
