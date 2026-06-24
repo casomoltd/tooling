@@ -6,9 +6,10 @@ description: >-
   checking a page renders correctly, or comparing against
   a reference image or design description.
 user-invocable: true
-argument-hint: "[route] [--preset mobile|tablet|desktop]"
+argument-hint: "[route] [--preset mobile|tablet|desktop] [-C <repo>]"
 allowed-tools:
   - Bash(npm run ss *)
+  - Bash(cd *)
   - Read
 ---
 
@@ -16,6 +17,15 @@ allowed-tools:
 
 Capture a page from the running dev server, read the
 image, and describe what rendered.
+
+## Target app
+
+In a multi-repo workspace, pick the app whose dev server
+you're capturing: if `-C <path>` is given, `cd` into it
+first (git-style); otherwise use the current directory.
+`npm run ss` and the saved screenshot
+(`.claude/screenshots/latest.png`) are both relative to
+that app.
 
 ## Viewport presets
 

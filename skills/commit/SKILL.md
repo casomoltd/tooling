@@ -6,11 +6,12 @@ description: >-
   conventional message. Does NOT bump the version (that's
   release-version) or push (a separate, explicitly-requested step).
 user-invocable: true
-argument-hint: "[message]"
+argument-hint: "[message] [-C <repo>]"
 allowed-tools:
   - Bash(npm run check)
   - Bash(uv run *)
   - Bash(git *)
+  - Bash(cd *)
 ---
 
 # Commit Workflow
@@ -19,6 +20,20 @@ Run checks, then commit. Follow these steps in order; do NOT skip or
 reorder. This skill **commits only** — it does not bump the version or
 push. The release tail (bump → push → publish/deploy) is a separate,
 deliberate step (`release-version`).
+
+## 0. Resolve the target repo
+
+Decide which repo to commit in:
+
+- `-C <path>` given → that directory (resolved relative to the current
+  dir, git-style; e.g. `-C tooling` from a multi-repo workspace root).
+- otherwise → the current directory.
+
+`cd` there, then confirm it's the intended repo with
+`git rev-parse --show-toplevel`. If it isn't a git repo with a recognised
+toolchain (e.g. you're at a multi-repo workspace root with no
+`package.json` / `pyproject.toml`), **stop and ask which repo** — never
+guess. Every step below runs in this repo.
 
 ## 1. Run checks
 

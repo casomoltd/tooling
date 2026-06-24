@@ -6,12 +6,13 @@ description: >-
   configured CI trigger publishes or deploys. NOT for committing — that's
   the commit skill.
 user-invocable: true
-argument-hint: "[patch|minor]"
+argument-hint: "[patch|minor] [-C <repo>]"
 allowed-tools:
   - Bash(npm version *)
   - Bash(uv version *)
   - Bash(git *)
   - Bash(gh *)
+  - Bash(cd *)
   - Read
   - Glob
   - Grep
@@ -23,6 +24,19 @@ The **release tail** that `commit` stops short of: **bump → push →
 (CI) publish/deploy**. It assumes the code is **already committed**;
 it does not commit code. Steps are mechanics + routing — follow in
 order.
+
+## 0. Resolve the target repo
+
+Decide which repo to release:
+
+- `-C <path>` given → that directory (resolved relative to the current
+  dir, git-style; e.g. `-C tooling` from a multi-repo workspace root).
+- otherwise → the current directory.
+
+`cd` there and confirm it's the intended repo with
+`git rev-parse --show-toplevel`. If it isn't a git repo with a recognised
+toolchain, **stop and ask** — guessing here is exactly how a bump lands
+in the wrong directory. Every step below runs in this repo.
 
 ## 1. Precondition — clean working tree
 
