@@ -167,11 +167,26 @@ workspace config, not here.
 Enable the plugin by adding this repo as a marketplace and installing it:
 
 ```bash
-/plugin marketplace add github:casomoltd/tooling
+/plugin marketplace add casomoltd/tooling
 /plugin install casomoltd@casomo-tooling
 ```
 
 Skills then load namespaced as `/casomoltd:<name>`.
+
+### Hooks
+
+The plugin also ships generic **PreToolUse hooks** (`hooks/`) that guard
+command/shell intent no linter or commit hook can see: confirm before
+`git push`, hard-block destructive git, `npm version major`, global installs,
+and edits that weaken TypeScript strictness. (They deliberately don't duplicate
+what commitlint/eslint already enforce — see `hooks/README.md`.) The guards are
+advisory — they ask you to confirm when they can't read a call's input, and
+never hard-block on their own malfunction. They require **Node ≥ 22.18 / ≥ 24**
+(they run as TypeScript `.mts` via native type-stripping — no build step).
+
+See [`hooks/README.md`](hooks/README.md) for the full rule set, the file map,
+how the hooks relate to `settings.json` permissions and skill `allowed-tools`,
+and the TypeScript / vendored-types design rationale.
 
 ## Package distribution
 
