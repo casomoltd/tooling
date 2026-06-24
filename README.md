@@ -150,10 +150,14 @@ This overrides the published version until the next
 
 ## Claude Code skills (plugin)
 
-This repo is a Claude Code skills plugin (`.claude-plugin/`). It ships
-the **generic, public engineering-standard skills** under `skills/` —
-the standards we work to. Business-specific skills are kept in private
+This repo is a Claude Code plugin (`.claude-plugin/`) shipping the **generic,
+public engineering standards** we work to across three agent-facing surfaces —
+**skills**, **hooks**, and **agents**. Business-specific ones live in private
 workspace config, not here.
+
+The tooling serves three consumers: **Claude** (the editing workflow) → these
+plugin surfaces; **CI + git-hooks** (automation) → the npm `bin` scripts; manual
+human CLI is no longer a design target.
 
 | Skill | Description |
 |---|---|
@@ -187,6 +191,23 @@ never hard-block on their own malfunction. They require **Node ≥ 22.18 / ≥ 2
 See [`hooks/README.md`](hooks/README.md) for the full rule set, the file map,
 how the hooks relate to `settings.json` permissions and skill `allowed-tools`,
 and the TypeScript / vendored-types design rationale.
+
+### Agents
+
+One read-only review agent, **`casomoltd:code-review`** (`agents/`), enforces
+the *judgment-level* half of the standards skills — the design calls a linter
+can't make. It applies the `typescript` standard to `.ts/.tsx` changes and the
+`python-style` standard to `.py` changes (typed identifiers, static/varying
+separation, swallowed exceptions; class design, polymorphism over type-codes,
+value objects, EAFP, framework-first, test naming).
+
+It **preloads both standard skills** as its rubric (single source of truth — no
+duplication), and **complements, never duplicates**: eslint/ruff own the
+mechanical rules, the built-in `/code-review` owns correctness bugs, this owns
+the house design standards. It's namespaced (`casomoltd:code-review`), so it
+doesn't collide with the bundled `/code-review`. Invoke with
+`@agent-casomoltd:code-review` (or let Claude auto-delegate); it reports findings
+and never edits.
 
 ## Package distribution
 
