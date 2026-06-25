@@ -4,10 +4,9 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 5
-    groups:
-      npm-minor-patch:
-        update-types: ["minor", "patch"]
+    # version-update PRs off — applied locally via `npm outdated`;
+    # security updates + alerts still flow (not subject to this limit)
+    open-pull-requests-limit: 0
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
