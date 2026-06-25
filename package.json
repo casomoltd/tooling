@@ -50,7 +50,7 @@
     "knip": ">=5"
   },
   "devDependencies": {
-    "@types/node": "^26.0.0",
+    "@types/node": "^26.0.1",
     "husky": "^9.1.7",
     "typescript": "^6.0.3"
   }
