@@ -38,15 +38,21 @@ any code is written.
   own module; keep the concrete adapter (HTTP client, DB driver) in
   another. High-level code imports the interface and receives the adapter
   by injection; it never imports the concrete module just to name a type.
-  Don't mix the abstraction and its implementation in one module.
+  Don't mix the abstraction and its implementation in one module. A port
+  with a **single operation** is a `Callable` type alias, not a one-method
+  `Protocol`; reserve `Protocol` for ports with several methods or state.
 
   ```python
-  # interfaces.py — the port
-  class Fetcher(Protocol):
-      def __call__(self, url: str) -> str: ...
+  # ports.py — a single-operation port is just a Callable alias
+  type Fetch = Callable[[str], str]
 
-  # client.py — the adapter (imports interfaces, not vice versa)
-  def http_get(url: str) -> str: ...
+  # a multi-method port earns a Protocol
+  class Store(Protocol):
+      def get(self, key: str) -> bytes: ...
+      def put(self, key: str, value: bytes) -> None: ...
+
+  # client.py — the adapter (imports ports, not vice versa)
+  def http_get(url: str) -> str: ...   # satisfies Fetch structurally
   ```
 
 - **Polymorphism over type codes.** An object carrying a `kind`/`type`
@@ -75,15 +81,40 @@ any code is written.
   named methods for alternate formats (e.g. `as_html()`). Keep the
   dataclass-generated `__repr__` for debugging — don't conflate the two.
 
+- **Put behaviour where its data lives.** Before adding an operation, ask
+  which type owns the data it needs, and put it there (`order.total()`,
+  `report.render()`, `record.key`). Two failure modes to catch: a
+  **category error** — hanging an op on a type that doesn't hold its data
+  (an audio-loudness `normalise` is not a method of a *text* value); and an
+  **aggregate** over many items, which belongs to the collection or a free
+  function, not to a single element (`stitch(clips)`, not `clip.stitch()`).
+
 - **Factory classmethods.** Alternate constructors belong on the class as
   `@classmethod` (`Order.from_row(...)`, `Report.load(path)`), not free
   `build_order()` functions. Bind load/save and class constants
   (`ClassVar`) to the class that owns the data, not scattered module
   helpers.
 
+- **Service factories are `make_x()` functions.** Building a *collaborator*
+  — a client that needs a credential, a service that loads config, a cache
+  that resolves a directory — is a free `make_x()` factory that
+  encapsulates the env/config/credential wiring and returns the ready
+  object to be injected. This is distinct from an alternate *constructor*
+  of a value (`X.from_row`), which stays a classmethod. Don't name it
+  `configure_x` — that implies hidden, stateful side effects.
+
 - **Value objects, not primitives.** Don't pass bare `str`/`dict` between
   modules for a domain concept. Wrap it (`NewType`, a frozen dataclass, a
   model) so the type carries meaning and can grow behaviour.
+
+- **Identity vs. data.** A value object owns its *identity* and behaviour,
+  not the heavy, lazily-produced bytes it points at — those live in a store
+  keyed by that identity (content-addressing: the filename *is* the key, so
+  staleness is structurally impossible). When identity must persist across
+  runs, derive it from a **stable content hash**
+  (`sha256(payload).hexdigest()[:16]`), never Python `__hash__`: `hash()` of
+  a `str`/`bytes` is randomised per process (`PYTHONHASHSEED`), so it can't
+  be persisted or compared across runs.
 
 - **Model collections on `collections.abc`.** When a domain concept is a
   *group* of things, make it a class that subclasses the right ABC rather
@@ -135,6 +166,20 @@ any code is written.
   parsing, or config handling, use the library that does it. A
   hand-written `to_dict`/`from_dict` pair is usually a model class you
   haven't reached for yet.
+
+- **No speculative infrastructure.** Don't hand-roll a database/ORM-shaped
+  layer (a manifest, an id-index, "tables") over what is really a flat file
+  — keep the simplest representation that works (a CSV read into a
+  `list[Model]`, operated on by comprehensions) and reach for a real
+  library only when the flat file genuinely stops scaling. Prefer **net
+  deletion**; don't add a wrapper type whose only job is to host one method.
+
+- **A two-way boundary lives in one place.** Encode/decode, serialise/parse,
+  open/close — keep both directions together (one class, one module, one
+  construction site) so they can't drift onto different assumptions. A split
+  where `encode` silently relies on `decode` having already imported the
+  codec is a latent bug: build the boundary once and route both ways through
+  it.
 
 - **No hardcoded config.** Domain values — URLs, hosts, addresses,
   limits, paths — live once in a config module and are imported, never
@@ -195,8 +240,15 @@ only when you genuinely need to reassign fields.
   resolves relative imports to their absolute path and bans both), so
   enforce it with a small AST guard test that flags absolute self-imports
   inside the package.
-- **All imports at module level** — never nest imports inside functions or methods.
-  The only exception is `if __name__ == "__main__":` blocks.
+- **Imports at module level** — never nest imports inside functions or
+  methods. Two exceptions only: `if __name__ == "__main__":` blocks, and a
+  **heavy or optional third-party dependency** imported lazily inside the
+  factory/method that uses it, so commands that never touch it don't pay its
+  import cost at startup (e.g. a CLI whose `lint` subcommand shouldn't load
+  the media/ML stack). Enforce the rule globally with `ruff` `PLC0415`, and
+  grant a **commented per-file-ignore** to the one module that does the lazy
+  import — keep that ignore list short and justified so the deviation stays
+  visible.
 - Group in order: stdlib, third-party, local — sorted lexicographically within groups
 - Separate groups with a blank line
 
@@ -297,6 +349,9 @@ else:
 - Use f-strings for formatting.
 - Consistent quote style within a file (prefer `"double quotes"`).
 - For logging: use `%`-style placeholders, not f-strings.
+- `print` is for program *output* — the data the user asked for. Status,
+  progress, and diagnostics go through a module `logging` logger, never
+  `print`.
 
 ## Line length
 
