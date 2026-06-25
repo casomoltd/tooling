@@ -85,9 +85,10 @@ any code is written.
   which type owns the data it needs, and put it there (`order.total()`,
   `report.render()`, `record.key`). Two failure modes to catch: a
   **category error** — hanging an op on a type that doesn't hold its data
-  (an audio-loudness `normalise` is not a method of a *text* value); and an
-  **aggregate** over many items, which belongs to the collection or a free
-  function, not to a single element (`stitch(clips)`, not `clip.stitch()`).
+  (a formatting method on a bare id, a pricing method on a timestamp); and
+  an **aggregate** over many items, which belongs to the collection or a
+  free function, not to a single element (`merge(parts)`, not
+  `part.merge()`).
 
 - **Factory classmethods.** Alternate constructors belong on the class as
   `@classmethod` (`Order.from_row(...)`, `Report.load(path)`), not free
@@ -108,13 +109,12 @@ any code is written.
   model) so the type carries meaning and can grow behaviour.
 
 - **Identity vs. data.** A value object owns its *identity* and behaviour,
-  not the heavy, lazily-produced bytes it points at — those live in a store
-  keyed by that identity (content-addressing: the filename *is* the key, so
-  staleness is structurally impossible). When identity must persist across
-  runs, derive it from a **stable content hash**
-  (`sha256(payload).hexdigest()[:16]`), never Python `__hash__`: `hash()` of
-  a `str`/`bytes` is randomised per process (`PYTHONHASHSEED`), so it can't
-  be persisted or compared across runs.
+  not the heavy artifact it identifies — that lives in a store keyed by the
+  identity (content-addressing: the key *is* the content, so a stale entry
+  can't exist). When identity must persist across runs, derive it from a
+  **stable content hash** (`sha256(payload).hexdigest()[:16]`), never Python
+  `__hash__`: `hash()` of a `str`/`bytes` is randomised per process
+  (`PYTHONHASHSEED`), so it can't be persisted or compared across runs.
 
 - **Model collections on `collections.abc`.** When a domain concept is a
   *group* of things, make it a class that subclasses the right ABC rather
@@ -167,19 +167,21 @@ any code is written.
   hand-written `to_dict`/`from_dict` pair is usually a model class you
   haven't reached for yet.
 
-- **No speculative infrastructure.** Don't hand-roll a database/ORM-shaped
-  layer (a manifest, an id-index, "tables") over what is really a flat file
-  — keep the simplest representation that works (a CSV read into a
-  `list[Model]`, operated on by comprehensions) and reach for a real
-  library only when the flat file genuinely stops scaling. Prefer **net
-  deletion**; don't add a wrapper type whose only job is to host one method.
+- **Simplest representation; don't over-build (YAGNI).** Model data with the
+  plainest type that serves the access you actually have, and add structure
+  only when a concrete need forces it — not speculatively. Two tells: a
+  bespoke layer that re-implements what a standard library or built-in
+  already does (that's *Framework-first* — don't re-solve a solved problem),
+  and an abstraction wrapping data a `list`/`dict`/dataclass already models.
+  Prefer **net deletion**; don't add a type whose only job is to host one
+  method.
 
-- **A two-way boundary lives in one place.** Encode/decode, serialise/parse,
-  open/close — keep both directions together (one class, one module, one
-  construction site) so they can't drift onto different assumptions. A split
-  where `encode` silently relies on `decode` having already imported the
-  codec is a latent bug: build the boundary once and route both ways through
-  it.
+- **Keep a policy in one place.** The two halves of one policy — encode and
+  decode, serialise and parse, open and close, a format and its parser — are
+  a single decision and belong together (one class, one module, one
+  construction site). Split them and they drift onto different assumptions:
+  one half quietly relies on something the other no longer guarantees. Define
+  the policy once and route both directions through it.
 
 - **No hardcoded config.** Domain values — URLs, hosts, addresses,
   limits, paths — live once in a config module and are imported, never
@@ -244,8 +246,9 @@ only when you genuinely need to reassign fields.
   methods. Two exceptions only: `if __name__ == "__main__":` blocks, and a
   **heavy or optional third-party dependency** imported lazily inside the
   factory/method that uses it, so commands that never touch it don't pay its
-  import cost at startup (e.g. a CLI whose `lint` subcommand shouldn't load
-  the media/ML stack). Enforce the rule globally with `ruff` `PLC0415`, and
+  import cost at startup (e.g. a CLI whose `--help` or validation path
+  shouldn't import a heavy cloud or ML SDK it never calls). Enforce the rule
+  globally with `ruff` `PLC0415`, and
   grant a **commented per-file-ignore** to the one module that does the lazy
   import — keep that ignore list short and justified so the deviation stays
   visible.

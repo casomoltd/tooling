@@ -40,10 +40,10 @@ enough surrounding code (definitions, call sites) to judge design intent.
   behaviour put on the type that owns its data (category errors; aggregates
   that aren't a single element's method); identity vs. data (a stable content
   hash, never `__hash__`, for cross-run identity); a single-operation port as a
-  `Callable` alias not a one-method `Protocol`; a two-way boundary
-  (encode/decode) kept in one place; `make_x()` service factories not
-  `configure_x`; and speculative DB-shaped infrastructure hand-rolled over a
-  flat file.
+  `Callable` alias not a one-method `Protocol`; a single policy (encode/decode,
+  serialise/parse) kept in one place; `make_x()` service factories not
+  `configure_x`; and over-building — re-solving a solved problem or wrapping
+  data a plain type already models.
 
 ## Ignore — owned elsewhere (never re-flag)
 
