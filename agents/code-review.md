@@ -31,6 +31,8 @@ enough surrounding code (definitions, call sites) to judge design intent.
 - **TypeScript** (the `typescript` standard): typed identifiers derived from
   `as const` (not hand-maintained unions), no magic literals, static separated
   from varying, consumer-shaped not legacy data, flat over cosmetically-nested,
+  value objects passed whole (not unpacked into loose `string`/`number` params
+  at the call boundary when a domain type already carries those fields),
   exceptions reported not swallowed.
 - **Python** (the `python-style` standard): class design & separation of
   concerns, polymorphism over `kind`-field branching, value objects over bare

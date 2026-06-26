@@ -60,6 +60,37 @@ export const ROUTES = { DASHBOARD: '/dashboard' } as const;
 // Bad: '/dashboard' copied across pages, nav, helpers
 ```
 
+## Pass Value Objects, Not Loose Fields
+
+When a function or component needs several fields a domain value
+object already carries, accept the **object**, not its unpacked
+fields. Spreading a rich type into a bag of `string`/`number`
+parameters at the call boundary throws away the type system's
+help, lets callers pass mismatched or stale values, and bloats
+every call site. If a sibling helper already takes the object,
+the new one should too — keep their interfaces parallel.
+
+```ts
+// Bad: a rich `Product` re-accepted as loose primitives
+function priceSchema(opts: {
+  name: string;
+  sku: string;
+  min: number;
+  max: number;
+}) { /* … */ }
+priceSchema({name: p.name, sku: p.sku, min: p.low, max: p.high});
+
+// Good: accept the value object; read its fields inside
+function priceSchema(product: Product) { /* product.name … */ }
+priceSchema(product);
+```
+
+The call site shrinks to one typed argument, and a field rename
+on `Product` is caught by the compiler instead of silently
+threading the wrong primitive through. Flag any helper whose
+parameters duplicate the fields of a domain type already in
+scope at every call site.
+
 ## Variants over Mode Flags
 
 When a unit varies along a small fixed axis of behaviour,
