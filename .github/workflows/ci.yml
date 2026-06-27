@@ -10,9 +10,11 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
-      # No install needed — the leak-gate only inspects `npm pack` output.
+      # `check` type-checks the hooks and runs their tests, so the
+      # local devDeps (typescript, @types/node) must be installed.
+      - run: npm ci
       - run: npm run check
