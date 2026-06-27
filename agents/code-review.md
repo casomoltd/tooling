@@ -33,7 +33,12 @@ enough surrounding code (definitions, call sites) to judge design intent.
   from varying, consumer-shaped not legacy data, flat over cosmetically-nested,
   value objects passed whole (not unpacked into loose `string`/`number` params
   at the call boundary when a domain type already carries those fields),
-  exceptions reported not swallowed.
+  library types and values reused not re-projected or re-derived (use the
+  published type even with spare fields; call the library's accessor/constant
+  rather than recomputing a formula or hardcoding a literal; fix the library
+  rather than shipping a corrected copy), shared/`lib` modules kept
+  presentation-agnostic (no user-facing copy or view-prop assembly in the data
+  layer), exceptions reported not swallowed.
 - **Python** (the `python-style` standard): class design & separation of
   concerns, polymorphism over `kind`-field branching, value objects over bare
   `str`/`dict` between modules, `collections.abc` by access pattern, EAFP over

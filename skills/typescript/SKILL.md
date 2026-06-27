@@ -91,6 +91,47 @@ threading the wrong primitive through. Flag any helper whose
 parameters duplicate the fields of a domain type already in
 scope at every call site.
 
+## Reuse the Library's Types and Values
+
+Before defining a consumer-side type for a domain concept, check
+whether the owning library already exports one — and use it, even
+if it carries fields you don't need. A parallel interface that
+mirrors a published type duplicates the contract and drifts from
+it. The same goes for values: if the library exposes a function
+or constant for a derivation, call it rather than recomputing the
+formula inline, and reach for the library's named key/constant
+instead of a bare literal.
+
+```ts
+// Bad: a parallel shape + a re-derived value the library owns
+interface Bracket {floor: number; rate: number}
+const bracket = {
+  floor: cfg.bands[1].min + cfg.allowance,  // re-derived
+  rate: cfg.bands[1].rate,
+};
+
+// Good: use the library's type and its accessor
+const bracket: TaxBand = higherBand(cfg);   // library type
+const floor = bandFloor(cfg);               // library fn
+```
+
+When the library's function is wrong or incomplete for your case,
+fix it upstream rather than shipping a corrected copy in the
+consumer. If you genuinely must bypass it, leave a comment saying
+why — so the next reader doesn't "simplify" your code back into
+the bug.
+
+## Keep Shared Modules Presentation-Agnostic
+
+A module in a shared or `lib` layer holds data, domain logic, and
+pure transforms — not user-facing copy or framework concerns.
+Display strings (labels, prompts, headings), markup, and the
+assembly of a component's props belong in the presentation layer.
+A lib function that returns a sentence a user will read, or builds
+view props, has crossed the boundary: return plain data and let
+the presentation layer render it. This keeps the shared module
+reusable and the copy where designers expect it.
+
 ## Variants over Mode Flags
 
 When a unit varies along a small fixed axis of behaviour,
