@@ -40,3 +40,19 @@ Interpret creatively and make unexpected choices that feel genuinely designed fo
 **IMPORTANT**: Match implementation complexity to the aesthetic vision. Maximalist designs need elaborate code with extensive animations and effects. Minimalist or refined designs need restraint, precision, and careful attention to spacing, typography, and subtle details. Elegance comes from executing the vision well.
 
 Remember: Claude is capable of extraordinary creative work. Don't hold back, show what can truly be created when thinking outside the box and committing fully to a distinctive vision.
+
+## Reusable Components & Consistency
+
+Distinctive is not the same as bespoke-per-page. A polished interface is **consistent**: the same structural pattern looks and behaves the same everywhere it appears. Encapsulate every recurring UI structure — data tables, cards, callouts, stat tiles, media objects — in **one shared component** and reuse it, rather than re-rolling the markup and styling each time it shows up.
+
+The reusable unit is the **whole pattern, not a fragment of it**. If tabular content is presented as a panel nested inside a card, the *nesting is the component* — the caller passes only the content (and the variable bits like a title or a source line), and never reassembles the card-around-panel structure by hand. Exposing only the inner fragment (e.g. the bare panel) still leaves every page re-rolling the surround, which is exactly the duplication to avoid.
+
+Why this matters:
+- **Consistency** — one source of truth means every instance updates together; hand-copied chrome drifts apart.
+- **Correctness** — an author can't get the structure wrong if they can't hand-roll it.
+- **Velocity** — new pages compose tested components instead of re-deriving layout.
+
+Practical rules:
+- **Extract on the second copy.** The first time a structure repeats, lift it into a shared component with the variable parts as props, and route both call sites through it.
+- **Compose the full pattern; expose an atom only when genuinely needed.** Ship the complete component for the common case, and a smaller building block only for the real exception (e.g. the inner panel for when an outer card is already present).
+- **Standards docs are an inventory, not a codebase.** A style guide should *name* the shared component, say when to reach for it, and show a short **usage** snippet — never embed the implementation. Pasted implementation code in prose is fragile: it rots the moment the component changes and tempts authors to copy it inline. Point to the component and let the code be the source of truth.
