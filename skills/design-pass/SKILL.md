@@ -56,26 +56,41 @@ sections it returns: the doc-ready map (inventory + mermaid), the weight table,
 the design findings, the **handoff refactor-targets** table, and the pattern
 verdict. The handoff table is the contract that drives the rest of this pass.
 
-## 2. Render the map + offer docs
+## 2. Render the FULL report + offer docs
 
-The agent returns the map as text only, which doesn't render. So make it
-**viewable and clickable**:
+The agent's report comes back to the orchestrator as text — the user only sees a
+"finished" notification, not the report, and markdown/mermaid don't render in a
+terminal. So **always persist the whole report and open it** — not just the
+diagram, not just a summary.
 
-1. Write a self-contained HTML preview to the system temp dir (e.g.
-   `${TMPDIR:-/tmp}/design-xray/<target-slug>.html`) that renders the agent's
-   mermaid `classDiagram` via the mermaid CDN
-   (`https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs`,
-   `startOnLoad: true`), with the module-inventory table above it. Inside HTML
-   the mermaid stereotypes must be entity-escaped (`&lt;&lt;abstract&gt;&gt;`).
-   Also write the raw `.md` (literal `<<…>>`) alongside it for reuse.
-2. Print the preview's **`file://` URL** so it's clickable, and open it with the
-   platform opener (`xdg-open` on Linux, `open` on macOS) so it lands in the
-   user's default browser.
+Write into the **target repo**, never `/tmp`: sandboxed browsers (snap/flatpak
+Firefox) cannot read `/tmp`, but can read files under the user's home. Use a
+gitignored scratch subdir at the repo root: **`<repo>/scratch/design-xray/`**.
+If `scratch/` is not already gitignored in the target repo, create the dir and
+add `scratch/` to its `.gitignore` first (fail loud if you can't).
 
-This preview is disposable (temp dir), separate from the codebase. THEN, and
-only on explicit confirmation, **offer** to persist the doc-ready block into a
-real `README`/`ARCHITECTURE` doc in the repo — writing only that block, nothing
-else.
+1. Write the agent's **entire returned markdown** verbatim to
+   `<repo>/scratch/design-xray/<target-slug>.md` (mermaid stays a normal fenced
+   ```mermaid block with literal `<<abstract>>` stereotypes).
+2. Wrap that `.md` in a self-contained HTML harness written next to it
+   (`…/<target-slug>.html`) that renders markdown + mermaid:
+   - load `marked` (`https://cdn.jsdelivr.net/npm/marked/marked.min.js`) and
+     `mermaid` (`https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs`);
+   - embed the markdown in a `<script type="text/markdown">` block (so `<`/`>`
+     aren't parsed as HTML), `marked.parse` it into a `<div>`, convert each
+     `code.language-mermaid` into `<pre class="mermaid">`, then
+     `mermaid.run({ querySelector: ".mermaid" })` with `startOnLoad: false`.
+   Build it by concatenating header + the `.md` + footer (don't hand-duplicate
+   the report). This needs network for the two CDN scripts.
+3. Print both **`file://` URLs** (clickable) and open the HTML with the platform
+   opener (`xdg-open` on Linux, `open` on macOS). `text/html` must be associated
+   with a browser, not a mail client — if `xdg-open` mis-routes, the user can run
+   `xdg-mime default firefox_firefox.desktop text/html`.
+
+Do NOT chase in-editor mermaid (e.g. a VSCode extension) as the path — the
+self-contained HTML is the reliable renderer. THEN, and only on explicit
+confirmation, **offer** to persist the doc-ready block into a real
+`README`/`ARCHITECTURE` doc in the repo — writing only that block, nothing else.
 
 ## 3. Review the targets (read-only)
 
