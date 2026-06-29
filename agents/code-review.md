@@ -42,8 +42,10 @@ enough surrounding code (definitions, call sites) to judge design intent.
 - **Python** (the `python-style` standard): class design & separation of
   concerns, polymorphism over `kind`-field branching, value objects over bare
   `str`/`dict` between modules, `collections.abc` by access pattern, EAFP over
-  LBYL/sentinels, DI & framework-first, types over grown dicts, spec-style test
-  names + arrange/act/assert. Plus the placement/identity judgment calls:
+  LBYL/sentinels, DI & framework-first, types over grown dicts, module API
+  completeness (every module declares `__all__`; `RUF022` only sorts an existing
+  one, so a missing `__all__` is yours to flag — never an established convention
+  to accept), spec-style test names + arrange/act/assert. Plus the placement/identity judgment calls:
   behaviour put on the type that owns its data (category errors; aggregates
   that aren't a single element's method); identity vs. data (a stable content
   hash, never `__hash__`, for cross-run identity); a single-operation port as a

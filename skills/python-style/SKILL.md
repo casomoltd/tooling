@@ -258,7 +258,9 @@ only when you genuinely need to reassign fields.
 ## Module API
 
 - Every module declares `__all__` — the names it exports. Anything not in
-  `__all__` is internal to the module.
+  `__all__` is internal to the module. This holds for **every** module — leaf
+  modules and `__init__.py` alike — even where neighbouring files predate the
+  rule; a missing `__all__` is a gap to close, not a convention to match.
 - `__all__` and the `_` prefix agree: public names have no leading
   underscore and appear in `__all__`; internal helpers, classes, and
   constants start with `_` and are omitted. (`logger` is the conventional
@@ -266,7 +268,10 @@ only when you genuinely need to reassign fields.
 - A package's `__init__.py` re-exports the package's public API and
   declares its own `__all__`, so callers import from the package, not its
   submodules.
-- Keep every `__all__` sorted (ruff `RUF022` enforces this).
+- Keep every `__all__` sorted (ruff `RUF022` enforces the sort). `RUF022` only
+  orders an `__all__` that already exists — it does not require its presence, so
+  declaring one is an authoring/review responsibility; ruff `F822` flags names
+  listed in `__all__` that aren't defined.
 
 ## Type annotations
 
