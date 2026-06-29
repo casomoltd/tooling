@@ -167,6 +167,7 @@ human CLI is no longer a design target.
 | `/casomoltd:python-style` | Python code-generation style rules |
 | `/casomoltd:typescript` | TypeScript data modelling and type design |
 | `/casomoltd:screenshot` | Capture and analyse a dev server page |
+| `/casomoltd:design-pass` | Map → review → refactor a package (drives `design-xray` + `code-review`) |
 
 Enable the plugin by adding this repo as a marketplace and installing it:
 
@@ -194,20 +195,30 @@ and the TypeScript / vendored-types design rationale.
 
 ### Agents
 
-One read-only review agent, **`casomoltd:code-review`** (`agents/`), enforces
-the *judgment-level* half of the standards skills — the design calls a linter
-can't make. It applies the `typescript` standard to `.ts/.tsx` changes and the
-`python-style` standard to `.py` changes (typed identifiers, static/varying
-separation, swallowed exceptions; class design, polymorphism over type-codes,
-value objects, EAFP, framework-first, test naming).
+Two read-only agents (`agents/`), both namespaced and both preloading the
+standard skills as their rubric — they apply the `typescript` standard to
+`.ts/.tsx` and the `python-style` standard to `.py`.
 
-It **preloads both standard skills** as its rubric (single source of truth — no
-duplication), and **complements, never duplicates**: eslint/ruff own the
-mechanical rules, the built-in `/code-review` owns correctness bugs, this owns
-the house design standards. It's namespaced (`casomoltd:code-review`), so it
+**`casomoltd:code-review`** enforces the *judgment-level* half of the standards —
+the design calls a linter can't make (typed identifiers, static/varying
+separation, swallowed exceptions; class design, polymorphism over type-codes,
+value objects, EAFP, framework-first, test naming). It **complements, never
+duplicates**: eslint/ruff own the mechanical rules, the built-in `/code-review`
+owns correctness bugs, this owns the house design standards. Namespaced so it
 doesn't collide with the bundled `/code-review`. Invoke with
 `@agent-casomoltd:code-review` (or let Claude auto-delegate); it reports findings
 and never edits.
+
+**`casomoltd:design-xray`** takes a package or diff and returns the *structural*
+picture: a doc-ready module inventory + mermaid class-hierarchy diagram, a weight
+table (which modules/classes are too heavy or thin), prioritized design findings,
+a ranked handoff of refactor targets, and a verdict on whether a heavier pattern
+(e.g. a state machine) is warranted yet or premature. It feeds forward — its map
+lifts straight into package docs, and its targets drive `code-review` and a
+refactor pass. The `/casomoltd:design-pass` skill chains the three
+(x-ray → code-review → refactor). Like its sibling it visualizes and judges
+structure only — no correctness bugs (that's `/code-review`), no lint
+(eslint/ruff).
 
 ## Package distribution
 

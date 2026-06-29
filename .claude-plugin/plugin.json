@@ -1,5 +1,5 @@
 {
   "name": "casomoltd",
-  "description": "Casomo shared engineering standards as a Claude Code plugin: skills (commit, release-version, frontend-design, python-style, typescript, screenshot), PreToolUse guard hooks, and a house-standards review agent (code-review)",
+  "description": "Casomo shared engineering standards as a Claude Code plugin: skills (commit, release-version, frontend-design, python-style, typescript, screenshot, design-pass), PreToolUse guard hooks, and house-standards agents (code-review, design-xray)",
   "author": { "name": "Casomo Ltd" }
 }
