@@ -3,8 +3,16 @@ name: Add to Casomo Workboard
 on:
   issues:
     types: [opened, transferred, reopened]
+  pull_request_target:
+    types: [opened, reopened]
 
 jobs:
   add:
+    # Issues: always. PRs: only Dependabot's (security + github-actions
+    # bumps) — human PRs already track via their linked issue.
+    # pull_request_target (not pull_request) so the reusable workflow can
+    # read the Workboard App secrets, which Dependabot-triggered
+    # pull_request runs are denied.
+    if: github.event_name == 'issues' || github.actor == 'dependabot[bot]'
     uses: casomoltd/.github/.github/workflows/add-to-project.yml@main
     secrets: inherit
