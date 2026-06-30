@@ -39,6 +39,12 @@ enough surrounding code (definitions, call sites) to judge design intent.
   rather than shipping a corrected copy), shared/`lib` modules kept
   presentation-agnostic (no user-facing copy or view-prop assembly in the data
   layer), exceptions reported not swallowed.
+- **Crawlable navigation** (`typescript` standard): primary navigation — and any
+  hub→spoke or page-to-page link — must render a real `<a href>`/`<Link>`, never
+  a JS-only `onClick`/`router.push`/`<select>` that emits no anchor and so is
+  invisible to crawlers and answer engines. Flag a component that downgrades a
+  link to a button/handler via a mode flag — see the `typescript` skill's
+  component-variants pattern (distinct `Link`/`Action` subtypes, not one mode).
 - **Python** (the `python-style` standard): class design & separation of
   concerns, polymorphism over `kind`-field branching, value objects over bare
   `str`/`dict` between modules, `collections.abc` by access pattern, EAFP over
