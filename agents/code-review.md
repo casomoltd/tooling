@@ -45,6 +45,10 @@ enough surrounding code (definitions, call sites) to judge design intent.
   invisible to crawlers and answer engines. Flag a component that downgrades a
   link to a button/handler via a mode flag — see the `typescript` skill's
   component-variants pattern (distinct `Link`/`Action` subtypes, not one mode).
+  Likewise flag a component whose hardcoded prose names another internal
+  page/route in plain text with no `<Link>` on that phrase — the reference
+  must be a crawlable anchor, not bare text (the *element* is yours; the
+  anchor phrasing/flow is `copy-review`'s lane).
 - **Python** (the `python-style` standard): class design & separation of
   concerns, polymorphism over `kind`-field branching, value objects over bare
   `str`/`dict` between modules, `collections.abc` by access pattern, EAFP over
