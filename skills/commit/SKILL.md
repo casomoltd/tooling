@@ -2,9 +2,10 @@
 name: commit
 description: >-
   Run checks and commit cleanly — detect the toolchain, run the repo's
-  checks, stage explicitly, show the diff for approval, write a
-  conventional message. Does NOT bump the version (that's
-  release-version) or push (a separate, explicitly-requested step).
+  checks, stage explicitly, review the staged diff with the house agents,
+  show the diff for approval, write a conventional message. Does NOT bump
+  the version (that's release-version) or push (a separate,
+  explicitly-requested step).
 user-invocable: true
 argument-hint: "[message] [-C <repo>]"
 allowed-tools:
@@ -56,15 +57,41 @@ list specific files. Review with `git diff --stat` first.
 ## 3. Check for remaining unstaged changes
 
 After staging, run `git diff --stat` again. If there are related changes
-that should ship together, make **multiple commits** (repeat steps 2–4
+that should ship together, make **multiple commits** (repeat steps 2–6
 per batch) rather than lumping unrelated work into one commit.
 
-## 4. Show the diff and wait for approval
+## 4. Review the staged changes
 
-Run `git diff --staged` and present it. **Stop and wait for explicit
-approval** before committing. Do not proceed until the user confirms.
+Before showing the diff for approval, run the **house review agents over
+the staged diff** so findings land alongside the diff, not after the
+commit. Scope every agent to the changed files only
+(`git diff --staged --name-only`) — never the whole tree. Match by file
+type, and skip this step when nothing reviewable changed (e.g. a pure
+version bump or a config-only diff):
 
-## 5. Commit
+- **Code** (`.ts` / `.tsx` / `.py`) → `casomoltd:code-review` — it
+  applies the `typescript` standard to `.ts`/`.tsx` and the
+  `python-style` standard to `.py` (it picks the rubric by extension, so
+  a Python-only repo like `ops` is reviewed just as fully) — plus the
+  built-in `/code-review` for correctness bugs on any changed code.
+- **Reader-facing prose** — JSX text, headings and FAQ strings in page
+  `.tsx`, `.md`, and `meta` titles/descriptions → the prose reviewer
+  (`copy-review`) **if it's available**. It owns voice, banned words and
+  citations, so no separate banned-word check is needed.
+- **`.tsx` / CSS** → `frontend-review`, once that agent exists.
+
+These agents are read-only and diff-scoped by design; run the relevant
+ones concurrently (one message, multiple invocations). Their findings are
+advisory input to the approval gate below — not a hard block.
+
+## 5. Show the diff and wait for approval
+
+Run `git diff --staged` and present it **together with the review
+findings from step 4**, grouped by file. Offer to fix anything flagged
+before committing. **Stop and wait for explicit approval** before
+committing. Do not proceed until the user confirms.
+
+## 6. Commit
 
 - **Header:** ≤ 50 chars, imperative mood.
 - **Body** (optional): wrap at 72 chars, explain *why*.
@@ -74,7 +101,7 @@ approval** before committing. Do not proceed until the user confirms.
 
 Use a quoted message from the arguments if given.
 
-## 6. Stop — do not bump, do not push
+## 7. Stop — do not bump, do not push
 
 The version bump and push are **not** part of committing. After the
 commit, report the local state and hand off: the release tail lives in
