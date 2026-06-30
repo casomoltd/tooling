@@ -91,6 +91,29 @@ threading the wrong primitive through. Flag any helper whose
 parameters duplicate the fields of a domain type already in
 scope at every call site.
 
+A list of parallel `min`/`max` (or other obviously-paired)
+primitives **is** a value object you haven't named yet. Collapse
+each pair into a small `Range`-style type and pass one argument per
+span — even if you must define that type locally because no library
+owns it yet. Repeated loose pairs are the smell; "the fields are
+flat, so flat props are fine" is not a defence — the shape is the
+unit, and a six-number parameter list hides three.
+
+```ts
+// Bad: three spans flattened into six parallel primitives
+function forecast(opts: {
+  tempMin: number; tempMax: number;
+  humidityMin: number; humidityMax: number;
+  windMin: number; windMax: number;
+}) { /* … */ }
+
+// Good: name the shape; one argument per span
+interface Range {min: number; max: number}
+function forecast(opts: {
+  temp: Range; humidity: Range; wind: Range;
+}) { /* … */ }
+```
+
 ## Reuse the Library's Types and Values
 
 Before defining a consumer-side type for a domain concept, check
