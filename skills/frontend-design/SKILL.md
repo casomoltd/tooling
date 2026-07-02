@@ -4,6 +4,23 @@ description: Create distinctive, production-grade frontend interfaces with high 
 license: Complete terms in LICENSE.txt
 ---
 
+## Intent
+
+Create distinctive, production-grade frontend UI that avoids generic "AI slop"
+aesthetics — bold, cohesive, meticulously refined interfaces.
+
+## Applies-to
+
+Building or styling any web UI — components, pages, artifacts, posters,
+applications (HTML/CSS/JS, React, Vue, …). Invoked directly when building UI, or
+loaded as the aesthetic rubric during frontend work.
+
+## Owns-vs-defers
+
+Owns **aesthetic & design-quality** judgment — typography, colour, layout, motion,
+the conceptual direction. **Defers** data/type/component-API design to `typescript`
+and mechanical rules to `eslint`.
+
 This skill guides creation of distinctive, production-grade frontend interfaces that avoid generic "AI slop" aesthetics. Implement real working code with exceptional attention to aesthetic details and creative choices.
 
 The user provides frontend requirements: a component, page, application, or interface to build. They may include context about the purpose, audience, or technical constraints.

@@ -28,6 +28,12 @@ allowed-tools:
 
 # Design Pass
 
+## Intent
+
+Map → review → refactor a package or diff: chain `design-xray` (structure) →
+`code-review` (judgment) → an approved refactor. One job: let the structural map
+drive the change instead of a least-disruption bolt-on.
+
 Map → review → refactor, in that order. Each stage feeds the next. Follow the
 steps in order; do NOT skip or reorder. The pass makes **no change to the user's
 codebase until step 5** — the only earlier write is a disposable preview artifact
@@ -157,3 +163,13 @@ Re-run the repo's checks over what changed and report the result honestly:
 Then summarise: what was refactored, what was deferred (and why), and the
 doc-ready block for the user to keep. If checks fail, say so with the output —
 don't paper over it.
+
+## Boundaries
+
+- **vs the built-in `/code-review`** — that hunts correctness bugs; this pass does
+  design/structure only. It *invokes* `casomoltd:code-review` for house-standard
+  judgment but never duplicates the bug hunt.
+- **vs `eslint` / `ruff`** — the linters own mechanical rules; this pass owns the
+  design half (shape, separation of concerns, pattern-warranted-or-premature).
+- **vs its worker agents** — `design-xray` and `code-review` hold the judgment;
+  this skill only orchestrates and applies the approved diff.

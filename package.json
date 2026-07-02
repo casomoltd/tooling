@@ -17,7 +17,7 @@
   ],
   "scripts": {
     "check": "node bin/verify-pack.mjs && tsc --noEmit -p hooks/tsconfig.json && node hooks/test.mts && npm run lint:skills",
-    "lint:skills": "remark --frail --quiet --no-stdout --rc-path bin/skills-lint.config.mjs skills",
+    "lint:skills": "remark --frail --quiet --no-stdout --rc-path bin/skills-lint.config.mjs skills docs",
     "prepare": "husky || true"
   },
   "exports": {

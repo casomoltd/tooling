@@ -8,6 +8,25 @@ user-invocable: false
 
 # TypeScript Data Modelling
 
+## Intent
+
+Govern TypeScript data, type, and component-variant design — typed identifiers,
+clean domain data, variants over mode flags.
+
+## Applies-to
+
+`.ts` / `.tsx` — data, type, and component-API design. Preloaded as the rubric
+wherever TS is written or reviewed (e.g. the `code-review` / `design-xray` agents
+for `.ts/.tsx`). General formatting (line length, file naming) is out of scope.
+
+## Owns-vs-defers
+
+Owns the **design half** — data modelling, typed identifiers, value objects,
+variants over mode flags, and crawlable-navigation design (a real `<a>`/`<Link>`,
+not a JS-only handler). **Defers** mechanical rules to `eslint` (max-len, import
+order, `@typescript-eslint`, sonarjs), and anchor *phrasing/flow* to the prose
+reviewer — this rubric owns the element, not the wording.
+
 Apply these principles when creating or restructuring types,
 constants, domain data, or component variants in TypeScript /
 TSX. (Scope: data, type, and component-API design — general

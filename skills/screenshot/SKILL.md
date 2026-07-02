@@ -15,8 +15,10 @@ allowed-tools:
 
 # Screenshot skill
 
-Capture a page from the running dev server, read the
-image, and describe what rendered.
+## Intent
+
+Capture a page from the running dev server, read the image, and describe what
+rendered — a visual-verification helper, not a code change.
 
 ## Target app
 

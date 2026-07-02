@@ -186,6 +186,11 @@ The tooling serves three consumers: **Claude** (the editing workflow) → these
 plugin surfaces; **CI + git-hooks** (automation) → the npm `bin` scripts; manual
 human CLI is no longer a design target.
 
+**Authoring standard:** creating or editing a skill/agent follows
+[`docs/skill-agent-schema.md`](docs/skill-agent-schema.md) — the interface schema
+(three profiles — procedural skill · agent · standard/rubric — plus a frontmatter
+decision table) that keeps these units composing without overlap.
+
 | Skill | Description |
 |---|---|
 | `/casomoltd:commit` | Run checks and commit cleanly (no bump, no push) |

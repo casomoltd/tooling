@@ -19,10 +19,18 @@ invent rules):
 - **`typescript`** — apply to `.ts` / `.tsx` changes.
 - **`python-style`** — apply to `.py` changes.
 
+## Inputs (the caller provides)
+
+- **The changed code.** By default, discover it with `git diff` (working tree,
+  then `--staged`); if the caller names specific files or a target, review those
+  instead. You read the diff/files yourself — the caller need only point you at
+  them.
+- **The two rubric skills above**, preloaded as your single source of truth —
+  `typescript` for `.ts`/`.tsx`, `python-style` for `.py`. Don't invent rules
+  beyond them.
+
 ## Scope
 
-By default, find what changed with `git diff` (working tree, then `--staged`)
-and review the changed hunks; if the caller names specific files, review those.
 Match each file to its standard by extension; ignore other file types. Read
 enough surrounding code (definitions, call sites) to judge design intent.
 

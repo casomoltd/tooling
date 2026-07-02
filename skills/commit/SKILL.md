@@ -22,6 +22,11 @@ reorder. This skill **commits only** — it does not bump the version or
 push. The release tail (bump → push → publish/deploy) is a separate,
 deliberate step (`release-version`).
 
+## Intent
+
+Take a dirty working tree to a clean, reviewed, conventional commit — and stop
+there. One job: commit. Not bump, not push.
+
 ## 0. Resolve the target repo
 
 Decide which repo to commit in:
@@ -106,6 +111,15 @@ Use a quoted message from the arguments if given.
 The version bump and push are **not** part of committing. After the
 commit, report the local state and hand off: the release tail lives in
 `release-version`, and pushing happens only on an explicit request.
+
+## Boundaries
+
+- **vs `release-version`** — that skill owns the release tail (bump → push →
+  publish/deploy); this one never bumps, tags, or pushes. The clean tree is the
+  seam: `commit` leaves the tree clean, `release-version` picks up from there.
+- **vs the built-in `/code-review`** — step 4 delegates correctness-bug review to
+  it and house-standard design review to `casomoltd:code-review`; this skill
+  orchestrates the gate, it doesn't re-implement the review.
 
 ## Error recovery
 

@@ -9,6 +9,24 @@ paths: "**/*.py"
 
 # Python Code Generation — Style Rules
 
+## Intent
+
+Govern Python code generation — the design/style judgment for how Python is
+written, so output isn't naive and procedural.
+
+## Applies-to
+
+`**/*.py` (declared in `paths:`). Preloaded as the rubric wherever Python is
+written or reviewed — e.g. the `code-review` and `design-xray` agents load it for
+`.py`.
+
+## Owns-vs-defers
+
+Owns the **design & style judgment** — class design, types over dicts, EAFP,
+naming, module API, docstrings. **Defers** the mechanical half to `ruff` /
+`pyright` (line length, import order, `D100`/`D103`, `RUF022`, `E722`, annotation
+syntax): if a linter would catch it, it isn't this rubric's to restate.
+
 The rules below are self-contained — apply them directly. They take the
 [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html)
 as the baseline (assume its conventions wherever this file is silent),

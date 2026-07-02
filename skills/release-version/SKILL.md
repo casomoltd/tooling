@@ -25,6 +25,12 @@ The **release tail** that `commit` stops short of: **bump → push →
 it does not commit code. Steps are mechanics + routing — follow in
 order.
 
+## Intent
+
+Run the release tail on an already-committed tree — bump the version with the
+repo's own tooling, then (only on an explicit push request) push so CI
+publishes/deploys. One job: release. Not commit.
+
 ## 0. Resolve the target repo
 
 Decide which repo to release:
@@ -122,6 +128,13 @@ gh run list -L 1
 
 If a tag didn't reach the remote (created lightweight), push it
 explicitly — `git push origin v<new-version>` — don't delete/recreate.
+
+## Boundaries
+
+- **vs `commit`** — that skill produces the committed, clean tree this one
+  requires (step 1); this skill never commits *code* (only the version-bump commit
+  its own tooling makes). Bump / push / publish is this skill's lane, not
+  `commit`'s.
 
 ## Guardrails
 
