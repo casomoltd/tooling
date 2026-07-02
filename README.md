@@ -68,6 +68,33 @@ repo needs (lint, typecheck, spell, etc.).
 hooks (e.g. `./bin/check-version.sh`) because it can't resolve
 its own bin commands via `node_modules/.bin`.
 
+## Markdown / skills lint
+
+`bin/skills-lint.config.mjs` is a stock remark config (`remark-frontmatter` +
+`remark-validate-links` + `remark-lint-frontmatter-schema`) that validates a
+Claude Code skills/agents/docs tree: every `SKILL.md` / `agents/*.md` has
+parseable YAML frontmatter with `name` + `description`, and every relative link
+and `#anchor` resolves. tooling runs it over its own `skills/` in `npm run
+check` (`lint:skills`) — catching the breakage a rename or hand-edit leaves that
+Claude Code's loader silently swallows.
+
+To gate a consumer repo's docs (link/anchor integrity) at its own pre-commit,
+install the remark toolchain and point it at the shipped config:
+
+```bash
+npm i -D remark-cli remark-frontmatter remark-validate-links remark-lint-frontmatter-schema
+```
+
+```json
+"lint:md": "remark --frail --quiet --no-stdout --rc-path node_modules/@casomoltd/tooling/bin/skills-lint.config.mjs docs"
+```
+
+Append `&& npm run lint:md` to your `check` script. The config resolves the
+plugins from your repo's `node_modules` and the schema (shipped beside it)
+relative to your cwd; the frontmatter schema only matches `SKILL.md`/`agents`
+files, so for plain docs it acts as a link/anchor check. Requires a tooling
+version that ships the config.
+
 ## Screenshot tool
 
 Capture the running dev server for visual inspection:
