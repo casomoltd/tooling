@@ -3,10 +3,13 @@ name: design-pass
 description: >-
   Run a design pass over a package or diff: map its structure, review the
   highest-impact targets against the house standards, then refactor — chaining
-  the design-xray agent → the code-review agent → an approved refactor. Use to
-  see and improve the shape of code before or during a change. Produces a
-  doc-ready structural map as a side effect. Read-only until you approve the
-  refactor. NOT a bug hunt (that's /code-review) and NOT a linter (eslint/ruff).
+  the design-xray agent → the code-review agent → an approved refactor. Reach
+  for it BEFORE designing an extension or refactor — adding a variant, a second
+  implementation, or reshaping a package — so the structural map drives the
+  design rather than a least-disruption bolt-on; also use to see and improve the
+  shape of existing code. Produces a doc-ready structural map as a side effect.
+  Read-only until you approve the refactor. NOT a bug hunt (that's /code-review)
+  and NOT a linter (eslint/ruff).
 user-invocable: true
 argument-hint: "<path|diff> [-C <repo>]"
 allowed-tools:
@@ -29,6 +32,13 @@ Map → review → refactor, in that order. Each stage feeds the next. Follow th
 steps in order; do NOT skip or reorder. The pass makes **no change to the user's
 codebase until step 5** — the only earlier write is a disposable preview artifact
 (step 2) outside the repo, in the system temp dir.
+
+Run this **before** committing to a design when extending a package, not after.
+Starting from the structural map is the point: it routinely shows the "new" thing
+is a variant of something that already exists — N near-identical units where a
+type belongs — so the right move is to abstract, not to bolt on an (N+1)th copy.
+A plan that starts from "how do I add my thing with least disruption" walks past
+that; the map doesn't.
 
 This skill **orchestrates**; it does not re-implement. The judgment lives in two
 worker agents it invokes:
@@ -79,7 +89,13 @@ add `scratch/` to its `.gitignore` first (fail loud if you can't).
    - embed the markdown in a `<script type="text/markdown">` block (so `<`/`>`
      aren't parsed as HTML), `marked.parse` it into a `<div>`, convert each
      `code.language-mermaid` into `<pre class="mermaid">`, then
-     `mermaid.run({ querySelector: ".mermaid" })` with `startOnLoad: false`.
+     `mermaid.run({ querySelector: ".mermaid" })` with `startOnLoad: false`;
+   - **sanitize each mermaid block's class-body member lines before inserting**
+     — inside `{…}` blocks (never on relationship lines), replace `|` with
+     " or " and strip `[`/`]`, since the classDiagram parser rejects union/
+     bracket types in a member line (`date|None`, `Callable[[str], str]`). This
+     makes the diagram render even when the source emits imperfect mermaid;
+     don't rely on the report author to pre-clean it.
    Build it by concatenating header + the `.md` + footer (don't hand-duplicate
    the report). This needs network for the two CDN scripts.
 3. Print both **`file://` URLs** (clickable) and open the HTML with the platform
@@ -119,7 +135,20 @@ rules; before editing `.ts/.tsx`, load the `typescript` rules — so the refacto
 lands in house style rather than getting re-reviewed into it. Keep edits tight
 and reviewable; prefer the smallest change that resolves the finding.
 
-## 6. Verify and summarise
+## 6. Review the generated diff and iterate
+
+The refactor just *wrote* code — review THAT, not only the pre-refactor targets
+from step 3 (step 3 decides what to change; this checks how the change landed).
+Invoke the `casomoltd:code-review` agent over the changed files (the diff), so
+the design-half judgment (value objects, EAFP-not-sentinels, DI, no hardcoded
+config, factory classmethods, protocols/interfaces placed well) runs over what
+was actually generated. Apply the high-confidence findings, re-run the checks,
+and repeat — a **bounded loop (2–3 rounds)** until the diff comes back clean or
+only genuine judgment calls remain, which you surface to the user rather than
+churn on. This is the generate → review → iterate loop; skipping it ships
+unreviewed codegen (the failure mode this step exists to close).
+
+## 7. Verify and summarise
 
 Re-run the repo's checks over what changed and report the result honestly:
 - Python → `ruff check` (and `pyright`/`uv run pytest` if the repo uses them).

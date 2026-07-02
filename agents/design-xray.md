@@ -54,11 +54,20 @@ and decorated/exported entries.
 **Class-hierarchy diagram** — a `mermaid` `classDiagram` in a fenced ```mermaid
 block. Show inheritance (ABC/base → subclasses), interface/`Protocol`/ABC
 implementation, enums, and key composition ("has a", "begins from"). Include
-type aliases used as ports (`Callable[...]` / function-type aliases). List each
-type's notable methods/fields concisely. The block must be **valid, renderable
-mermaid**: write stereotypes as literal `<<abstract>>` / `<<enumeration>>` /
-`<<type alias>>` — never HTML-escape them (`&lt;&lt;…&gt;&gt;` renders as text,
-not a stereotype). No stray characters, no prose inside the block.
+type aliases used as ports (function-type aliases). List each type's notable
+methods/fields concisely.
+
+The block must be **valid, renderable mermaid on the first pass** — the caller
+must never have to sanitize it. Rules the classDiagram parser enforces:
+- Stereotypes as literal `<<abstract>>` / `<<enumeration>>` / `<<type alias>>` —
+  never HTML-escape them (`&lt;&lt;…&gt;&gt;` renders as text, not a stereotype).
+- **No `|`, `[`, `]`, `,`, or `~` inside a member/field line** — these break the
+  parser. Write types in words: `date or None` not `date|None`, `list of Item`
+  not `list[Item]`, `Callable str to str` not `Callable[[str], str]`. Describe a
+  type alias's shape in prose inside the class body, not the literal bracketed
+  type.
+- No stray characters, no prose outside class bodies, no parentheses in a
+  relationship label. Mentally validate the block parses before returning it.
 
 ### 2. Weight table
 A table: module · lines · #distinct concerns · heavy / balanced / thin ·
@@ -69,6 +78,11 @@ standard:
 - Flag any function that **fetches AND parses AND formats**.
 - Flag **anaemic** types (data with no behaviour where behaviour belongs on it)
   and **god modules** (many unrelated concerns in one file).
+- Flag **N near-identical functions/classes** — copy-paste variants differing
+  only in constants (a key, a URL, a field name), or dispatched by a `kind`/enum
+  type-code. That repetition is the trigger to collapse them into **one type +
+  an injected strategy** (or a polymorphic subtype), not to add an (N+1)th copy.
+  Call out the exact set and what actually varies between them.
 State the heaviest single function and the heaviest module explicitly.
 
 ### 3. Design findings
@@ -100,6 +114,12 @@ registry, visitor, repository, strategy, …) and judge — grounded in the *no
 speculative infrastructure* rule — whether the current code **earns it now** or
 should **wait for a concrete trigger** (branching, retries, resume, persistence,
 scale). State the explicit trigger that would flip the verdict.
+
+**Existing duplication is itself a concrete trigger.** N near-identical units
+(above) mean the abstraction is *net deletion*, not speculation — so a Strategy
+or polymorphic collapse is earned now, not premature. The premature case is the
+opposite: a single implementation with an imagined second one. Distinguish the
+two explicitly.
 
 ## Style of output
 
