@@ -44,10 +44,14 @@ const bashCases: Case[] = [
   {command: "uv version --bump major", verdict: "deny", id: "version-major"},
   {command: "npm i -g typescript", verdict: "deny", id: "npm-global-install"},
   {command: "npm install --global eslint", verdict: "deny"},
+  // Bumping is the release tail — confirm patch/minor (major stays denied).
+  {command: "npm version patch", verdict: "ask", id: "version-bump-confirm"},
+  {command: "npm version minor", verdict: "ask", id: "version-bump-confirm"},
+  {command: "uv version --bump patch", verdict: "ask", id: "version-bump-confirm"},
   // Allowed — no rule should fire.
   {command: "git status", verdict: null},
   {command: "git push --help", verdict: "ask"}, // still a push token; confirm
-  {command: "npm version patch", verdict: null},
+  {command: "npm version", verdict: null}, // bare — prints, doesn't bump
   {command: "npm i -D eslint", verdict: null},
   // Every commit asks for confirmation (git-commit-confirm). AI-attribution
   // itself stays commitlint's job — the hook doesn't deny for it.

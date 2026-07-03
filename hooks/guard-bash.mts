@@ -91,6 +91,21 @@ const packageRules: readonly Rule[] = [
     },
   },
   {
+    id: "version-bump-confirm",
+    verdict: "ask",
+    reason:
+      "A version bump is the release tail, not a mid-work step — confirm you're " +
+      "shipping now. Bump once, right before the push that publishes/deploys.",
+    // patch/minor only; major is denied above, a bare `npm version` just prints.
+    matches: (i) => {
+      const c = text(i);
+      return (
+        /\bnpm\s+version\s+(patch|minor)\b/.test(c) ||
+        /\buv\s+version\b[^\n]*--bump\s+(patch|minor)\b/.test(c)
+      );
+    },
+  },
+  {
     id: "npm-global-install",
     verdict: "deny",
     reason:
