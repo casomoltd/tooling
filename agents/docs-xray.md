@@ -14,6 +14,7 @@ description: >-
   remark-validate-links) or review prose voice/tone (that's a copy/content
   reviewer).
 tools: Read, Grep, Glob, Bash, Write
+model: sonnet
 skills: docs-style
 ---
 
