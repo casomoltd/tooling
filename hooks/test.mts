@@ -49,8 +49,14 @@ const bashCases: Case[] = [
   {command: "git push --help", verdict: "ask"}, // still a push token; confirm
   {command: "npm version patch", verdict: null},
   {command: "npm i -D eslint", verdict: null},
-  // commit AI-attribution is commitlint's job, not the hook's — no rule fires.
-  {command: 'git commit -m "feat: x" -m "Co-Authored-By: Claude"', verdict: null},
+  // Every commit asks for confirmation (git-commit-confirm). AI-attribution
+  // itself stays commitlint's job — the hook doesn't deny for it.
+  {command: 'git commit -m "feat: x"', verdict: "ask", id: "git-commit-confirm"},
+  {command: "git commit --amend", verdict: "ask", id: "git-commit-confirm"},
+  {command: 'git commit -m "feat: x" -m "Co-Authored-By: Claude"', verdict: "ask", id: "git-commit-confirm"},
+  // Plumbing/maintenance verbs that start with "commit" must NOT confirm.
+  {command: "git commit-graph write", verdict: null},
+  {command: "git commit-tree abc123", verdict: null},
   {command: "git tag -a v1.0.0 -m v1.0.0", verdict: null},
 ];
 

@@ -1,11 +1,13 @@
 ---
 name: commit
 description: >-
-  Run checks and commit cleanly — detect the toolchain, run the repo's
-  checks, stage explicitly, review the staged diff with the house agents,
-  show the diff for approval, write a conventional message. Does NOT bump
-  the version (that's release-version) or push (a separate,
-  explicitly-requested step).
+  Run checks, then stage, review, and commit cleanly behind an explicit
+  confirmation gate — detect the toolchain, run the repo's checks, stage
+  explicitly, review the staged diff with the house agents, show the diff and
+  wait for the user to confirm, then write a conventional commit. The commit is
+  never silent — the guard hook confirms every `git commit`. Does NOT bump the
+  version (that's release-version) or push (a separate, explicitly-requested
+  step).
 user-invocable: true
 argument-hint: "[message] [-C <repo>]"
 allowed-tools:
@@ -24,8 +26,9 @@ deliberate step (`release-version`).
 
 ## Intent
 
-Take a dirty working tree to a clean, reviewed, conventional commit — and stop
-there. One job: commit. Not bump, not push.
+Take a dirty working tree to a clean, reviewed, conventional commit — stage and
+review first, then commit **only after the user confirms** — and stop there. One
+job: commit, behind an explicit confirmation gate. Not bump, not push.
 
 ## 0. Resolve the target repo
 
@@ -89,12 +92,18 @@ These agents are read-only and diff-scoped by design; run the relevant
 ones concurrently (one message, multiple invocations). Their findings are
 advisory input to the approval gate below — not a hard block.
 
-## 5. Show the diff and wait for approval
+## 5. Show the diff and wait for confirmation
 
 Run `git diff --staged` and present it **together with the review
 findings from step 4**, grouped by file. Offer to fix anything flagged
-before committing. **Stop and wait for explicit approval** before
-committing. Do not proceed until the user confirms.
+before committing. **Stop and wait for the user's explicit confirmation
+that they're happy** — never commit off your own judgement. Do not proceed
+until the user confirms.
+
+This gate is **enforced, not advisory**: the `git-commit-confirm` guard hook
+surfaces a confirmation on every `git commit`, so a commit can't slip through
+unconfirmed. Don't try to work around it — the staged tree waiting on the
+user's "yes" is the intended resting state.
 
 ## 6. Commit
 
@@ -104,7 +113,9 @@ committing. Do not proceed until the user confirms.
 - **Issue reference:** if an issue number is already in context, add a
   `Closes #<n>` / `Refs #<n>` footer; don't prompt for one otherwise.
 
-Use a quoted message from the arguments if given.
+Use a quoted message from the arguments if given. Running `git commit` surfaces
+the `git-commit-confirm` guard hook's dialog — that's the enforced form of the
+step-5 gate; confirm it, never suppress or bypass it.
 
 ## 7. Stop — do not bump, do not push
 

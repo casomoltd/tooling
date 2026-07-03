@@ -15,6 +15,15 @@ const text = (input: ToolInput): string => String(input.command ?? "");
 // git history + remote safety.
 const gitRules: readonly Rule[] = [
   {
+    id: "git-commit-confirm",
+    verdict: "ask",
+    reason:
+      "Committing is deliberate, not automatic — stage and review first, then " +
+      "confirm this commit is intended before it lands.",
+    // Not `commit-tree`/`commit-graph` (plumbing/maintenance, not a commit).
+    matches: (i) => /\bgit\s+commit\b(?!-)/.test(text(i)),
+  },
+  {
     id: "git-push-confirm",
     verdict: "ask",
     reason:
