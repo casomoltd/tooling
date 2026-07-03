@@ -37,10 +37,28 @@ if (!mdPath || !existsSync(mdPath)) {
 
 const htmlPath = mdPath.replace(/\.md$/, "") + ".html";
 
+// A mermaid classDiagram rejects union/bracket types in a member line
+// (`date|None`, `list[Item]`) — soften them inside class bodies so an imperfect
+// source (e.g. a design-xray map) still renders. Scoped to classDiagram fences
+// only, so other diagrams (docs-xray flowcharts) are left untouched.
+const softenClassDiagrams = (text) =>
+  text.replace(/```mermaid\n([\s\S]*?)```/g, (block, body) =>
+    /\bclassDiagram\b/.test(body)
+      ? "```mermaid\n" +
+        body.replace(/\{[^{}]*\}/g, (b) =>
+          b.replace(/\|/g, " or ").replace(/[[\]]/g, ""),
+        ) +
+        "```"
+      : block,
+  );
+
 // Inline the markdown in a <script type="text/markdown"> so its backticks and
 // fences aren't parsed as HTML. The only hazard is a literal </script> in the
 // source, which we defuse.
-const md = readFileSync(mdPath, "utf8").replaceAll("</script>", "<\\/script>");
+const md = softenClassDiagrams(readFileSync(mdPath, "utf8")).replaceAll(
+  "</script>",
+  "<\\/script>",
+);
 
 const html = `<!doctype html>
 <html lang="en">

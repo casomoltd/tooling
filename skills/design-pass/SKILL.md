@@ -18,8 +18,7 @@ allowed-tools:
   - Bash(npm run check)
   - Bash(git *)
   - Bash(cd *)
-  - Bash(xdg-open *)
-  - Bash(open *)
+  - Bash(node *)
   - Read
   - Write
   - Glob
@@ -88,29 +87,21 @@ add `scratch/` to its `.gitignore` first (fail loud if you can't).
 1. Write the agent's **entire returned markdown** verbatim to
    `<repo>/scratch/design-xray/<target-slug>.md` (mermaid stays a normal fenced
    ```mermaid block with literal `<<abstract>>` stereotypes).
-2. Wrap that `.md` in a self-contained HTML harness written next to it
-   (`…/<target-slug>.html`) that renders markdown + mermaid:
-   - load `marked` (`https://cdn.jsdelivr.net/npm/marked/marked.min.js`) and
-     `mermaid` (`https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs`);
-   - embed the markdown in a `<script type="text/markdown">` block (so `<`/`>`
-     aren't parsed as HTML), `marked.parse` it into a `<div>`, convert each
-     `code.language-mermaid` into `<pre class="mermaid">`, then
-     `mermaid.run({ querySelector: ".mermaid" })` with `startOnLoad: false`;
-   - **sanitize each mermaid block's class-body member lines before inserting**
-     — inside `{…}` blocks (never on relationship lines), replace `|` with
-     " or " and strip `[`/`]`, since the classDiagram parser rejects union/
-     bracket types in a member line (`date|None`, `Callable[[str], str]`). This
-     makes the diagram render even when the source emits imperfect mermaid;
-     don't rely on the report author to pre-clean it.
-   Build it by concatenating header + the `.md` + footer (don't hand-duplicate
-   the report). This needs network for the two CDN scripts.
-3. Print both **`file://` URLs** (clickable) and open the HTML with the platform
-   opener (`xdg-open` on Linux, `open` on macOS). `text/html` must be associated
-   with a browser, not a mail client — if `xdg-open` mis-routes, the user can run
+2. Render + open it with the shared harness — **do not re-author the HTML**:
+   ```bash
+   node "${CLAUDE_PLUGIN_ROOT}/bin/render-report.mjs" <repo>/scratch/design-xray/<target-slug>.md
+   ```
+   `render-report.mjs` wraps the `.md` in a self-contained HTML file next to it
+   (marked + mermaid from CDN), **softens classDiagram member lines** so an
+   imperfect x-ray still renders (union/bracket types like `date|None` /
+   `list[Item]`), prints the `file://` URL, and opens it in the browser. It is the
+   single source of the render recipe — shared with `docs-xray`, so the harness
+   lives in exactly one place. Needs network for the two CDN scripts; if the
+   opener mis-routes `text/html`, the printed `file://` URL still works, or run
    `xdg-mime default firefox_firefox.desktop text/html`.
 
 Do NOT chase in-editor mermaid (e.g. a VSCode extension) as the path — the
-self-contained HTML is the reliable renderer. THEN, and only on explicit
+self-contained HTML from `render-report.mjs` is the reliable renderer. THEN, and only on explicit
 confirmation, **offer** to persist the doc-ready block into a real
 `README`/`ARCHITECTURE` doc in the repo — writing only that block, nothing else.
 
