@@ -427,6 +427,16 @@ No top-level execution besides imports and definitions.
   assertion** — a test module is a verification document, so the reference
   sits at the exact line it verifies, proving correctness against the world,
   not just internal consistency.
+- **Pin transcribed reference data to a cited fixture.** When you transcribe
+  an external table into code — pay scales, tax thresholds, statutory rates —
+  commit a fixture mirroring the authoritative table (one row per value, the
+  source cited) and assert the code against it. A code-vs-code check (a value
+  equals a recomputation, or a hardcoded expected) proves consistency, not
+  correctness: a whole table transcribed on a wrong factor is internally
+  consistent and still wrong — only a fixture tied to the published source
+  catches it. And a **uniform offset across a whole table** (every value off
+  by the same fraction) is the signature of a wrong transform — a mis-applied
+  uplift, a rounding, a unit slip — not noise.
 
 ```python
 def test_press_self_destruct_should_go_bang():

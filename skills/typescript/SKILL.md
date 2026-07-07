@@ -425,3 +425,35 @@ into "the code agrees with the world".
 // circular <id> (<date>): <reference>. A base below it is lifted.
 expect(regionalise(belowFloor, region)).toBe(FLOOR_FIGURE);
 ```
+
+## Pin Transcribed Reference Data to a Cited Fixture
+
+When you transcribe an external table into code — pay scales, tax
+thresholds, statutory rates — commit a fixture that mirrors the
+authoritative table (one row per value, the **source cited**) and
+assert the code against it. A code-vs-code check (a value equals a
+recomputation, or a hardcoded `toBe`) proves internal consistency,
+not correctness: a whole table transcribed on a wrong factor is
+perfectly consistent and still wrong — only a fixture tied to the
+published source catches a bad transcription.
+
+```ts
+// Weak: the "expected" is transcribed from the same place as the
+// code, so a shared transcription error hides — both agree, both wrong.
+expect(rateFor('a5')).toBe(42_000);           // code-vs-code
+
+// Strong: assert every code value against a source-cited fixture,
+// so a re-transcription on a wrong factor fails here.
+for (const row of parse(readFileSync('scales.csv'))) {
+  expect(rateFor(row.key)).toBe(Number(row.value));  // vs source
+}
+```
+
+A **uniform offset across an entire table** — every value high by
+the same fraction — is the signature of a wrong transform: a
+mis-applied uplift, a rounding, a unit slip. Treat it as a data bug
+and re-check the factor against source, not as noise.
+
+(Complements *Guard Cross-Path Invariants with a Test* above: that
+pins one externally-known figure with an inline oracle; this pins a
+whole transcribed table to a committed, cited fixture.)

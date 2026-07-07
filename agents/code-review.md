@@ -81,6 +81,13 @@ enough surrounding code (definitions, call sites) to judge design intent.
   (`path A == path B`), and, where the figure is externally knowable, a missing
   oracle assertion citing its source inline. A per-path fixture pins one side;
   only the equivalence test catches the two diverging.
+- **Transcribed reference data** (both standards): a table of externally-sourced
+  constants — pay figures, tax thresholds, statutory rates — added or edited with
+  **no committed fixture tying it to the authoritative source**, or "verified"
+  only by a code-vs-code assertion (a hardcoded expected transcribed from the
+  same place as the code). Flag it: a whole table on a wrong factor is internally
+  consistent and still wrong; correctness needs a fixture mirroring the published
+  source, cited. A uniform offset across the table is a wrong-transform smell.
 
 ## Ignore — owned elsewhere (never re-flag)
 
