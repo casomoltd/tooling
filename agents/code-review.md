@@ -50,6 +50,14 @@ enough surrounding code (definitions, call sites) to judge design intent.
   consolidating refactor that drops the rule from a second path a caller still
   reaches, shared/`lib` modules kept presentation-agnostic (no user-facing copy
   or view-prop assembly in the data layer), exceptions reported not swallowed.
+- **No silent domain-default** (`typescript` standard): a parameter that selects
+  *which* data — locale/region/nation/tax-year/currency/scheme — given a silent
+  default (`= 'gb'`, `?? fallback`, a `[0]` pick) instead of being required. Flag
+  it: an omitted selector then returns a plausible-but-wrong answer with no error,
+  and every call site can forget it the same way. The selector must be required (a
+  missing one is a compile error) or fail loud (throw) — never defaulted.
+  Distinguish a benign *tuning* default (page size, precision) that changes only
+  *how* a result is computed, not *which* result you get.
 - **Crawlable navigation** (`typescript` standard): primary navigation — and any
   hub→spoke or page-to-page link — must render a real `<a href>`/`<Link>`, never
   a JS-only `onClick`/`router.push`/`<select>` that emits no anchor and so is
@@ -85,9 +93,12 @@ enough surrounding code (definitions, call sites) to judge design intent.
   constants — pay figures, tax thresholds, statutory rates — added or edited with
   **no committed fixture tying it to the authoritative source**, or "verified"
   only by a code-vs-code assertion (a hardcoded expected transcribed from the
-  same place as the code). Flag it: a whole table on a wrong factor is internally
-  consistent and still wrong; correctness needs a fixture mirroring the published
-  source, cited. A uniform offset across the table is a wrong-transform smell.
+  same place as the code), **or with no primary-source citation (issuer +
+  document + URL) in a doc comment at the data itself**. Flag it: a whole table on
+  a wrong factor is internally consistent and still wrong; correctness needs a
+  fixture mirroring the published source, cited — and the source must also be
+  linked in the code at the data, so provenance is re-checkable at the number, not
+  only in a test file. A uniform offset across the table is a wrong-transform smell.
 
 ## Ignore — owned elsewhere (never re-flag)
 

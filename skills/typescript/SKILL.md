@@ -225,6 +225,52 @@ because "another path already does it," confirm no caller reaches
 the value the first way — otherwise keep it on both (idempotent
 transforms compose safely) and guard the pair with a test (below).
 
+## No Silent Default for a Domain-Selecting Input
+
+A parameter that selects **which** answer you get — a locale, region,
+nation, tax year, currency, scheme — must be **required**. A default
+(`= 'gb'`, `?? firstOption`, silently taking `[0]`) returns a
+*plausible-but-wrong* value when a caller forgets it: no error, no type
+failure, no failing test, so the mistake ships — and every future call
+site can make it too. Make the input required so an omission is a
+**compile error**; if it genuinely can't be a required type parameter
+(it's derived at runtime), **throw** rather than fall back.
+
+```ts
+// Bad: an optional selector with a silent default. Forget it and you
+// silently get the 'gb' answer for a 'fr' user — no error anywhere.
+function priceList(year: Year, region: Region = 'gb'): Price[] { /* … */ }
+priceList(2026);            // compiles; wrong for every non-GB caller
+
+// Good: required selector — omitting it fails to compile
+function priceList(year: Year, region: Region): Price[] { /* … */ }
+priceList(2026);            // ✗ compile error: region is required
+priceList(2026, region);    // ✓ caller must say which
+```
+
+The distinction is *which* vs *how*: a default is fine for a **tuning**
+parameter that changes how a result is computed or presented (page size,
+timeout, precision, sort order) — never for one that changes **which**
+result you get. Test: would two different values return *different data*
+(not just different formatting or performance)? If yes, it selects the
+domain — require it.
+
+One convenience default is uniquely dangerous because it *scales*: a
+single `region = 'gb'` fallback can silently produce the wrong answer
+across a server page, a client widget, and a dedicated regional page —
+three incarnations of one bug, none caught by types or tests, because each
+call site independently "forgot" the argument the API let them omit.
+
+This pairs with *A Domain Rule Lives in the Library, on Every Path* — a
+required selector is how you stop a path silently taking the wrong locale's
+data. Enforcement is a design-review call (the `code-review` agent applies
+this rubric): a lint rule can ban a default on a locale-typed parameter,
+but "this default hides a wrong answer" is the reviewer's judgment.
+
+Flag: an optional parameter — or a `??`/`||` fallback, or a `[0]` pick —
+that selects locale/region/nation/period/currency/scheme; a function that
+returns data for a "default" locale when the caller passed none.
+
 ## Keep Shared Modules Presentation-Agnostic
 
 A module in a shared or `lib` layer holds data, domain logic, and
@@ -496,6 +542,22 @@ expect(rateFor('a5')).toBe(42_000);           // code-vs-code
 for (const row of parse(readFileSync('scales.csv'))) {
   expect(rateFor(row.key)).toBe(Number(row.value));  // vs source
 }
+```
+
+**Cite the primary source at the data, not only in the fixture.** The
+constant or table in the code carries its source in a doc comment right
+where the values live — the issuing body, the document, and its URL — so
+a reader re-verifying a figure finds the origin at the number, not only
+in a test file. The fixture proves the transcription is faithful; the
+inline citation makes the provenance discoverable and re-checkable. A
+transcribed table of statutory figures with no source link in the code is
+a finding even when a fixture exists.
+
+```ts
+// Good: provenance lives at the data.
+// NHS member contribution tiers 2026/27 — source: NHSBSA member hub
+// https://www.nhsbsa.nhs.uk/member-hub/cost-being-scheme
+const TIERS_2026_27: Tier[] = [ /* … */ ];
 ```
 
 A **uniform offset across an entire table** — every value high by
