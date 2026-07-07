@@ -321,6 +321,55 @@ styling. Flag: a `mode`/`variant` string prop with an
 component from a server component; duplicated markup across
 branches instead of one shared shell.
 
+## Once Dispatched, Don't Re-Ask the Type
+
+Choosing distinct variants (above) is only half of polymorphism; the
+other half is that an implementation must not re-interrogate the
+discriminant it was chosen by. A variant typed to the **whole union**,
+then narrowing a `kind`/`type` tag with `if`/`switch` to reach a field,
+has rebuilt the branch the interface was meant to remove — it asks the
+duck to quack before telling it to fly. Type each implementation to its
+**own case** so the field is known without a guard; the tag selects the
+implementation (the caller passing one by type, or a `Record<Kind, Impl>`
+lookup), it is never a branch inside one.
+
+```ts
+type Circle = { kind: 'circle'; radius: number };
+type Square = { kind: 'square'; side: number };
+type Shape = Circle | Square;
+
+// Bad: a "handler" typed to the union re-narrows the tag it was chosen by
+const circle = {
+  area(s: Shape) {
+    if (s.kind !== 'circle') throw new Error('not a circle'); // re-asking
+    return Math.PI * s.radius ** 2;             // …only the narrow unlocks .radius
+  },
+};
+
+// Good: type each handler to its own case — the field is known, no guard
+interface AreaOf<S> { (s: S): number }
+const circleArea: AreaOf<Circle> = (c) => Math.PI * c.radius ** 2;
+const squareArea: AreaOf<Square> = (s) => s.side ** 2;
+// Dispatch by choosing the impl (the caller passes the one it wants); if a
+// value must find its own impl, a Record<Kind, …> lookup keyed by the tag —
+// never a switch (shape.kind) inside a handler.
+```
+
+Ordinary conditionals are fine — this is specifically a **type-tag**
+conditional that redoes dispatch the interface already models. Flag: an
+`if (x.kind === …)` / `switch (x.kind)` **inside** a variant method; a
+variant that takes the full union and immediately narrows it; a
+discriminant field on the *implementation* object (the tag belongs on the
+data and as the registry key, not on the impl).
+
+Enforcement: once each implementation is typed to its case,
+`@typescript-eslint/no-unnecessary-condition` flags the now-redundant tag
+check (a comparison the types prove can't vary), and a `no-restricted-syntax`
+selector can ban `switch`/`.kind ===` inside a `variants/` or `families/`
+dir. Neither catches "this *should* have been polymorphic" — that stays a
+design-review call (the `code-review` / `design-xray` agents apply this
+rubric).
+
 ## Separate Static from Varying
 
 Metadata that doesn't change per variant (labels, slugs,
