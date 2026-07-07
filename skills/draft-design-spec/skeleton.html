@@ -1,0 +1,281 @@
+<!doctype html>
+<!--
+  draft-design-spec skeleton — DO NOT re-author the <head> or <style>.
+  Copy this file to <repo>/scratch/<slug>.html and fill the 13 <section>s below.
+  Rules: keep <nav.toc> labels in sync with each <h2>; delete guidance comments as
+  you fill; every <section> that doesn't apply should say so (don't leave a stub).
+  Self-contained, opens over file://, no build step. Swap {{PLACEHOLDERS}}.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{PACKAGE}} · {{TITLE}} — Design Spec</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+  mermaid.initialize({ startOnLoad: true, theme: 'neutral', securityLevel: 'loose', flowchart: { htmlLabels: true } });
+  window.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('pre code').forEach(el => { try { hljs.highlightElement(el); } catch (e) {} });
+  });
+</script>
+<style>
+  :root {
+    --accent: #005EB8; --accent-dark: #003087; --ink: #1a1f29; --muted: #5b6472;
+    --line: #e2e6ec; --bg: #f6f8fb; --card: #ffffff;
+    --ok: #007f3b; --ok-bg: #e6f4ec; --amber: #a8720a; --amber-bg: #fbf3e2;
+    --red: #b3140c; --red-bg: #fbe9e8; --gen: #6b3fa0; --gen-bg: #f0e9f8;
+    --code-bg: #0d1117;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.62 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px 120px; }
+  header.hero { background: linear-gradient(135deg, var(--accent-dark), var(--accent)); color: #fff; padding: 40px 0 34px; }
+  header.hero .wrap { padding-bottom: 0; }
+  header.hero .eyebrow { text-transform: uppercase; letter-spacing: .12em; font-size: 12px; opacity: .85; font-weight: 600; }
+  header.hero h1 { margin: 8px 0 6px; font-size: 30px; line-height: 1.2; }
+  header.hero p.sub { margin: 0; font-size: 17px; opacity: .93; max-width: 780px; }
+  .pillrow { margin-top: 18px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .pill { background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.28); color: #fff; padding: 4px 11px; border-radius: 999px; font-size: 12.5px; font-weight: 500; }
+  nav.toc { position: sticky; top: 0; z-index: 20; background: rgba(246,248,251,.93); backdrop-filter: blur(6px); border-bottom: 1px solid var(--line); margin-bottom: 30px; }
+  nav.toc .wrap { padding: 10px 24px; display: flex; flex-wrap: wrap; gap: 4px 16px; }
+  nav.toc a { color: var(--muted); text-decoration: none; font-size: 13px; font-weight: 500; padding: 4px 0; }
+  nav.toc a:hover { color: var(--accent); }
+  section { margin: 0 0 46px; }
+  h2 { font-size: 23px; margin: 44px 0 14px; padding-top: 8px; border-top: 3px solid var(--accent); display: inline-block; }
+  h3 { font-size: 18px; margin: 28px 0 10px; color: var(--accent-dark); }
+  h4 { font-size: 15px; margin: 20px 0 8px; }
+  p { margin: 10px 0; }
+  a { color: var(--accent); }
+  code:not(pre code) { background: #eef1f6; padding: 1.5px 6px; border-radius: 5px; font-size: 13.5px; font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace; color: #29405c; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px 22px; margin: 16px 0; box-shadow: 0 1px 2px rgba(20,30,50,.04); }
+  .callout { border-radius: 10px; padding: 14px 18px; margin: 16px 0; border: 1px solid; font-size: 15px; }
+  .callout .lbl { font-weight: 700; text-transform: uppercase; letter-spacing: .05em; font-size: 11.5px; display: block; margin-bottom: 4px; }
+  .c-info { background: #eaf2fb; border-color: #bcd7f5; color: #1a3a5c; }
+  .c-decide { background: var(--gen-bg); border-color: #d3bff0; color: #43286b; }
+  .c-warn { background: var(--amber-bg); border-color: #e6cf96; color: #6b4a08; }
+  .c-key { background: var(--ok-bg); border-color: #a9d9bd; color: #10502f; }
+  table { border-collapse: collapse; width: 100%; margin: 14px 0; font-size: 13.5px; }
+  th, td { border: 1px solid var(--line); padding: 8px 11px; text-align: left; vertical-align: top; }
+  th { background: #eef2f7; font-weight: 600; color: #2b3646; }
+  td.ok { background: var(--ok-bg); } td.amber { background: var(--amber-bg); } td.red { background: var(--red-bg); }
+  .tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 5px; vertical-align: middle; }
+  .tag.ok { background: var(--ok-bg); color: var(--ok); } .tag.amber { background: var(--amber-bg); color: var(--amber); }
+  .tag.red { background: var(--red-bg); color: var(--red); } .tag.gen { background: var(--gen-bg); color: var(--gen); }
+  .tag.new { background: #e3f0ff; color: #1451a0; } .tag.reuse { background: #eceff3; color: #56606e; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  @media (max-width: 820px) { .grid2, .grid3 { grid-template-columns: 1fr; } nav.toc { display: none; } }
+  pre { background: var(--code-bg); border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 14px 0; font-size: 12.8px; line-height: 1.55; }
+  pre code { font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace; color: #d7dde5; }
+  .mermaid { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 20px; margin: 16px 0; text-align: center; overflow-x: auto; }
+  .legend { font-size: 12.5px; color: var(--muted); margin-top: -6px; }
+  ul.tight, ol.tight { margin: 8px 0; padding-left: 22px; } ul.tight li, ol.tight li { margin: 5px 0; }
+  .kbd { font-family: ui-monospace, monospace; background:#eef1f6; padding: 1px 6px; border-radius: 4px; font-size: 12.5px; }
+  .q { border-left: 4px solid var(--gen); padding: 4px 0 4px 14px; margin: 14px 0; } .q b { color: var(--gen); }
+  .layer { border-left: 5px solid var(--accent); background: #fff; border: 1px solid var(--line); border-left-width: 5px; border-radius: 10px; padding: 16px 20px; margin: 14px 0; }
+  .layer h4 { margin-top: 0; color: var(--accent-dark); }
+  .layer .n { display:inline-block; background: var(--accent); color:#fff; width: 22px; height: 22px; border-radius: 50%; text-align:center; line-height: 22px; font-size: 12px; font-weight: 700; margin-right: 8px; }
+  .big-arrow { text-align:center; color: var(--muted); font-size: 20px; margin: 2px 0; }
+  footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 18px; margin-top: 50px; }
+  .stat { font-size: 30px; font-weight: 700; color: var(--accent-dark); }
+  .statlbl { font-size: 12.5px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<!-- ========================= 1 · HERO / MASTHEAD ========================= -->
+<!-- Eyebrow carries the DRAFT status; keep "no code written" until approved.
+     Thesis = the single load-bearing idea in one sentence. Pills = scope /
+     constraints / phase / status (4–5). Recolour by editing --accent only. -->
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">{{PACKAGE}} · Design Spec · for review · no code written yet</div>
+    <h1>{{TITLE}}</h1>
+    <p class="sub">{{ONE-SENTENCE THESIS — the domain-model idea, not a task restatement}}</p>
+    <div class="pillrow">
+      <span class="pill">{{SCOPE}}</span>
+      <span class="pill">{{KEY CONSTRAINT}}</span>
+      <span class="pill">{{PHASE}}</span>
+      <span class="pill">Status: DRAFT — iterate here</span>
+    </div>
+  </div>
+</header>
+
+<!-- ========================= 2 · STICKY TOC ============================== -->
+<!-- One anchor per <section>. Labels MUST match the <h2> text (kept in sync). -->
+<nav class="toc">
+  <div class="wrap">
+    <a href="#tldr">TL;DR</a>
+    <a href="#data">1 · Data reality</a>
+    <a href="#current">2 · Current + coupling</a>
+    <a href="#target">3 · Target model</a>
+    <a href="#types">4 · Types</a>
+    <a href="#stress">5 · Stress-test</a>
+    <a href="#migration">6 · Migration</a>
+    <a href="#tests">7 · Tests & gates</a>
+    <a href="#phasing">8 · Phasing</a>
+    <a href="#questions">9 · Open questions</a>
+  </div>
+</nav>
+
+<div class="wrap">
+
+<!-- ========================= 3 · TL;DR ================================== -->
+<!-- Lead with the user's steer (if any), then 3–6 load-bearing decisions as a
+     tight list. This is the "read only this and get the gist" section. -->
+<section id="tldr">
+  <h2>TL;DR</h2>
+  <div class="card">
+    <p style="margin-top:0"><b>The steer:</b> {{what the brief asked for, in one line}}</p>
+    <ul class="tight">
+      <li><b>{{Decision 1}}</b> — {{why}}</li>
+      <li><b>{{Decision 2}}</b> — {{why}}</li>
+      <li><b>{{Decision 3}}</b> — {{why}}</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ========================= 4 · DATA / DOMAIN REALITY ================== -->
+<!-- The ground-truth inputs the model must respect. Prefer a coverage matrix
+     with td.ok / td.amber / td.red cells + a cited .legend. Cite real sources;
+     unknown cells go to §9, never invented. Drop if the design is data-free. -->
+<section id="data">
+  <h2>1 · Data reality</h2>
+  <p>{{What data/constraints exist, and what's confirmed vs pending.}}</p>
+  <table>
+    <thead><tr><th>{{Axis}}</th><th>{{Dim A}}</th><th>{{Dim B}}</th></tr></thead>
+    <tbody>
+      <tr><td>{{row}}</td><td class="ok">✅ {{confirmed}}</td><td class="amber">⏳ {{pending}}</td></tr>
+    </tbody>
+  </table>
+  <p class="legend">Sources: {{cited references}}.</p>
+  <div class="callout c-warn"><span class="lbl">Facts the model must respect</span>{{invariants forced by the data}}</div>
+</section>
+
+<!-- ========================= 5 · CURRENT STATE ========================== -->
+<!-- Paste the design-xray §1 classDiagram as the "before" map. Then a coupling
+     / consumption audit callout: who depends on this, quantified (call sites,
+     files). GREENFIELD: replace the diagram with "Greenfield — no prior model"
+     and state what adjacent code the new work will touch instead. -->
+<section id="current">
+  <h2>2 · Current structure &amp; coupling</h2>
+  <p>{{Prose: what exists today and the constraint it imposes.}}</p>
+  <pre class="mermaid">
+classDiagram
+    class {{Existing}} {
+      {{fields/methods in words — no pipes/brackets/commas}}
+    }
+  </pre>
+  <div class="callout c-warn"><span class="lbl">The coupling that constrains us</span>{{~N call sites across ~M files — the migration surface}}</div>
+</section>
+
+<!-- ========================= 6 · TARGET MODEL =========================== -->
+<!-- Layered .layer cards (numbered .n bubbles) for the proposed shape, then a
+     classDiagram of the target. Tag units new / reuse / adapter in a .legend.
+     Lead with the OBJECT model, not a calculation pipeline. -->
+<section id="target">
+  <h2>3 · Target model</h2>
+  <div class="layer"><h4><span class="n">1</span>{{Layer 1 — e.g. cited data}}</h4>{{what it owns}}</div>
+  <div class="big-arrow">↓</div>
+  <div class="layer"><h4><span class="n">2</span>{{Layer 2 — e.g. resolver/factory}}</h4>{{what it owns}}</div>
+  <div class="big-arrow">↓</div>
+  <div class="layer"><h4><span class="n">3</span>{{Layer 3 — e.g. the domain object}}</h4>{{what it owns}}</div>
+  <pre class="mermaid">
+classDiagram
+    class {{Target}} {
+      {{fields/methods in words}}
+    }
+  </pre>
+  <p class="legend"><span class="tag new">new</span> {{…}} · <span class="tag reuse">reuse</span> {{…}} · <span class="tag gen">adapter</span> {{…}}</p>
+</section>
+
+<!-- ========================= 7 · TYPE / INTERFACE DEFINITIONS =========== -->
+<!-- The heart of the spec. FULL field-level, syntax-highlighted TS or Python.
+     Lead here (types over duplication): extract a shared generic core validated
+     by ≥2 real callers rather than an N+1th variant. Python → carry an
+     ABC-weighted class hierarchy (name which collections.abc each collection is,
+     by access pattern). Use a .grid2 for a genuine class-vs-functional option. -->
+<section id="types">
+  <h2>4 · Type definitions</h2>
+  <h3>4.1 · {{Core type}}</h3>
+  <pre><code class="language-ts">{{full interface / class body}}</code></pre>
+  <h3>4.2 · {{Second type}}</h3>
+  <pre><code class="language-ts">{{…}}</code></pre>
+</section>
+
+<!-- ========================= 8 · RATIONALE / STRESS-TEST =============== -->
+<!-- Per-decision prose answering the reviewer's likely objections. Carry each
+     judgement in a callout (c-key = settled, c-decide = my lean, c-info, c-warn).
+     Cite the design-xray pattern verdict here. End with an honest "where it bites"
+     list — the frictions you're accepting. -->
+<section id="stress">
+  <h2>5 · Stress-test</h2>
+  <h3>5.1 · {{Open question / objection}}</h3>
+  <p>{{reasoned answer}}</p>
+  <div class="callout c-decide"><span class="lbl">My lean</span>{{recommendation + why}}</div>
+  <h3>Honest frictions</h3>
+  <ul class="tight"><li>{{where the model is awkward, accepted with eyes open}}</li></ul>
+</section>
+
+<!-- ========================= 9 · MIGRATION / ACTION ==================== -->
+<!-- File-by-file: what's reused verbatim, migrated, net-new. The hard gate(s).
+     For greenfield this is just the new-files list. -->
+<section id="migration">
+  <h2>6 · Migration &amp; file-by-file action</h2>
+  <div class="grid3">
+    <div class="card"><h4><span class="tag reuse">reuse</span> Reused verbatim</h4><ul class="tight"><li>{{symbol · file}}</li></ul></div>
+    <div class="card"><h4><span class="tag amber">migrate</span> Migrated</h4><ul class="tight"><li>{{symbol · file}}</li></ul></div>
+    <div class="card"><h4><span class="tag new">new</span> New</h4><ul class="tight"><li>{{symbol · file}}</li></ul></div>
+  </div>
+  <div class="callout c-key"><span class="lbl">The hard gate</span>{{the one invariant the migration must not break}}</div>
+</section>
+
+<!-- ========================= 10 · TESTS & GATES ======================== -->
+<!-- The fixtures/oracles and pass criteria that prove the design correct. -->
+<section id="tests">
+  <h2>7 · Tests &amp; gates</h2>
+  <div class="grid2">
+    <div class="card"><h4>{{Test layer A}}</h4>{{what it asserts}}</div>
+    <div class="card"><h4>{{Test layer B}}</h4>{{what it asserts}}</div>
+  </div>
+</section>
+
+<!-- ========================= 11 · PHASING ============================== -->
+<!-- Phase / What / Gate table. Legend lists deferred follow-ups (route to tasks). -->
+<section id="phasing">
+  <h2>8 · Phasing</h2>
+  <table>
+    <thead><tr><th>Phase</th><th>What</th><th>Gate</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>{{…}}</td><td>{{green check / criterion}}</td></tr>
+    </tbody>
+  </table>
+  <p class="legend">Deferred (not this pass): {{follow-ups}}.</p>
+</section>
+
+<!-- ========================= 12 · OPEN QUESTIONS → DECISIONS =========== -->
+<!-- Every unknown parked from step 1 lands here as an explicit question. As they
+     resolve, tick them (tag.ok) and record the decision — don't fabricate. -->
+<section id="questions">
+  <h2>9 · Open questions</h2>
+  <table>
+    <thead><tr><th>#</th><th>Question</th><th>Decision</th></tr></thead>
+    <tbody>
+      <tr><td><span class="tag amber">open</span></td><td>{{expensive-to-undo fork left open}}</td><td>{{— awaiting steer}}</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<footer>
+  Produced by <code>/casomoltd:draft-design-spec</code> — grounded in a
+  <code>casomoltd:design-xray</code> pass of {{target}}. Sources: {{refs}}. No
+  product code written; figures are illustrative until confirmed.
+</footer>
+
+</div>
+</body>
+</html>

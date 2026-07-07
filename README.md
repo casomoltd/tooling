@@ -200,6 +200,7 @@ decision table) that keeps these units composing without overlap.
 | `/casomoltd:typescript` | TypeScript data modelling and type design |
 | `/casomoltd:screenshot` | Capture and analyse a dev server page |
 | `/casomoltd:design-pass` | Map → review → refactor a package (drives `design-xray` + `code-review`) |
+| `/casomoltd:draft-design-spec` | Author a browser-reviewable HTML design spec from a brief and iterate on it before writing code (drives `design-xray`) |
 
 Enable the plugin by adding this repo as a marketplace and installing it:
 
@@ -248,9 +249,10 @@ a ranked handoff of refactor targets, and a verdict on whether a heavier pattern
 (e.g. a state machine) is warranted yet or premature. It feeds forward — its map
 lifts straight into package docs, and its targets drive `code-review` and a
 refactor pass. The `/casomoltd:design-pass` skill chains the three
-(x-ray → code-review → refactor). Like its sibling it visualizes and judges
-structure only — no correctness bugs (that's `/code-review`), no lint
-(eslint/ruff).
+(x-ray → code-review → refactor), and `/casomoltd:draft-design-spec` reuses its
+current-state map as the "before" picture when authoring a pre-implementation
+design spec. Like its sibling it visualizes and judges structure only — no
+correctness bugs (that's `/code-review`), no lint (eslint/ruff).
 
 ## Package distribution
 
