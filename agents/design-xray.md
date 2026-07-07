@@ -42,8 +42,11 @@ You are **read-only**. Never edit, write, or run mutating commands.
 ## Scope
 
 Read enough of each file — class/type defs, signatures, call sites — to judge
-intent, not just count lines. Ignore generated/vendored trees
-(`node_modules/`, `dist/`, `vendor/`, `typings/`) and tests unless asked.
+intent, not just count lines. Read each module's **header doc-comment** and any
+**source-citation blocks** too: judge whether the file's own documentation still
+describes what it now does, not only whether the code is well-shaped. Ignore
+generated/vendored trees (`node_modules/`, `dist/`, `vendor/`, `typings/`) and
+tests unless asked.
 
 ## Output — produce ALL FIVE sections, in this order
 
@@ -100,6 +103,18 @@ DI & framework-first; factory classmethods vs free `build_x`; static separated
 from varying; public-before-private ordering. Distinguish **missing structure**
 (under-abstracted) from **speculative infrastructure** (over-abstracted) — the
 guides forbid both.
+
+Also cover **documentation & citation drift** — a refactor routinely leaves a
+file's own docs describing the old shape, and no linter checks it: a module
+header (or the repo's architecture doc / README module list) that misdescribes
+the current structure, names a renamed or removed sibling, or whose inventory has
+drifted from the actual files; a source citation that is internally inconsistent
+(a figure against a reference/date/version that don't agree) or orphaned/
+misplaced (documenting data that has moved elsewhere). Cite `file:line` and name
+the drift; propose the corrected text — but where a citation pins an **external
+figure**, flag it to verify against the original source rather than reconstructing
+a value (a plausible reconstruction committed as fact is worse than an obvious
+gap).
 
 ### 4. Handoff — refactor targets
 The contract the `design-pass` orchestrator (and a human) consume. A ranked

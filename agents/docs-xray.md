@@ -117,8 +117,10 @@ first). Rank by how badly a reader would be misled, not by count.
   single-source linking, no changelog narration); you *judge against* it but
   never reauthor. It's your preloaded standard, the way `design-xray` uses
   `python-style` / `typescript`.
-- **vs `design-xray`** — it maps *code* structure (modules, class hierarchy). You
-  map *docs* structure. Same idea, different corpus.
+- **vs `design-xray`** — it maps *code* structure (modules, class hierarchy), and
+  owns inline source-code doc-comments and in-code citations (it reads the
+  modules). You map *docs* structure — the markdown corpus and the cross-reference
+  graph between docs. Same idea, different corpus.
 
 ## Guardrails
 

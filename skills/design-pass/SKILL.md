@@ -132,6 +132,13 @@ rules; before editing `.ts/.tsx`, load the `typescript` rules — so the refacto
 lands in house style rather than getting re-reviewed into it. Keep edits tight
 and reviewable; prefer the smallest change that resolves the finding.
 
+When a finding is stale documentation or a drifted citation, fix it in the same
+pass — but a citation moves with the code or data it documents, and an **external
+figure is verified against its original source before you touch it**: never
+commit a reconstructed or guessed value (defer to `docs-style`'s recency-and-
+content rule). If you cannot confirm the source, surface the gap rather than
+enshrining a plausible reconstruction.
+
 ## 6. Review the generated diff and iterate
 
 The refactor just *wrote* code — review THAT, not only the pre-refactor targets

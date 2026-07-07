@@ -201,6 +201,17 @@ any code is written.
   one half quietly relies on something the other no longer guarantees. Define
   the policy once and route both directions through it.
 
+- **A domain rule holds on every path.** A rule the domain owns — a statutory
+  floor, a rounding, a region-specific adjustment — is applied wherever the code
+  produces the affected value, not re-implemented at a call site. It lives in
+  the type/module that owns the data, on **every** path that emits the value.
+  Consolidating it into one path (a table build, one accessor) is safe only if
+  every consumer flows through that path; a second path taking the raw value
+  silently drops the rule. Before removing a transform from a path because
+  "another already does it," confirm no caller reaches the value the other way —
+  else keep it on both (an idempotent transform composes) and guard the pair
+  with an equivalence test (see Tests).
+
 - **No hardcoded config.** Domain values — URLs, hosts, addresses,
   limits, paths — live once in a config module and are imported, never
   re-typed as literals scattered across modules. If a value appears in
@@ -408,6 +419,14 @@ No top-level execution besides imports and definitions.
 - Every test has a docstring: the steps it performs, and **why** it
   exists (the requirement or regression it guards).
 - One behaviour per test; arrange → act → assert.
+- Guard a **cross-path invariant** with an equivalence test, not just a
+  per-path fixture: when two paths must agree (a value derived two ways, a
+  fast path against a reference), assert `path_a == path_b`, so a refactor
+  that changes one and not the other fails. Where the result is externally
+  knowable, assert the concrete figure with its **source cited inline at the
+  assertion** — a test module is a verification document, so the reference
+  sits at the exact line it verifies, proving correctness against the world,
+  not just internal consistency.
 
 ```python
 def test_press_self_destruct_should_go_bang():

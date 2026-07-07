@@ -163,6 +163,37 @@ consumer. If you genuinely must bypass it, leave a comment saying
 why — so the next reader doesn't "simplify" your code back into
 the bug.
 
+## A Domain Rule Lives in the Library, on Every Path
+
+A rule the domain owns — a statutory floor, a rounding
+convention, a region-specific adjustment — belongs in the library
+that owns the data, applied wherever that library produces the
+affected value, never re-implemented or patched at a call site.
+When a consumer appears to need the rule, the fix is upstream —
+and it must cover **every** path the library exposes for that
+value, not one. The trap is consolidating a shared transform into
+a single path (a table build, one accessor) and dropping it from
+another: a second path that still takes the raw value silently
+skips the rule, and every consumer that reaches the value that way
+is quietly wrong.
+
+```ts
+// Bad: the floor lives only in the table build; a second path
+// that regionalises a raw base skips it and underpays.
+const scale = buildScale(region);          // floor applied here
+const gross = regionalise(rawBase, region); // …but not here
+
+// Good: the rule is applied wherever a gross is produced, so
+// both paths agree (the transform is idempotent, so it composes).
+const gross = regionalise(rawBase, region); // floors + adjusts
+```
+
+So "one floor site, not two" is only safe if every consumer flows
+through that one site. Before removing a transform from a path
+because "another path already does it," confirm no caller reaches
+the value the first way — otherwise keep it on both (idempotent
+transforms compose safely) and guard the pair with a test (below).
+
 ## Keep Shared Modules Presentation-Agnostic
 
 A module in a shared or `lib` layer holds data, domain logic, and
@@ -331,3 +362,35 @@ Empty catches are acceptable only for expected, benign cases
 (e.g. `localStorage` in private mode) — and then add a comment
 saying why. Otherwise route caught errors to your app's error
 reporter rather than swallowing them.
+
+## Guard Cross-Path Invariants with a Test
+
+When two code paths must produce the same result — a value derived
+two ways, a fast path against a reference path, a consumer's
+computation against the library's — assert **path A equals path
+B**, not just each path against its own fixture. A fixture pins
+one path; only the equivalence test catches a refactor that
+changes one and leaves the other, which is exactly how a
+"consolidate into one site" change silently diverges the two.
+
+```ts
+// A fixture pins the table path but never exercises the other:
+expect(scaleFor(region).points[0]).toBe(EXPECTED); // one path only
+
+// The equivalence test fails the moment the two paths disagree:
+expect(regionalise(rawBase, region))
+  .toBe(scaleFor(region).points[0]);  // path A === path B
+```
+
+Where the result is externally knowable, add an **oracle**
+assertion to the concrete figure with its source cited **inline
+at the assertion** — a test module is a verification document, so
+the reference belongs at the exact line it verifies, not in a
+header. That turns the test from "the code agrees with itself"
+into "the code agrees with the world".
+
+```ts
+// £X is the 2026-27 statutory floor, per <issuing body>,
+// circular <id> (<date>): <reference>. A base below it is lifted.
+expect(regionalise(belowFloor, region)).toBe(FLOOR_FIGURE);
+```

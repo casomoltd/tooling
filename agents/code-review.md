@@ -44,9 +44,12 @@ enough surrounding code (definitions, call sites) to judge design intent.
   library types and values reused not re-projected or re-derived (use the
   published type even with spare fields; call the library's accessor/constant
   rather than recomputing a formula or hardcoding a literal; fix the library
-  rather than shipping a corrected copy), shared/`lib` modules kept
-  presentation-agnostic (no user-facing copy or view-prop assembly in the data
-  layer), exceptions reported not swallowed.
+  rather than shipping a corrected copy), a domain rule the library owns (a
+  floor, rounding, region adjustment) applied on **every** path it emits the
+  value — flag a consumer re-implementing or working around it, and a
+  consolidating refactor that drops the rule from a second path a caller still
+  reaches, shared/`lib` modules kept presentation-agnostic (no user-facing copy
+  or view-prop assembly in the data layer), exceptions reported not swallowed.
 - **Crawlable navigation** (`typescript` standard): primary navigation — and any
   hub→spoke or page-to-page link — must render a real `<a href>`/`<Link>`, never
   a JS-only `onClick`/`router.push`/`<select>` that emits no anchor and so is
@@ -71,6 +74,13 @@ enough surrounding code (definitions, call sites) to judge design intent.
   serialise/parse) kept in one place; `make_x()` service factories not
   `configure_x`; and over-building — re-solving a solved problem or wrapping
   data a plain type already models.
+- **Cross-path invariants** (both standards): when a change makes two paths that
+  must agree produce a value two ways — a consumer's computation vs the
+  library's, a fast path vs a reference path, a transform newly consolidated onto
+  one path — flag the absence of an **equivalence test** guarding the pair
+  (`path A == path B`), and, where the figure is externally knowable, a missing
+  oracle assertion citing its source inline. A per-path fixture pins one side;
+  only the equivalence test catches the two diverging.
 
 ## Ignore — owned elsewhere (never re-flag)
 
