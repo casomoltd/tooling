@@ -163,6 +163,37 @@ consumer. If you genuinely must bypass it, leave a comment saying
 why — so the next reader doesn't "simplify" your code back into
 the bug.
 
+## Don't Wrap a Domain Object to Decorate It
+
+When a caller needs a library's domain object *plus* a small
+consumer-side extra — a display string, a presentation flag — pass the
+object **as-is** and let the extra ride alongside in a thin sidecar (a
+separate argument, or a small companion type). Don't envelope the
+domain object in a consumer wrapper (`{ entity, label, … }`), and don't
+stand up an "adapter" whose only job is to build that wrapper. A
+wrapper re-boxes an object the library already models; an adapter is
+ceremony around what is usually a one- or two-line compose against
+accessors that already exist.
+
+```ts
+// Bad: a consumer wrapper around a good domain object, plus an
+// adapter whose only job is to build the wrapper
+interface DecoratedEntity { entity: Entity; badge: string }
+function decorate(entity: Entity): DecoratedEntity { /* ceremony */ }
+render(decorate(entity));
+
+// Good: pass the raw library type; a thin companion carries the extra,
+// composed at the one call site that needs it
+interface EntityBadge { badge: string }         // the only new type
+render(entity, { badge: badgeFor(entity) });
+```
+
+A new consumer type earns its place only when it carries a field the
+domain object genuinely lacks — never when it merely re-describes one
+the library owns. And model transient UI state (a selected index, an
+open flag) as local state, not a named domain type: a small "selection"
+type that only names which control is active is not a domain model.
+
 ## A Domain Rule Lives in the Library, on Every Path
 
 A rule the domain owns — a statutory floor, a rounding
