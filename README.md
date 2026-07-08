@@ -228,9 +228,10 @@ and the TypeScript / vendored-types design rationale.
 
 ### Agents
 
-Two read-only agents (`agents/`), both namespaced and both preloading the
-standard skills as their rubric — they apply the `typescript` standard to
-`.ts/.tsx` and the `python-style` standard to `.py`.
+Three namespaced agents (`agents/`), each read-only on what it inspects and
+preloading the relevant house standard as its rubric — `typescript` for
+`.ts/.tsx`, `python-style` for `.py`, `docs-style` for markdown. `design-xray` and
+`docs-xray` persist only their own report (see *Report output*, below).
 
 **`casomoltd:code-review`** enforces the *judgment-level* half of the standards —
 the design calls a linter can't make (typed identifiers, static/varying
@@ -253,6 +254,15 @@ refactor pass. The `/casomoltd:design-pass` skill chains the three
 current-state map as the "before" picture when authoring a pre-implementation
 design spec. Like its sibling it visualizes and judges structure only — no
 correctness bugs (that's `/code-review`), no lint (eslint/ruff).
+
+**`casomoltd:docs-xray`** is the same idea for a *documentation* corpus: it walks
+every markdown doc (README, `CLAUDE.md`, `docs/`, skill/agent definitions) and
+returns a map — each doc's heading tree + outbound pointers, plus a mermaid
+reference-graph of how the docs link — and a coherence report: orphan docs nothing
+links to, stale cross-references whose summary has drifted from the target,
+duplicated coverage, and missing back-links. It judges structure and
+cross-reference coherence against `docs-style` — not mechanical broken links
+(that's a markdown link linter) or prose voice (a content reviewer).
 
 **Report output & `SCRATCH_DIR`.** `design-xray` and `docs-xray` persist their
 report — the `.md` plus an `.html` rendered by `bin/render-report.mjs` — so it
