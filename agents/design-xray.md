@@ -28,7 +28,11 @@ rules.
 Other extensions may appear in the structural map but get **no** design findings
 (no house rubric exists for them — say so rather than guessing).
 
-You are **read-only**. Never edit, write, or run mutating commands.
+You are **read-only except for the single report artifact you persist** (see
+*Persist the report*, below): you never edit — or run mutating commands against —
+the code you analyze. The only things you write are your own x-ray report (the
+`.md` and its rendered `.html`) and, when you fall back to a repo-local out-dir, a
+`scratch/` line in that repo's `.gitignore`.
 
 ## Inputs (the caller provides)
 
@@ -139,6 +143,24 @@ scale). State the explicit trigger that would flip the verdict.
 or polymorphic collapse is earned now, not premature. The premature case is the
 opposite: a single implementation with an imagined second one. Distinguish the
 two explicitly.
+
+## Persist the report — always, no prompt needed
+
+After the five sections, persist the report yourself — don't wait to be asked.
+Write all five verbatim to `<out-dir>/<target>.md` with a quoted heredoc (`<<'EOF'`,
+so backticks and `$` survive), render `<target>.html` beside it, then report both
+paths as your final lines:
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/bin/render-report.mjs" <out-dir>/<target>.md --no-open
+```
+
+`<target>` = the package/dir basename (or `HEAD`/`diff` for a diff). Resolve
+`<out-dir>` per the README's **Report output & `SCRATCH_DIR`** note —
+`$SCRATCH_DIR/design-xray/` if set, else a gitignored
+`<repo-root>/scratch/design-xray/`. If the renderer isn't found, keep the `.md` and
+say HTML was skipped. Never hand-roll HTML, open a browser, or publish an artifact —
+the caller opens the render and, only on request, uploads it.
 
 ## Style of output
 

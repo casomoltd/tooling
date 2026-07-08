@@ -254,6 +254,15 @@ current-state map as the "before" picture when authoring a pre-implementation
 design spec. Like its sibling it visualizes and judges structure only — no
 correctness bugs (that's `/code-review`), no lint (eslint/ruff).
 
+**Report output & `SCRATCH_DIR`.** `design-xray` and `docs-xray` persist their
+report — the `.md` plus an `.html` rendered by `bin/render-report.mjs` — so it
+outlives the run and opens in a browser. Each writes to a gitignored
+`<repo-root>/scratch/<agent>/` by default. Set the optional **`SCRATCH_DIR`** env
+var to pool every report under one shared location instead (`$SCRATCH_DIR/<agent>/`)
+— e.g. a multi-repo workspace collecting reports in one place rather than scattering
+them per-repo. Publishing a report to a hosted claude.ai artifact is orchestrator-
+only and on explicit request; the agents never do it.
+
 ## Package distribution
 
 The product libraries (`@casomoltd/paye-calc`, `@casomoltd/nhs-pay`)

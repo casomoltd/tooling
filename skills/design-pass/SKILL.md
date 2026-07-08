@@ -71,39 +71,30 @@ sections it returns: the doc-ready map (inventory + mermaid), the weight table,
 the design findings, the **handoff refactor-targets** table, and the pattern
 verdict. The handoff table is the contract that drives the rest of this pass.
 
-## 2. Render the FULL report + offer docs
+## 2. Open the FULL report + offer docs
 
-The agent's report comes back to the orchestrator as text — the user only sees a
-"finished" notification, not the report, and markdown/mermaid don't render in a
-terminal. So **always persist the whole report and open it** — not just the
-diagram, not just a summary.
+The `design-xray` agent **already persists its own report** — it writes
+`<out-dir>/<target-slug>.md`, renders `<target-slug>.html` beside it, and returns
+**both paths as the last lines of its output** (out-dir per the README's *Report
+output & `SCRATCH_DIR`* note). Don't re-write the markdown or hand-roll HTML — it's
+done. The agent renders headless and the user only sees a "finished" notification,
+so your job is to **surface it**:
 
-Write into the **target repo**, never `/tmp`: sandboxed browsers (snap/flatpak
-Firefox) cannot read `/tmp`, but can read files under the user's home. Use a
-gitignored scratch subdir at the repo root: **`<repo>/scratch/design-xray/`**.
-If `scratch/` is not already gitignored in the target repo, create the dir and
-add `scratch/` to its `.gitignore` first (fail loud if you can't).
-
-1. Write the agent's **entire returned markdown** verbatim to
-   `<repo>/scratch/design-xray/<target-slug>.md` (mermaid stays a normal fenced
-   ```mermaid block with literal `<<abstract>>` stereotypes).
-2. Render + open it with the shared harness — **do not re-author the HTML**:
+1. Open the render by re-running the harness on the reported `.md` **without
+   `--no-open`** (idempotent — re-renders identically and opens the `file://` URL):
    ```bash
-   node "${CLAUDE_PLUGIN_ROOT}/bin/render-report.mjs" <repo>/scratch/design-xray/<target-slug>.md
+   node "${CLAUDE_PLUGIN_ROOT}/bin/render-report.mjs" <out-dir>/<target-slug>.md
    ```
-   `render-report.mjs` wraps the `.md` in a self-contained HTML file next to it
-   (marked + mermaid from CDN), **softens classDiagram member lines** so an
-   imperfect x-ray still renders (union/bracket types like `date|None` /
-   `list[Item]`), prints the `file://` URL, and opens it in the browser. It is the
-   single source of the render recipe — shared with `docs-xray`, so the harness
-   lives in exactly one place. Needs network for the two CDN scripts; if the
-   opener mis-routes `text/html`, the printed `file://` URL still works, or run
+   If the opener mis-routes `text/html`, the printed URL still works, or run
    `xdg-mime default firefox_firefox.desktop text/html`.
+2. If the agent reported HTML was skipped (renderer not found), surface the `.md`
+   path instead.
 
-Do NOT chase in-editor mermaid (e.g. a VSCode extension) as the path — the
-self-contained HTML from `render-report.mjs` is the reliable renderer. THEN, and only on explicit
-confirmation, **offer** to persist the doc-ready block into a real
-`README`/`ARCHITECTURE` doc in the repo — writing only that block, nothing else.
+Do NOT chase in-editor mermaid (e.g. a VSCode extension) — `render-report.mjs` is
+the reliable renderer. THEN, and only on explicit confirmation, **offer** to persist
+the doc-ready block into a real `README`/`ARCHITECTURE` doc in the repo — writing
+only that block, nothing else. Uploading the rendered `.html` to a hosted claude.ai
+artifact is likewise user-request-only.
 
 ## 3. Review the targets (read-only)
 
