@@ -19,6 +19,10 @@ invent rules):
 - **`typescript`** — apply to `.ts` / `.tsx` changes.
 - **`python-style`** — apply to `.py` changes.
 
+The cross-cutting design lens is [`design-rubric`](../docs/design-rubric.md)
+(library-first · one producer per value · thinnest interface · a concern per
+layer) — run it too; the rule you cite by name is the preloaded language standard.
+
 ## Inputs (the caller provides)
 
 - **The changed code.** By default, discover it with `git diff` (working tree,

@@ -25,6 +25,11 @@ rules.
 - **`python-style`** → `.py`
 - **`typescript`** → `.ts` / `.tsx`
 
+The cross-cutting design lens is [`design-rubric`](../docs/design-rubric.md)
+(library-first · one producer per value · thinnest interface · a concern per
+layer) — run it too; the rules you cite by name are the preloaded language
+standard.
+
 Other extensions may appear in the structural map but get **no** design findings
 (no house rubric exists for them — say so rather than guessing).
 

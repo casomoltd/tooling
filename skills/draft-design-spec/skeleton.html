@@ -119,6 +119,7 @@
     <a href="#tests">7 · Tests & gates</a>
     <a href="#phasing">8 · Phasing</a>
     <a href="#questions">9 · Open questions</a>
+    <a href="#inventory">Appendix · Graphs</a>
   </div>
 </nav>
 
@@ -268,6 +269,56 @@ classDiagram
       <tr><td><span class="tag amber">open</span></td><td>{{expensive-to-undo fork left open}}</td><td>{{— awaiting steer}}</td></tr>
     </tbody>
   </table>
+</section>
+
+<!-- ===================== APPENDIX · DEPENDENCY GRAPHS =================== -->
+<!-- Draw BOTH graphs BY DEFAULT. A DEPENDENCY view — who imports/refers to whom —
+     NOT a containment tree: reuse shows up as a node with many in-edges. Ground
+     in the design-xray map + a quick import-edge scan (grep the imports). Mark ◆
+     the units in the change's scope. Keep the fixed colour/shape KEY verbatim. -->
+<section id="inventory">
+  <h2>Appendix · Dependency graphs</h2>
+  <p>{{One line: a dependency view so reuse is visible — where it concentrates
+     (type/data hubs, leaf atoms) vs the single-use nodes.}}</p>
+
+  <h3>Reuse — fan-in (importers per module)</h3>
+  <table>
+    <thead><tr><th>Module</th><th>Fan-in</th><th>Kind</th></tr></thead>
+    <tbody>
+      <tr><td>{{module}}</td><td class="ok">{{n}}</td><td>{{hub / atom / single-use}}</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Component dependency graph</h3>
+  <pre class="mermaid">
+graph LR
+  %% node shapes: ([atom]) [[hub]] {{external}} [view] ; edges = imports.
+  %% classDef atom/hub/nw = colour ; dotted -.->|new| = edges the change adds.
+  {{NodeA}} --> {{NodeB}}
+  classDef atom fill:#eaf2fb,stroke:#005EB8;
+  classDef hub fill:#e6f4ec,stroke:#007f3b;
+  classDef nw fill:#f0e9f8,stroke:#6b3fa0;
+  </pre>
+  <p class="legend"><b>Key</b> —
+    <span style="background:#eaf2fb;border:1px solid #005EB8;border-radius:9px;padding:0 7px;">( stadium )</span>
+    shared leaf atom ·
+    <span style="background:#e6f4ec;border:1px solid #007f3b;padding:0 7px;">[[ box ]]</span>
+    type/data hub ·
+    <span style="background:#f0e9f8;border:1px solid #6b3fa0;padding:0 7px;">purple</span>
+    added by the change ·
+    <span style="border:1px solid #8a94a3;padding:0 7px;">&#123;&#123; hexagon &#125;&#125;</span>
+    external library type ·
+    <span style="border:1px solid #8a94a3;padding:0 7px;">[ rectangle ]</span>
+    single-use node · <b>dotted arrow</b> = new dependency the change adds ·
+    <code>· in N</code> = fan-in (importer count).</p>
+
+  <h3>Type dependency graph</h3>
+  <pre class="mermaid">
+classDiagram
+  direction LR
+  %% types as nodes ; --> composition/reference ; ..> dependency.
+  {{TypeA}} --> {{TypeB}} : {{ref}}
+  </pre>
 </section>
 
 <footer>

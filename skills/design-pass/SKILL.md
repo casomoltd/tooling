@@ -45,6 +45,13 @@ type belongs — so the right move is to abstract, not to bolt on an (N+1)th cop
 A plan that starts from "how do I add my thing with least disruption" walks past
 that; the map doesn't.
 
+Design the target shape against the house design rubric
+([`../../docs/design-rubric.md`](../../docs/design-rubric.md)) — run its review
+lens (does the library already provide it? one producer per value? the thinnest
+seam? each concern in its home?) **before** committing to a shape, not only when
+reviewing the diff afterward. The rubric is the cross-cutting design half; the
+worker agents apply the language-specific rules.
+
 This skill **orchestrates**; it does not re-implement. The judgment lives in two
 worker agents it invokes:
 - `casomoltd:design-xray` — the structural map + design findings + handoff.

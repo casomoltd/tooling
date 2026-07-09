@@ -109,16 +109,30 @@ emit an empty or fabricated diagram.
    ```
    (If `CLAUDE_PLUGIN_ROOT` is unset — running from source — use the repo-relative
    `skills/draft-design-spec/skeleton.html`.)
-3. Fill the **13 sections** via `Edit`, following the skeleton's inline guidance
-   comments (they carry the per-section spine). Load-bearing craft:
+3. Fill the body sections (the nine numbered sections **plus the dependency-graph
+   appendix**) via `Edit`, following the skeleton's inline guidance comments (they
+   carry the per-section spine). Load-bearing craft:
+   - **Draw both dependency graphs by default** (the appendix) — a *component*
+     dependency graph and a *type* dependency graph. Draw a **dependency** view
+     (who imports/refers to whom), **not a containment tree**: reuse must be
+     visible as a node with many in-edges. Ground them in the `design-xray` map
+     plus a quick import-edge scan (grep the imports); fill the fan-in reuse
+     table, mark the units in the change's scope, and keep the skeleton's fixed
+     colour/shape key. This is the map the user judges reuse from — never skip it.
    - **Lead with the type/interface definitions over duplication** — extract a
      shared generic core validated by **≥2 real callers** rather than bolting on
      an (N+1)th variant.
    - **Python targets carry an ABC-weighted class hierarchy** — name which
      `collections.abc` each domain collection is (`Mapping` / `Set` / `Sequence`
      / `Collection`), chosen by the **access pattern actually used**, not storage.
-   - Apply the house design-quality mandates (SoC, polymorphism over type-codes,
-     value objects over primitives, EAFP, dependency injection, framework-first).
+   - **Apply the house design rubric** ([`../../docs/design-rubric.md`](../../docs/design-rubric.md))
+     — run its **review lens up front** (does the library already give me this?
+     one producer per value? the smallest thing across the boundary? a concern per
+     layer — computation in the domain, presentation in the rendering layer, config
+     in the shared store, identity in the library?), so the spec is *authored to*
+     the standards, not corrected into them over review rounds. The rubric's
+     rule-level specifics live in the language standard (`typescript` /
+     `python-style`).
    - Keep `<nav.toc>` labels in sync with the `<h2>`s; delete guidance comments
      as you fill; every section either says something real or says why it's N/A.
 
