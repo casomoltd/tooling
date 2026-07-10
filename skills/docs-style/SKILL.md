@@ -130,6 +130,13 @@ durability. **Defers**:
   volumes, live ranking positions, or a specific current redirect belong in a
   dated output, not a standing doc. Ask "will this still be true next quarter?";
   if not, it's data, and it goes elsewhere.
+- **A reference / interface doc is a stable spec, not a changelog.** State
+  current truth only — no change-narration ("now uses Y instead of Z", "the
+  retired X is gone"). Don't enshrine a reconstructed or guessed value as
+  canonical: if you need a current value the tool can't return, ask for the real
+  one rather than reverse-engineering and recording your guess. Don't editorialise
+  a tool quirk as "the API is broken". Keep edits to minimal correctness fixes,
+  not expansions.
 - **Name a doc or unit for the capability it provides**, verb-object
   (`triage-backlog`, not `backlog`) — a name is an action you invoke, not the
   noun it operates on.
