@@ -1,6 +1,7 @@
 {
   "name": "@casomoltd/tooling",
-  "version": "0.19.8",
+  "version": "0.20.0",
+  "description": "Casomo's shared dev config: ESLint, Prettier, commitlint, knip & jscpd presets and dev CLIs (git hooks, readability, screenshots)",
   "repository": {
     "type": "git",
     "url": "https://github.com/casomoltd/tooling.git"
