@@ -107,6 +107,23 @@ durability. **Defers**:
   plain-text cells (no nested markup). Use prose for anything not genuinely
   parallel — a table of one real column is just a list.
 
+## Diagrams
+
+- **Prefer Mermaid** for diagrams — it renders on GitHub and in a VS Code Markdown
+  preview (with a Mermaid extension). Reach for ASCII only when a diagram must
+  render with zero tooling.
+- **Theme-friendly styling.** A `classDef` sets the **border only**
+  (`stroke` + `stroke-width`), never `fill` or `color` — a hardcoded fill fights
+  the reader's light/dark theme (light nodes stranded on a dark canvas, or
+  unreadable text). Let the node fill and text stay themed; encode meaning with
+  the border colour.
+- **`flowchart TB` by default** — top-down fits the page width; `LR` overflows a
+  rendered doc.
+- **Conservative syntax for portability.** Quote every node label; keep labels
+  plain ASCII (no unicode arrows, dots, or circled numbers — they blank some
+  parsers); avoid `direction` inside subgraphs. Use one palette per doc, with a
+  one-line legend when colour carries meaning.
+
 ## Durability
 
 - **Encode durable method, never point-in-time data** — percentages, search
