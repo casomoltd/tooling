@@ -29,16 +29,22 @@ Shared linting, formatting, commit config, and CLI tools for Casomo Ltd's repos.
 
 ## Install
 
-Consumed as a **git dependency** — it's shared config + CLI scripts,
-not a registry package. Add it to a consumer's `devDependencies`:
+Published to the public npm registry. Add it to a consumer's
+`devDependencies`:
 
-```json
-"@casomoltd/tooling": "github:casomoltd/tooling#semver:^0.10.0"
+```
+npm i -D @casomoltd/tooling
 ```
 
-The repo is public, so installs need no token. The `files` allowlist
-plus the `verify-pack` leak-gate keep the installed surface to
-configs/CLI only.
+```json
+"@casomoltd/tooling": "^0.20.0"
+```
+
+The package is public, so installs need no token or `.npmrc`. The `files`
+allowlist plus the `verify-pack` leak-gate keep the published surface to
+configs/CLI only. `puppeteer` (used by the `screenshot` bin) is an
+**optional peer dependency** — add it yourself (`npm i -D puppeteer`) in
+repos that run `screenshot`.
 
 ## Husky hooks
 
@@ -275,7 +281,11 @@ only and on explicit request; the agents never do it.
 
 ## Package distribution
 
-The product libraries (`@casomoltd/paye-calc`, `@casomoltd/nhs-pay`)
-publish to the public npm registry via OIDC trusted publishing — install
-with no auth or `.npmrc`. `@casomoltd/tooling` is **not** published; it's
-consumed as a git dependency from this (public) repo.
+`@casomoltd/tooling`, alongside the product libraries
+(`@casomoltd/paye-calc`, `@casomoltd/nhs-pay`), publishes to the public
+npm registry via OIDC trusted publishing — install with no auth or
+`.npmrc`. A version-tag push (`npm version patch` → `git push
+--follow-tags`) triggers `publish.yml`. That workflow currently pins
+`npm@11.9.0`: npm 12.0.0 shipped regressions (disabled git-protocol deps,
+a broken provenance/sigstore path, and a stricter `npm ci`) — revert to
+`npm@latest` once a 12.x fixes them.
