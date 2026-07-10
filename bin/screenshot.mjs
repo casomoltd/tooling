@@ -32,9 +32,22 @@
  */
 
 import { parseArgs } from "node:util";
-import puppeteer from "puppeteer";
 import path from "path";
 import fs from "fs";
+
+// puppeteer is an optional peer dependency (it pulls Chromium, ~200MB), so
+// consumers that never screenshot don't install it. Load it lazily and fail
+// loud if the screenshot bin is invoked without it.
+async function loadPuppeteer() {
+  try {
+    return (await import("puppeteer")).default;
+  } catch {
+    throw new Error(
+      "puppeteer is not installed — add it as a devDependency " +
+        "(npm i -D puppeteer) to use the screenshot bin.",
+    );
+  }
+}
 
 const BASE_URL =
   process.env.SCREENSHOT_URL || "http://localhost:3000";
@@ -98,6 +111,7 @@ async function screenshot() {
 
   fs.mkdirSync(OUTPUT_DIR, { recursive: true });
 
+  const puppeteer = await loadPuppeteer();
   const browser = await puppeteer.launch({
     headless: true,
     args: ["--no-sandbox", "--disable-setuid-sandbox"],

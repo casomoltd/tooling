@@ -1,0 +1,44 @@
+# Near-identical to the other @casomoltd package repos' publish.yml
+# (OIDC trusted publish to npm). Kept per-repo on purpose: npm trusted
+# publishing matches a specific repo + workflow file, so a per-repo file
+# is the simplest reliable setup. Unlike the product libs, tooling has no
+# git dependencies, so npm@latest (>=12, which disables git-protocol deps)
+# publishes it fine with no version pin.
+name: Publish to npm
+
+on:
+  # Release = a version tag pushed from a maintainer's machine
+  # (npm version minor -> git push --follow-tags). PR merges to
+  # main do NOT publish — only the tag push does.
+  push:
+    tags: ['v*']
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # OIDC — trusted publishing, no stored token
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+
+      - name: Update npm (trusted publishing needs >= 11.5.1)
+        run: npm install -g npm@latest
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check
+        run: npm run check
+
+      - name: Build
+        run: npm run build
+
+      - name: Publish
+        run: npm publish

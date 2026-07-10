@@ -39,8 +39,10 @@
     "readability": "./bin/readability.mjs",
     "screenshot": "./bin/screenshot.mjs"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
-    "puppeteer": "^24.36.1",
     "text-readability": "^1.1.1"
   },
   "peerDependencies": {
@@ -49,7 +51,13 @@
     "eslint-config-next": ">=16",
     "eslint-plugin-sonarjs": ">=3",
     "jscpd": ">=4",
-    "knip": ">=5"
+    "knip": ">=5",
+    "puppeteer": ">=24"
+  },
+  "peerDependenciesMeta": {
+    "puppeteer": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@types/node": "^26.0.0",
