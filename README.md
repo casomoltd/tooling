@@ -207,6 +207,7 @@ decision table) that keeps these units composing without overlap.
 | `/casomoltd:screenshot` | Capture and analyse a dev server page |
 | `/casomoltd:design-pass` | Map → review → refactor a package (drives `design-xray` + `code-review`) |
 | `/casomoltd:draft-design-spec` | Author a browser-reviewable HTML design spec from a brief and iterate on it before writing code (drives `design-xray`) |
+| `/casomoltd:page-design` | Structure a content/explainer page for trust — above-the-fold answer, disclosure, palette-only colour (rubric a page-design reviewer preloads) |
 
 Enable the plugin by adding this repo as a marketplace and installing it:
 
