@@ -28,8 +28,14 @@ jobs:
           node-version: 24
           registry-url: https://registry.npmjs.org
 
-      - name: Update npm (trusted publishing needs >= 11.5.1)
-        run: npm install -g npm@latest
+      # Pinned to 11.9.0: npm 12.0.0's `npm ci` is broken for our setup —
+      # it strictly requires every platform's optional binaries in the
+      # lockfile (fsevents, @oxc-parser bindings) which locally-generated
+      # locks omit, so it fails EUSAGE. 11.9.0 is the org-wide known-good
+      # (matches nhs-pay/paye-calc). Revert to @latest once npm 12.x
+      # stabilises. Trusted publishing needs >= 11.5.1, which 11.9.0 meets.
+      - name: Update npm (pin 11.9.0 — npm 12.0.0 npm ci regressions)
+        run: npm install -g npm@11.9.0
 
       - name: Install dependencies
         run: npm ci
