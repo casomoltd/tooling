@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script>
-  mermaid.initialize({ startOnLoad: true, theme: 'neutral', securityLevel: 'loose', flowchart: { htmlLabels: true } });
+  mermaid.initialize({ startOnLoad: true, theme: 'neutral', securityLevel: 'loose', themeVariables: { fontSize: '15px' }, flowchart: { htmlLabels: true, useMaxWidth: false }, class: { useMaxWidth: false } });
   window.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('pre code').forEach(el => { try { hljs.highlightElement(el); } catch (e) {} });
   });

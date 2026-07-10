@@ -119,6 +119,14 @@ emit an empty or fabricated diagram.
      plus a quick import-edge scan (grep the imports); fill the fan-in reuse
      table, mark the units in the change's scope, and keep the skeleton's fixed
      colour/shape key. This is the map the user judges reuse from — never skip it.
+   - **Keep every mermaid diagram legible, never shrunk-to-fit** — the skeleton
+     sets `useMaxWidth: false` so a wide graph renders at full size and scrolls
+     inside its `overflow-x` box rather than being squeezed to container width
+     (which shrinks the text to unreadable). Author diagrams to match: short node
+     labels (push descriptions to the `.legend` beneath, not into the node),
+     prefer a top-down (`TD`) layout, and keep each rank to a handful of nodes. A
+     diagram the reader scrolls is fine; one they must zoom into is a defect —
+     split it or trim the labels.
    - **Lead with the type/interface definitions over duplication** — extract a
      shared generic core validated by **≥2 real callers** rather than bolting on
      an (N+1)th variant.
