@@ -128,6 +128,12 @@ limits — the gate counts them; a draft that passes here cannot bounce
 at commit time, so the user is never asked to confirm a commit that
 the hooks would reject.
 
+Run the pre-flight and staging as their own separate commands, and run
+`git commit -F <msgfile>` **alone, never inside a compound command** —
+the `git-commit-confirm` dialog keys on the whole Bash call, so
+bundling makes the user approve drafting/linting/staging along with
+the commit. One guarded action per command.
+
 Use a quoted message from the arguments if given. Running `git commit` surfaces
 the `git-commit-confirm` guard hook's dialog — that's the enforced form of the
 step-5 gate; confirm it, never suppress or bypass it.
