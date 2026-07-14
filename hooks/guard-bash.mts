@@ -21,7 +21,11 @@ const gitRules: readonly Rule[] = [
       "Committing is deliberate, not automatic — stage and review first, then " +
       "confirm this commit is intended before it lands.",
     // Not `commit-tree`/`commit-graph` (plumbing/maintenance, not a commit).
-    matches: (i) => /\bgit\s+commit\b(?!-)/.test(text(i)),
+    // Allows git's pre-verb flags (`git -C <dir> commit` is still a commit).
+    matches: (i) =>
+      /\bgit\s+(?:-C\s+\S+\s+|-c\s+\S+\s+|--[\w-]+(?:=\S+)?\s+)*commit\b(?!-)/.test(
+        text(i),
+      ),
   },
   {
     id: "git-push-confirm",

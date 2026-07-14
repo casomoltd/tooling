@@ -113,6 +113,21 @@ user's "yes" is the intended resting state.
 - **Issue reference:** if an issue number is already in context, add a
   `Closes #<n>` / `Refs #<n>` footer; don't prompt for one otherwise.
 
+**Draft to a file and pre-flight it — never present a doomed commit.**
+Write the message to a temp file (Write tool, scratch dir; avoids every
+shell-quoting hazard), then run the repo's own `commit-msg` gate on it
+and fix exactly what it flags until it passes:
+
+```bash
+hook="$(git rev-parse --path-format=absolute --git-path hooks)/commit-msg"
+[ ! -x "$hook" ] || "$hook" <msgfile>
+```
+
+Only then run `git commit -F <msgfile>`. Don't hand-count character
+limits — the gate counts them; a draft that passes here cannot bounce
+at commit time, so the user is never asked to confirm a commit that
+the hooks would reject.
+
 Use a quoted message from the arguments if given. Running `git commit` surfaces
 the `git-commit-confirm` guard hook's dialog — that's the enforced form of the
 step-5 gate; confirm it, never suppress or bypass it.

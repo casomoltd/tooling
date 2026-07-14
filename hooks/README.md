@@ -46,6 +46,11 @@ coverage gap). The two content rules that remain — `tsconfig` strict-weakening
 (tsc *passes* once weakened) and bare `# type: ignore` (until ops' ruff adds
 `PGH003`) — stay only because nothing else guards them yet.
 
+(Drafted commit *messages* are deliberately not guarded here either: the
+`commit` skill drafts the message to a file, runs the repo's own `commit-msg`
+git hook over it, and only then commits with `git commit -F` — same file, same
+gate, just before the commit instead of during it.)
+
 ## Failure handling
 
 A hook is advisory for commands it understands:

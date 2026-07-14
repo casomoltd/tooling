@@ -8,6 +8,8 @@
 // Run via `node hooks/test.mts`; wired into `npm run check`.
 import {strict as assert} from "node:assert";
 import {spawnSync} from "node:child_process";
+import {mkdtempSync, rmSync, writeFileSync} from "node:fs";
+import {tmpdir} from "node:os";
 import {fileURLToPath} from "node:url";
 import {dirname, join} from "node:path";
 import {evaluate} from "./lib/run.mts";
@@ -57,6 +59,7 @@ const bashCases: Case[] = [
   // itself stays commitlint's job — the hook doesn't deny for it.
   {command: 'git commit -m "feat: x"', verdict: "ask", id: "git-commit-confirm"},
   {command: "git commit --amend", verdict: "ask", id: "git-commit-confirm"},
+  {command: 'git -C tooling commit -m "feat: x"', verdict: "ask", id: "git-commit-confirm"},
   {command: 'git commit -m "feat: x" -m "Co-Authored-By: Claude"', verdict: "ask", id: "git-commit-confirm"},
   // Plumbing/maintenance verbs that start with "commit" must NOT confirm.
   {command: "git commit-graph write", verdict: null},
@@ -96,18 +99,12 @@ const editCases: Case[] = [
 let pass = 0;
 const fail: string[] = [];
 
-const checkRegistry = (
-  label: string,
-  rules: readonly Rule[],
-  cases: Case[],
-): void => {
+// One bookkeeping loop for every case list — a missed `pass++` in a
+// hand-rolled copy would skew the totals invisibly.
+const runCases = <T,>(cases: readonly T[], check: (c: T) => void): void => {
   for (const c of cases) {
-    const {verdict, id, ...input} = c;
-    const got = evaluate(rules, input);
-    const gotVerdict = got?.verdict ?? null;
     try {
-      assert.equal(gotVerdict, verdict, `verdict for ${label}: ${JSON.stringify(input)}`);
-      if (id) assert.equal(got?.id, id, `rule id for ${label}: ${JSON.stringify(input)}`);
+      check(c);
       pass++;
     } catch (err) {
       fail.push(err instanceof Error ? err.message : String(err));
@@ -115,8 +112,49 @@ const checkRegistry = (
   }
 };
 
+const checkRegistry = (
+  label: string,
+  rules: readonly Rule[],
+  cases: Case[],
+): void => {
+  runCases(cases, (c) => {
+    const {verdict, id, ...input} = c;
+    const got = evaluate(rules, input);
+    const gotVerdict = got?.verdict ?? null;
+    assert.equal(gotVerdict, verdict, `verdict for ${label}: ${JSON.stringify(input)}`);
+    if (id) assert.equal(got?.id, id, `rule id for ${label}: ${JSON.stringify(input)}`);
+  });
+};
+
 checkRegistry("bash", BASH_RULES, bashCases);
 checkRegistry("edit", EDIT_RULES, editCases);
+
+// ---- commitlint config regression -----------------------------------------
+// Attribution trailers are parsed as `footer`, which no-ai-attribution must
+// scan — a header+body check misses the very line the rule exists to catch.
+// Run through this repo's own gate (bin/commit-msg.sh + the root config).
+const msgDir = mkdtempSync(join(tmpdir(), "commitlint-test-"));
+const lintDraft = (name: string, content: string): number | null => {
+  const file = join(msgDir, name);
+  writeFileSync(file, content);
+  const r = spawnSync("sh", [join(HERE, "..", "bin", "commit-msg.sh"), file], {
+    cwd: join(HERE, ".."),
+    encoding: "utf8",
+  });
+  return r.status;
+};
+runCases(
+  [
+    {name: "attribution trailer rejected", content: "fix: tidy\n\nCo-Authored-By: X\n", passes: false},
+    {name: "clean message passes", content: "fix: tidy the hook tests\n", passes: true},
+  ],
+  (c) => {
+    const status = lintDraft(c.name.replaceAll(" ", "-"), c.content);
+    if (c.passes) assert.equal(status, 0, c.name);
+    else assert.notEqual(status, 0, c.name);
+  },
+);
+rmSync(msgDir, {recursive: true, force: true});
 
 // End-to-end: spawn the real script with a piped payload. Normalise the result
 // so stdout/stderr are strings regardless of platform buffering.
