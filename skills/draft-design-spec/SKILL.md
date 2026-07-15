@@ -127,14 +127,17 @@ emit an empty or fabricated diagram.
      prefer a top-down (`TD`) layout, and keep each rank to a handful of nodes. A
      diagram the reader scrolls is fine; one they must zoom into is a defect —
      split it or trim the labels.
-   - **Mermaid that renders — mind the `mermaid@10` `classDiagram` traps.** Its
-     `classDef` takes a **single** property — `fill:#eee` works, but
-     `fill:…,stroke:…,color:…` throws; use fill-only, or per-node `style X …` for
-     full colour. `namespace` cannot coexist with `classDef`/`cssClass`/`:::`
-     (throws) — show grouping with **colours + a `.legend` key**, not boxes. Keep
-     every node id unique **case-insensitively** (`Foo`/`foo` collide). Nothing
-     catches these until the page renders — a bad diagram shows a red error box,
-     not a graph — so author to avoid them and glance at each diagram on open.
+   - **Mermaid `classDiagram` — traps that only surface on render.** Colour nodes
+     with **per-node `style X fill:#…,stroke:#…`** — `classDef`/`cssClass` *parse
+     but don't paint* in a classDiagram (every box comes out grey, so a colour
+     `.legend` lies), and `classDef` throws outright on a multi-property style
+     (single property only) or on `namespace`. Show library/group boundaries with
+     those per-node colours + a `.legend` key, **not `namespace` boxes**. Give
+     **every node ≥1 edge** — a floating orphan distracts the reader — and keep
+     ids unique **case-insensitively** (`Foo`/`foo` collide into one node). None
+     of this shows until the page renders (a broken diagram is a red error box, a
+     grey or orphaned one a silent defect), so **glance at each diagram on open
+     and confirm it is coloured and connected**.
    - **Lead with the type/interface definitions over duplication** — extract a
      shared generic core validated by **≥2 real callers** rather than bolting on
      an (N+1)th variant.
