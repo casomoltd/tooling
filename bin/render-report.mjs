@@ -22,9 +22,9 @@
  *   0  HTML written (and opened unless --no-open)
  *   1  Bad arguments or the input file is missing
  */
-import {spawn} from "node:child_process";
 import {existsSync, readFileSync, writeFileSync} from "node:fs";
 import {resolve} from "node:path";
+import {openPath} from "./utils.mjs";
 
 const args = process.argv.slice(2);
 const noOpen = args.includes("--no-open");
@@ -110,9 +110,5 @@ const url = `file://${resolve(htmlPath)}`;
 console.log(url);
 
 if (!noOpen) {
-  // text/html must be associated with a browser, not a mail client; if the
-  // opener mis-routes on Linux, run e.g.
-  //   xdg-mime default firefox_firefox.desktop text/html
-  const opener = process.platform === "darwin" ? "open" : "xdg-open";
-  spawn(opener, [url], {detached: true, stdio: "ignore"}).unref();
+  openPath(url);
 }

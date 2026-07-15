@@ -26,6 +26,7 @@ Shared linting, formatting, commit config, and CLI tools for Casomo Ltd's repos.
 | `commit-msg` | Husky commit-msg hook — runs commitlint |
 | `readability` | Measure reading difficulty of page content |
 | `screenshot` | Capture a dev server page via Puppeteer |
+| `build-report` | Compile a Typst client report to PDF with the house template |
 
 ## Install
 
@@ -131,6 +132,56 @@ Add these scripts to your `package.json`:
 Screenshots are saved to `.claude/screenshots/`. Set
 `SCREENSHOT_URL` to override the default `http://localhost:3000`.
 
+## Client reports (Typst)
+
+`report/` ships the Casomo house style for client-facing PDF reports —
+a [Typst](https://typst.app) template (`casomo-template.typ`, with the
+brand mark beside it) plus the `build-report` bin that compiles a
+report to PDF:
+
+```bash
+npx build-report path/to/report.typ                # → scratch (see below)
+npx build-report report.typ -o public/report.pdf   # explicit output path
+npx build-report report.typ --watch                # recompile on save
+npx build-report report.typ --open                 # open the PDF when done
+```
+
+The compiled PDF is a build artefact, so it defaults to the same scratch
+resolution as the agent reports (see *Report output & `SCRATCH_DIR`*
+under Agents): `$SCRATCH_DIR/reports/<name>.pdf`, or
+`<repo-root>/scratch/reports/` when `SCRATCH_DIR` is unset — add
+`scratch/` to the consumer repo's `.gitignore` (this repo does). Pass
+`--out` only when the PDF is a deliverable the repo actually keeps
+(e.g. a site's `public/`).
+
+A report imports the template and applies it as a show rule; everything
+after is the body. From a consumer repo the import goes through
+`node_modules` (the bin sets the Typst root to the nearest
+`package.json`/`.git` ancestor so the path resolves):
+
+```typst
+#import "/node_modules/@casomoltd/tooling/report/casomo-template.typ": casomo-report, band
+
+#show: casomo-report.with(
+  kicker: "Delivery Report & Findings",
+  title: "The Report Title",
+  subtitle: "One-line summary.",  // optional
+)
+
+= Executive summary
+…
+```
+
+`report/example.typ` is a lorem-ipsum reference report exercising every
+feature the template styles — compile it to see the house style.
+
+Two prerequisites are external to npm (like puppeteer for
+`screenshot`, they are deliberately not dependencies): the **`typst`
+CLI** on PATH (`snap install typst` / `cargo install typst-cli`) and
+the **IBM Plex Sans / IBM Plex Mono** fonts
+([github.com/IBM/plex](https://github.com/IBM/plex)) — `build-report`
+fails loud on the former and warns on the latter.
+
 ## Quality gates
 
 There is no CI — all quality gates run locally via git hooks.
@@ -208,6 +259,7 @@ decision table) that keeps these units composing without overlap.
 | `/casomoltd:design-pass` | Map → review → refactor a package (drives `design-xray` + `code-review`) |
 | `/casomoltd:draft-design-spec` | Author a browser-reviewable HTML design spec from a brief and iterate on it before writing code (drives `design-xray`) |
 | `/casomoltd:page-design` | Structure a content/explainer page for trust — above-the-fold answer, disclosure, palette-only colour (rubric a page-design reviewer preloads) |
+| `/casomoltd:generate-report` | Scaffold a Typst client report from the house template, compile via `build-report`, verify the PDF |
 
 Enable the plugin by adding this repo as a marketplace and installing it:
 

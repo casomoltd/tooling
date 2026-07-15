@@ -1,2 +1,6 @@
 node_modules
 .claude/settings.local.json
+
+# report/agent output fallback when SCRATCH_DIR is unset (README
+# "Report output & SCRATCH_DIR") — build artefacts, never committed
+scratch/

@@ -17,6 +17,7 @@ const ALLOWED_PREFIXES = [
   "knip/",
   "jscpd/",
   "readability/",
+  "report/",
 ];
 const ALLOWED_FILES = ["README.md", "package.json", "LICENSE", "LICENSE.md"];
 
