@@ -127,6 +127,14 @@ emit an empty or fabricated diagram.
      prefer a top-down (`TD`) layout, and keep each rank to a handful of nodes. A
      diagram the reader scrolls is fine; one they must zoom into is a defect —
      split it or trim the labels.
+   - **Mermaid that renders — mind the `mermaid@10` `classDiagram` traps.** Its
+     `classDef` takes a **single** property — `fill:#eee` works, but
+     `fill:…,stroke:…,color:…` throws; use fill-only, or per-node `style X …` for
+     full colour. `namespace` cannot coexist with `classDef`/`cssClass`/`:::`
+     (throws) — show grouping with **colours + a `.legend` key**, not boxes. Keep
+     every node id unique **case-insensitively** (`Foo`/`foo` collide). Nothing
+     catches these until the page renders — a bad diagram shows a red error box,
+     not a graph — so author to avoid them and glance at each diagram on open.
    - **Lead with the type/interface definitions over duplication** — extract a
      shared generic core validated by **≥2 real callers** rather than bolting on
      an (N+1)th variant.
