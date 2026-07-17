@@ -48,6 +48,9 @@
   }
   show link: set text(fill: rgb("#0000cc"))
   show ref: set text(fill: rgb("#0000cc"))
+  // Figures must break across pages: a full-page table in an unbreakable
+  // figure overflows into the footer and strands whitespace before it.
+  show figure: set block(breakable: true)
   show figure.caption: set text(size: 9.5pt, style: "italic", fill: luma(110))
   show figure.caption: set par(justify: true)
   show figure.caption: set align(left)

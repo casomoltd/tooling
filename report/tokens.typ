@@ -12,6 +12,13 @@
 #let hairline = 0.5pt + luma(200)
 #let intent-bar = 2.5pt + black
 
+// The transcript register: verbatim excerpts (audit transcripts, quoted
+// source passages) set in the mono face, sized down from body so quoted
+// material is unmistakably not the report's own prose.
+#let excerpt-font = mono-font
+#let excerpt-size = 9.5pt
+#let excerpt-indent = 1.5em
+
 // The legal identity, printed by both the footer and the cover.
 #let company-name = "Casomo Ltd"
 #let company-registration = "Registered in the UK, 15030496"

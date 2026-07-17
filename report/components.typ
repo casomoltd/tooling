@@ -1,7 +1,7 @@
 // components.typ — the author-facing body components: band dividers, mono
 // figures, callouts, and key figures. (How a band heading *renders* lives
 // with the other heading rules in styles.typ; this file owns the semantics.)
-#import "tokens.typ": mono-font, intent-bar
+#import "tokens.typ": mono-font, intent-bar, excerpt-font, excerpt-size, excerpt-indent
 
 // Band dividers — unnumbered group headers that organise the contents and the
 // body into sections (e.g. Delivery / Advisories / Decisions / Hand-over)
@@ -20,6 +20,36 @@
 // down slightly to match the sans x-height. Use in numeric table cells and
 // for inline figures: num[£29,970].
 #let num(value) = text(font: mono-font, size: 0.92em, value)
+
+// Appendix numbering — switches heading numbering to letters (A, A.1, …) for
+// the rest of the document, so appendix headings read "A Protocol" rather
+// than "8 Appendix A — Protocol". Apply after the main body:
+//
+//   #band("Appendices")
+//   #show: appendices
+//   = Audit protocol
+//
+// Unnumbered headings (band dividers) are unaffected.
+#let appendices(body) = {
+  counter(heading).update(0)
+  set heading(numbering: "A.1")
+  body
+}
+
+// A verbatim excerpt — quoted evidence (audit transcripts, interview quotes,
+// source passages) set indented in the mono face at transcript register, so
+// quoted material is unmistakably distinct from the report's own prose. The
+// wording inside is someone else's; the styling says so.
+#let excerpt(body) = block(
+  above: 0.9em,
+  below: 0.9em,
+  inset: (left: excerpt-indent, right: 1em),
+  {
+    set text(font: excerpt-font, size: excerpt-size)
+    set par(justify: false)
+    body
+  },
+)
 
 // A note the reader must not miss — a thick left bar carries the emphasis,
 // no box, no fill. `label` bolds the intent: callout(label: "Warning:")[…].

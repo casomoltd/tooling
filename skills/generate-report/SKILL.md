@@ -63,15 +63,17 @@ change); publishing, hosting, or emailing the PDF.
    imports and applies it, then writes the body:
 
    ```typst
-   #import "/node_modules/@casomoltd/tooling/report/casomo-template.typ": casomo-report, band
+   #import "/node_modules/@casomoltd/tooling/report/casomo-template.typ": casomo-report, band, excerpt
 
    #show: casomo-report.with(
      kicker: "<CATEGORY>",  // e.g. "Scoping Report", "Delivery Report", "Technical Note"
      title: "<TITLE>",
      // subtitle: "<one-line subtitle>",  // optional
+     // summary: [<executive summary>],  // optional; renders as its own page
+     //                                  // between the cover and the contents
    )
 
-   = Executive summary
+   = Executive summary <sec-1>
    …
    ```
 
@@ -80,6 +82,20 @@ change); publishing, hosting, or emailing the PDF.
      reports (e.g. Delivery / Advisories / Decisions); numbered `=` sections
      flow through it untouched. Skip it for simple reports.
    - Don't skip heading levels (`=` → `===` numbers as 1.0.1).
+   - **Internal cross-references are hyperlinks, never bare text.** Attach a
+     `<label>` to every heading a sentence refers to and write the reference
+     as `#link(<label>)[section 2.1]` (keeping the prose's own wording and
+     case), or `@label` where the auto-rendered "Section 2.1" reads
+     naturally. A bare "see section 4.2" the reader can't click is a defect.
+   - **Verbatim quoted material goes in `excerpt[…]`** — transcripts,
+     interview quotes, quoted source passages. It renders indented in the
+     mono transcript register (tokens: `excerpt-font`/`excerpt-size`) so
+     quoted words are visibly not the report's own prose. Never restyle
+     quotes ad hoc per report.
+   - **Appendices switch to letter numbering** — after the main body, write
+     `#band("Appendices")` then `#show: appendices`, and give each appendix a
+     plain `=` heading ("= Audit protocol"). Headings then number A, B, C…
+     (subsections A.1, …); never spell "Appendix A —" in the heading text.
 
 3. **Compile** with the bin (never raw `typst compile` — the bin sets the
    compile root, checks the `typst` CLI is present, and warns on missing

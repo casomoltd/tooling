@@ -1,12 +1,13 @@
 // casomo-template.typ — shared house style for Casomo client reports.
 //
 // The single import point. Internals live in the sibling component files —
-// tokens.typ (fonts, rule weights, legal identity) · styles.typ (document
-// type rules) · table.typ (flat tables) · components.typ (band, callout,
-// keyfig, num) · mark.typ (brand mark) · footer.typ · cover.typ — and this
-// file re-exports the author-facing API, so a report needs only:
+// tokens.typ (fonts, rule weights, type registers, legal identity) ·
+// styles.typ (document type rules) · table.typ (flat tables) ·
+// components.typ (band, callout, excerpt, keyfig, num) · mark.typ (brand
+// mark) · footer.typ · cover.typ — and this file re-exports the author-facing
+// API, so a report needs only:
 //
-//   #import "casomo-template.typ": casomo-report, band, callout, keyfig, num
+//   #import "casomo-template.typ": casomo-report, band, callout, excerpt, keyfig, num
 //   #show: casomo-report.with(
 //     kicker: "Delivery Report & Findings",
 //     title: "The Report Title",
@@ -27,7 +28,7 @@
 // this). Compile with `build-report <report.typ>`; needs the `typst` CLI
 // plus the IBM Plex Sans / IBM Plex Mono fonts installed.
 
-#import "components.typ": band, callout, keyfig, num
+#import "components.typ": appendices, band, callout, excerpt, keyfig, num
 #import "styles.typ": document-styles
 #import "table.typ": table-styles
 #import "footer.typ": report-footer
@@ -37,6 +38,7 @@
   kicker: none,
   title: none,
   subtitle: none,
+  summary: none,
   author: "David Mohamad",
   email: "info@casomoltd.com",
   body,
@@ -56,6 +58,16 @@
   )
 
   cover-page(kicker, title, subtitle, author, email, year)
+
+  // --- Executive summary (optional) --- its own page between the cover and
+  // the contents; the unnumbered heading renders in the band style and stays
+  // out of the outline.
+  if summary != none {
+    page[
+      #heading(level: 1, numbering: none, outlined: false)[Executive summary]
+      #summary
+    ]
+  }
 
   // --- Table of contents ---
   page[
