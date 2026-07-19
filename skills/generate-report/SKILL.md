@@ -87,6 +87,13 @@ change); publishing, hosting, or emailing the PDF.
      as `#link(<label>)[section 2.1]` (keeping the prose's own wording and
      case), or `@label` where the auto-rendered "Section 2.1" reads
      naturally. A bare "see section 4.2" the reader can't click is a defect.
+   - **Anchor labels to rendered content, never to a free-standing
+     `#metadata("") <label>` between blocks.** A zero-size metadata element
+     placed between list items (e.g. glossary entries) resolves to the wrong
+     layout position — every link to it lands pages away. Put the metadata
+     *inside* the element it names (`/ #metadata("") <gloss-cpi> CPI: …`),
+     and after compiling spot-check one such link's destination in the PDF,
+     not just that it compiled.
    - **Verbatim quoted material goes in `excerpt[…]`** — transcripts,
      interview quotes, quoted source passages. It renders indented in the
      mono transcript register (tokens: `excerpt-font`/`excerpt-size`) so
