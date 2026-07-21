@@ -86,6 +86,11 @@ enough surrounding code (definitions, call sites) to judge design intent.
   serialise/parse) kept in one place; `make_x()` service factories not
   `configure_x`; and over-building — re-solving a solved problem or wrapping
   data a plain type already models.
+- **Stopgap links its tracking task** (`typescript` standard): a stopgap,
+  workaround, or "shown until X updates" value whose comment says only
+  `temporary`/`TODO` with **no link to the issue/task that tracks its removal**.
+  Flag it — an unlinked stopgap silently becomes permanent; the comment must
+  point to the tracking item whose definition-of-done retires the code.
 - **Cross-path invariants** (both standards): when a change makes two paths that
   must agree produce a value two ways — a consumer's computation vs the
   library's, a fast path vs a reference path, a transform newly consolidated onto

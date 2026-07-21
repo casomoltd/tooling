@@ -568,3 +568,29 @@ and re-check the factor against source, not as noise.
 (Complements *Guard Cross-Path Invariants with a Test* above: that
 pins one externally-known figure with an inline oracle; this pins a
 whole transcribed table to a committed, cited fixture.)
+
+## Link a Stopgap to Its Tracking Task
+
+A stopgap — a note that a figure is about to change, a workaround for
+an upstream gap, a value shown until a source updates — carries a
+comment linking the **issue/task that tracks its removal**, not a bare
+`temporary` or `TODO`. The link is what keeps the stopgap and its
+retirement connected: the tracking item's definition-of-done names the
+code to delete, and a reader who finds the comment sees why it is still
+here and when it goes. A `// temporary` with no pointer is how a stopgap
+quietly becomes permanent.
+
+```ts
+// Bad: temporary, but nothing says when it goes or who owns that
+// TODO: remove once the new scale lands
+const note = incomingScaleNote(region);
+
+// Good: linked to the task that will retire it
+// Stopgap until the library models the 2026 scale; retire with
+// <tracking task URL> (its DoD includes deleting this note).
+const note = incomingScaleNote(region);
+```
+
+This is the provenance rule (*cite the source at the data*, above)
+applied to temporary code: the "source" of a stopgap is the decision to
+remove it, so the link belongs at the code, not only in the tracker.
