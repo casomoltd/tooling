@@ -1,6 +1,6 @@
 {
   "name": "@casomoltd/tooling",
-  "version": "0.22.0",
+  "version": "0.22.1",
   "description": "Casomo's shared dev config: ESLint, Prettier, commitlint, knip & jscpd presets and dev CLIs (git hooks, readability, screenshots)",
   "license": "MIT",
   "repository": {
