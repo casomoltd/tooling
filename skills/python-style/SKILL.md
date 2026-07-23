@@ -385,10 +385,20 @@ else:
 
 - Use f-strings for formatting.
 - Consistent quote style within a file (prefer `"double quotes"`).
-- For logging: use `%`-style placeholders, not f-strings.
+
+## Logging
+
+- A module obtains its logger canonically:
+  `logger = logging.getLogger(__name__)` at module scope. Never pass a
+  hardcoded name — a logger name is infrastructure identity, and a magic
+  string there is invisible to ruff and pyright: misspell it or rename the
+  package and the module silently detaches from the configured hierarchy.
+- Handlers and levels are configured once, in a single setup function, on
+  the package root logger — `logging.getLogger(__package__)` — so every
+  module logger propagates to it. No other module touches handlers.
+- Use `%`-style placeholders in log calls, not f-strings.
 - `print` is for program *output* — the data the user asked for. Status,
-  progress, and diagnostics go through a module `logging` logger, never
-  `print`.
+  progress, and diagnostics go through the module logger, never `print`.
 
 ## Line length
 
