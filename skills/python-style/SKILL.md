@@ -447,6 +447,21 @@ No top-level execution besides imports and definitions.
   catches it. And a **uniform offset across a whole table** (every value off
   by the same fraction) is the signature of a wrong transform — a mis-applied
   uplift, a rounding, a unit slip — not noise.
+- **Don't pin a computation to its own output.** A test for a computed model
+  (projection, amortisation, forecast, any multi-step arithmetic) needs one
+  assertion the implementation couldn't have produced. Both failing habits look
+  thorough: an `expected` that is a **recorded run** (run the code, write the
+  answer down), and an `expected` that **re-spells the implementation's
+  formula** — two spellings of one model agree by construction. Add an
+  independent route: a closed form against an iterative loop, a cited worked
+  example, a hand-computed boundary, or a **property** the model must satisfy
+  however it is written (an output that must not move when an unrelated input
+  changes; an identity two outputs must obey). Choose the fixture so the two
+  routes agree **exactly**, and comment why. Re-type a rate literal rather than
+  importing the implementation's constant — an imported constant makes the test
+  agree with whatever it is changed to — and cite it. Recorded output is fine as
+  a **regression pin**; the fault is a pins-only suite not labelled as one,
+  naming what would actually settle correctness.
 
 ```python
 def test_press_self_destruct_should_go_bang():

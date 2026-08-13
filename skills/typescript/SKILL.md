@@ -569,6 +569,63 @@ and re-check the factor against source, not as noise.
 pins one externally-known figure with an inline oracle; this pins a
 whole transcribed table to a committed, cited fixture.)
 
+## Don't Pin a Computation to Its Own Output
+
+A test for a **computed model** — a projection, an amortisation, a
+forecast, any multi-step arithmetic — needs at least one assertion
+the implementation could not have produced. Two habits fail this,
+and both look like thorough tests:
+
+- **Recorded output.** Run the code, write the answer down as the
+  expected value. It now asserts the number hasn't *moved*. It
+  cannot assert the number is *right*, and it will happily pin a
+  wrong model for years.
+- **A re-spelled implementation.** Compute `expected` in the test
+  using the same formula the code uses. Two spellings of one
+  model agree by construction; the test catches drift between
+  them and nothing else.
+
+Add an **independent derivation** — one that reaches the figure by
+a different route:
+
+```ts
+// Weak: whatever the loop produced, pinned. Regression only.
+expect(project(input).total).toBeCloseTo(23_123.67, 2);
+
+// Strong: the analytic sum of the same series, derived from the
+// model's definition rather than from reading the loop. n slices
+// each compounding for the periods that follow it is a geometric
+// series: slice × ((1+r)^n − 1) / r.
+const expected = slice * (Math.pow(1 + RATE, n) - 1) / RATE;
+expect(project(input).total).toBeCloseTo(expected, 6);
+```
+
+Other independent routes: a **worked example from the source
+document** (cited inline), a hand-computed boundary case, or a
+**property** the model must satisfy however it is implemented (a
+figure that must not move when an unrelated input changes; an
+identity two outputs must obey). Properties are often the cheapest
+real oracle, because they need no external figure at all.
+
+**Choose the fixture so the two routes agree exactly**, then say
+why in a comment. A closed form and an iterative loop diverge on
+partial periods, unit conventions, or rounding for legitimate
+reasons; picking a span where they must agree turns a vague
+`toBeCloseTo` into an exact claim, and the comment stops a later
+reader "fixing" the tolerance.
+
+**A constant re-typed in a test is deliberate — cite it.** Importing
+the implementation's own constant makes the test agree with whatever
+that constant is changed to, which is the one thing it exists to
+guard. Re-type the literal, and put its source at the assertion.
+
+Recorded output is still worth keeping as a **regression pin**; it
+is just not verification. Where a suite is pins-only, **label it as
+such in the module header** and name what would actually settle
+correctness (a real statement, a published worked example, a
+regulator's own calculator). An unlabelled pin reads as proof and
+quietly retires the question.
+
 ## Link a Stopgap to Its Tracking Task
 
 A stopgap — a note that a figure is about to change, a workaround for

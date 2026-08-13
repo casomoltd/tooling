@@ -98,6 +98,24 @@ enough surrounding code (definitions, call sites) to judge design intent.
   (`path A == path B`), and, where the figure is externally knowable, a missing
   oracle assertion citing its source inline. A per-path fixture pins one side;
   only the equivalence test catches the two diverging.
+- **A computation pinned to its own output** (both standards): a **computed
+  model** — projection, amortisation, forecast, any multi-step arithmetic —
+  added or changed with no assertion its own implementation couldn't have
+  produced. Two shapes, both of which read as thorough tests: an `expected`
+  that is a **recorded run** (a bare decimal with no derivation or citation),
+  and an `expected` that **re-spells the implementation's formula**, so two
+  spellings of one model agree by construction. Flag the absence of an
+  independent route to the figure — a closed form against an iterative loop, a
+  cited worked example, a hand-computed boundary, or a **property** the model
+  must satisfy however it is written (an output that must not move when an
+  unrelated input changes; an identity two outputs must obey). Also flag a test
+  that **imports the implementation's own constant** as its expected rate: it
+  then agrees with whatever that constant becomes — the literal should be
+  re-typed and cited. Recorded output is legitimate as a **regression pin**;
+  the finding is a pins-only suite not **labelled** as one in its module
+  header, naming what would settle correctness. Distinguish plumbing
+  (composition, wiring, which figure reaches which surface), where pinning
+  output is the right instrument, from the arithmetic itself, where it isn't.
 - **Transcribed reference data** (both standards): a table of externally-sourced
   constants — pay figures, tax thresholds, statutory rates — added or edited with
   **no committed fixture tying it to the authoritative source**, or "verified"
