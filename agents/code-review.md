@@ -40,6 +40,32 @@ enough surrounding code (definitions, call sites) to judge design intent.
 
 ## Focus — judgment-level (what lint can't see)
 
+- **Comments carry the WHY, never the WHEN or the WHO.** Flag a comment that
+  dates itself (`(15 Aug)`, `since the March pass`), names a person (`David
+  spotted this`), or narrates the change history of the code it sits in ("the
+  first pass put this below, the second moved it back"). Version control
+  already holds the date, the author and the sequence, and a hand-written copy
+  of them starts drifting the moment anyone touches the file. Keep the
+  reasoning, drop the provenance: *what breaks if this changes* survives a
+  rewrite; *when we decided it* does not. Route the rest by kind — a **decision**
+  belongs in the decision log, a **reusable rule** in the relevant standard (so
+  it is enforced once, not re-argued at every site that obeys it), and only a
+  fact **local to this code** stays as a comment. Naming a source **artefact**
+  for a magic constant (`the ratio the design brief used`) is provenance for the
+  number and is fine; naming a person or a date is not.
+- **A hand-written utility class silently beats a framework utility for the same
+  property.** Where a project defines its own `text-*`/`bg-*` class that sets
+  more than one property — a type ramp setting `font-size` **and**
+  `font-weight` — pairing it with a framework utility for the *second* property
+  ties on specificity and loses on source order. The utility is present,
+  readable, and does nothing. Flag the unmarked pair: the fix is the framework's
+  importance marker (`!`) or deleting the redundant class. Two relatives worth
+  flagging with it: a framework's responsive variants are generated for **its
+  own** utilities only, so `sm:<hand-written-class>` is a class that does not
+  exist and fails silently; and a class-merging helper (`tailwind-merge` and
+  kin) files an unrecognised `text-*` under **colour**, dropping the size unless
+  the custom scale is registered with it.
+
 - **TypeScript** (the `typescript` standard): typed identifiers derived from
   `as const` (not hand-maintained unions), no magic literals, static separated
   from varying, consumer-shaped not legacy data, flat over cosmetically-nested,
