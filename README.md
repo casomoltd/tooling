@@ -25,7 +25,7 @@ Shared linting, formatting, commit config, and CLI tools for Casomo Ltd's repos.
 | `pre-commit` | Husky pre-commit hook — runs `npm run check` |
 | `commit-msg` | Husky commit-msg hook — runs commitlint |
 | `readability` | Measure reading difficulty of page content |
-| `screenshot` | Capture a dev server page via Puppeteer |
+| `screenshot` | Capture a dev server page via Playwright — an agent's visual feedback loop |
 | `build-report` | Compile a Typst client report to PDF with the house template |
 
 ## Install
@@ -43,9 +43,31 @@ npm i -D @casomoltd/tooling
 
 The package is public, so installs need no token or `.npmrc`. The `files`
 allowlist plus the `verify-pack` leak-gate keep the published surface to
-configs/CLI only. `puppeteer` (used by the `screenshot` bin) is an
-**optional peer dependency** — add it yourself (`npm i -D puppeteer`) in
-repos that run `screenshot`.
+configs/CLI only.
+
+**Installing this package never installs a browser.** The `screenshot`
+bin needs one and `build-report` needs the `typst` CLI, but neither is
+declared here — see [External prerequisites](#external-prerequisites).
+
+## External prerequisites
+
+Two bins need something npm cannot sensibly deliver: `screenshot` needs
+a Chromium build, `build-report` needs the `typst` CLI and the IBM Plex
+fonts. **Neither is declared — not as a dependency, and not as an
+optional peer.** Both load their prerequisite lazily and fail with an
+install instruction when it is missing, so a consumer that never runs
+those bins carries nothing for them.
+
+The rule, for anything added later: a heavyweight prerequisite only some
+consumers need is documented here, never declared. An optional peer
+looks free because npm installs nothing for it, but it resolves into a
+consumer's lockfile as soon as anything pulls it in, and npm will not
+prune a satisfied optional peer afterwards — not on `npm install`, not
+on `npm install --package-lock-only`, not on `npm uninstall`. That is
+how one dev-only browser put the `extract-zip` advisory
+(GHSA-jmr9-qjv8-65gv) into four repos that never took a screenshot, and
+why clearing it needed a release of this package rather than a fix in
+each of them.
 
 ## Husky hooks
 
@@ -104,7 +126,20 @@ version that ships the config.
 
 ## Screenshot tool
 
-Capture the running dev server for visual inspection:
+A visual feedback loop for coding agents. Claude captures the page it
+just changed, reads the PNG back and checks its own work, instead of
+waiting for someone to look and paste a screen grab. That is what the
+bin is for, and why its output lands under `.claude/`; a person wanting
+a screenshot already has a browser open.
+
+It needs a Chromium build, which this package does not install (see
+[External prerequisites](#external-prerequisites)):
+
+```bash
+npm i -D playwright && npx playwright install chromium
+```
+
+Then capture the running dev server:
 
 ```bash
 npm run ss              # 1280×800 desktop capture
@@ -175,10 +210,9 @@ after is the body. From a consumer repo the import goes through
 `report/example.typ` is a lorem-ipsum reference report exercising every
 feature the template styles — compile it to see the house style.
 
-Two prerequisites are external to npm (like puppeteer for
-`screenshot`, they are deliberately not dependencies): the **`typst`
-CLI** on PATH (`snap install typst` / `cargo install typst-cli`) and
-the **IBM Plex Sans / IBM Plex Mono** fonts
+Two [external prerequisites](#external-prerequisites) apply here: the
+**`typst` CLI** on PATH (`snap install typst` / `cargo install
+typst-cli`) and the **IBM Plex Sans / IBM Plex Mono** fonts
 ([github.com/IBM/plex](https://github.com/IBM/plex)) — `build-report`
 fails loud on the former and warns on the latter.
 

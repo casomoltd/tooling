@@ -6,9 +6,10 @@ description: >-
   checking a page renders correctly, or comparing against
   a reference image or design description.
 user-invocable: true
-argument-hint: "[route] [--preset mobile|tablet|desktop] [-C <repo>]"
+argument-hint: "[route] [--preset mobile|tablet|desktop] [--url <base>]"
 allowed-tools:
   - Bash(npm run ss *)
+  - Bash(SCREENSHOT_URL=* *)
   - Bash(cd *)
   - Read
 ---
@@ -20,14 +21,23 @@ allowed-tools:
 Capture a page from the running dev server, read the image, and describe what
 rendered — a visual-verification helper, not a code change.
 
-## Target app
+## Target page
 
-In a multi-repo workspace, pick the app whose dev server
-you're capturing: if `-C <path>` is given, `cd` into it
-first (git-style); otherwise use the current directory.
-`npm run ss` and the saved screenshot
-(`.claude/screenshots/latest.png`) are both relative to
-that app.
+The tool captures a **URL**, not a repo — it never reads
+the project it points at. So run it from wherever the
+screenshot tooling is installed, and aim it with:
+
+- `SCREENSHOT_URL` — base URL to capture. Defaults to
+  `http://localhost:3000`.
+- `SCREENSHOT_DIR` — where the PNGs land. Defaults to
+  `<cwd>/.claude/screenshots`.
+
+In a multi-repo workspace the tooling is normally installed
+**once at the workspace root** rather than in each product
+repo, so run `npm run ss` there and set `SCREENSHOT_URL` if
+the app under test is not on port 3000. A repo that
+installs it locally can still just run `npm run ss` in
+place.
 
 ## Viewport presets
 
@@ -43,6 +53,13 @@ desktop (1280 × 800).
 
 ## Prerequisites
 
+`playwright` and its Chromium build must be installed
+wherever you run the tool — `@casomoltd/tooling` does not
+declare a browser, so nothing installs one for you. If the
+bin reports playwright missing, tell the user to run
+`npm i -D playwright && npx playwright install chromium`
+there and stop; do not install it yourself.
+
 The dev server **must already be running** — never start
 one yourself (`npm run dev`, `npx next dev`, etc.).
 Before taking a screenshot, verify the server is up:
@@ -56,8 +73,8 @@ server and stop.
 
 ## Known limitation: client-only components
 
-The screenshot tool uses Puppeteer with
-`waitUntil: "networkidle0"`, which fires when there are
+The screenshot tool uses Playwright with
+`waitUntil: "networkidle"`, which fires when there are
 no outstanding network requests for 500 ms. It does **not**
 wait for React hydration or client-side rendering to
 complete. Components that render entirely on the client
@@ -79,9 +96,10 @@ manually in the browser instead.
    - `npm run ss contact --preset mobile`
    - `npm run ss --width 1440 --height 900`
 
-2. **Read the image** — use `Read` on
-   `.claude/screenshots/latest.png` (Claude is multimodal
-   and can view images via the Read tool).
+2. **Read the image** — use `Read` on `latest.png` in the
+   output directory (`SCREENSHOT_DIR`, else
+   `.claude/screenshots/`). Claude is multimodal and can
+   view images via the Read tool.
 
 3. **Describe what rendered** — summarise layout, content,
    colours, and anything visually notable.

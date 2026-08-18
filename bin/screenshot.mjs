@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Capture a screenshot of the running dev server.
+ * Capture a screenshot of a running dev server.
  *
  * Usage:
  *   npm run ss [page] [--width <n>] [--height <n>]
@@ -25,37 +25,38 @@
  *
  * Environment:
  *   SCREENSHOT_URL  Base URL to capture (default: http://localhost:3000)
+ *   SCREENSHOT_DIR  Output directory (default: <cwd>/.claude/screenshots)
  *
  * Output:
- *   .claude/screenshots/{page}-{timestamp}.png  Timestamped capture
- *   .claude/screenshots/latest.png              Always the most recent capture
+ *   {dir}/{page}-{timestamp}.png  Timestamped capture
+ *   {dir}/latest.png              Always the most recent capture
  */
 
 import { parseArgs } from "node:util";
 import path from "path";
 import fs from "fs";
 
-// puppeteer is an optional peer dependency (it pulls Chromium, ~200MB), so
-// consumers that never screenshot don't install it. Load it lazily and fail
-// loud if the screenshot bin is invoked without it.
-async function loadPuppeteer() {
+// playwright is an external prerequisite, not a dependency of this package.
+// A declared optional peer resolves into every consumer's lockfile and npm
+// will not prune it again, so a browser nobody screenshots with becomes a
+// standing advisory. Load it lazily and fail loud when it is absent.
+async function loadChromium() {
   try {
-    return (await import("puppeteer")).default;
+    return (await import("playwright")).chromium;
   } catch {
     throw new Error(
-      "puppeteer is not installed — add it as a devDependency " +
-        "(npm i -D puppeteer) to use the screenshot bin.",
+      "playwright is not installed — add it as a devDependency " +
+        "(npm i -D playwright && npx playwright install chromium) " +
+        "to use the screenshot bin.",
     );
   }
 }
 
 const BASE_URL =
   process.env.SCREENSHOT_URL || "http://localhost:3000";
-const OUTPUT_DIR = path.join(
-  process.cwd(),
-  ".claude",
-  "screenshots",
-);
+const OUTPUT_DIR =
+  process.env.SCREENSHOT_DIR ||
+  path.join(process.cwd(), ".claude", "screenshots");
 
 const PRESETS = {
   mobile: { width: 390, height: 844 },
@@ -111,15 +112,16 @@ async function screenshot() {
 
   fs.mkdirSync(OUTPUT_DIR, { recursive: true });
 
-  const puppeteer = await loadPuppeteer();
-  const browser = await puppeteer.launch({
+  const chromium = await loadChromium();
+  const browser = await chromium.launch({
     headless: true,
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });
 
   try {
-    const page = await browser.newPage();
-    await page.setViewport({ width, height });
+    const page = await browser.newPage({
+      viewport: { width, height },
+    });
 
     const url =
       pageName === "base"
@@ -128,7 +130,7 @@ async function screenshot() {
     console.log(`Navigating to ${url}...`);
 
     await page.goto(url, {
-      waitUntil: "networkidle0",
+      waitUntil: "networkidle",
       timeout: 30000,
     });
 

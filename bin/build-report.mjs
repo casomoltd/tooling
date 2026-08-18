@@ -83,11 +83,11 @@ function findRoot(from) {
 }
 const root = values.root ? path.resolve(values.root) : findRoot(input);
 
-// typst is an external native binary (like puppeteer for screenshot, it is
-// deliberately not an npm dependency). One probe does double duty: ENOENT
-// means typst is missing; otherwise the output feeds the font check. Missing
-// fonts don't fail a Typst compile — it silently falls back and the PDF comes
-// out off-brand — so warn loud up front.
+// typst is an external native binary (like playwright's browsers for
+// screenshot, it is deliberately not an npm dependency). One probe does
+// double duty: ENOENT means typst is missing; otherwise the output feeds
+// the font check. Missing fonts don't fail a Typst compile — it silently
+// falls back and the PDF comes out off-brand — so warn loud up front.
 const fonts = spawnSync("typst", ["fonts"], {encoding: "utf8"});
 if (fonts.error) {
   fail(

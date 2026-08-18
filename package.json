@@ -55,13 +55,7 @@
     "eslint-config-next": ">=16",
     "eslint-plugin-sonarjs": ">=3",
     "jscpd": ">=4",
-    "knip": ">=5",
-    "puppeteer": ">=24"
-  },
-  "peerDependenciesMeta": {
-    "puppeteer": {
-      "optional": true
-    }
+    "knip": ">=5"
   },
   "devDependencies": {
     "@types/node": "^26.0.0",
