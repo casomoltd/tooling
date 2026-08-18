@@ -165,12 +165,39 @@
 <section id="current">
   <h2>2 · Current structure &amp; coupling</h2>
   <p>{{Prose: what exists today and the constraint it imposes.}}</p>
+
+  <!-- ONE key for EVERY figure in the document. Define it once, here, and have
+       each figure's legend link back to it. Do not invent a second colour
+       meaning later in the page: a reader holds one key, not four. -->
+  <div class="card" id="diagram-key">
+    <h4 style="margin-top:0">How to read the diagrams — one key, all figures</h4>
+    <p style="margin-top:6px"><b>Which unit am I looking at?</b> Every node in every diagram lives in <b>{{THE UNIT THIS SPEC CHANGES}}</b> unless it is <b>grey and tagged <code>«{{other unit}}»</code></b>. Grey nodes are drawn only so coupling is visible; this spec changes none of them.</p>
+    <table>
+      <thead><tr><th style="width:96px">Colour</th><th style="width:150px">Status</th><th>Meaning</th><th style="width:190px">Example</th></tr></thead>
+      <tbody>
+        <tr><td style="background:#f0e9f8;border-left:6px solid #6b3fa0;font-weight:700;color:#43286b">Purple</td><td><b>New</b></td><td>Does not exist today. Introduced by this change.</td><td>{{…}}</td></tr>
+        <tr><td style="background:#fff4e5;border-left:6px solid #b26a00;font-weight:700;color:#6b4a08">Amber</td><td><b>Reshaped</b></td><td>Survives, but its shape or meaning changes.</td><td>{{…}}</td></tr>
+        <tr><td style="background:#e6f4ec;border-left:6px solid #007f3b;font-weight:700;color:#10502f">Green</td><td><b>Unchanged</b></td><td>Reused exactly as it is today.</td><td>{{…}}</td></tr>
+        <tr><td style="background:#fde8e8;border-left:6px solid #b3261e;font-weight:700;color:#7a1b14">Red</td><td><b>Removed</b></td><td>Deleted or replaced outright.</td><td>{{…}}</td></tr>
+        <tr><td style="background:#eceff3;border-left:6px dashed #8a94a3;font-weight:700;color:#4a535f">Grey</td><td><b>«{{other unit}}»</b></td><td><b>Outside this spec.</b> A consumer, shown for coupling only.</td><td>{{…}}</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-bottom:0;font-size:13.5px"><b>Shape</b> is a SECOND, independent axis and only in the component graph: <span style="border:1px solid #8a94a3;border-radius:11px;padding:1px 9px">stadium</span> shared leaf atom · <span style="border:3px double #8a94a3;padding:1px 7px">double box</span> hub many modules import · <span style="border:1px solid #8a94a3;padding:1px 7px">plain box</span> ordinary module. <b>Dotted arrow</b> = a dependency this change adds.</p>
+  </div>
+
   <pre class="mermaid">
 classDiagram
     class {{Existing}} {
       {{fields/methods in words — no pipes/brackets/commas}}
     }
+    %% Nodes from ANOTHER unit: mark them, and ESCAPE the guillemets as
+    %% &lt;&lt;name&gt;&gt; — a bare <<a-b>> is parsed by the BROWSER as a custom
+    %% element (any hyphenated tag is valid) and never reaches mermaid.
+    %% Colour with per-node `style X fill:…,stroke:…`; classDef does not
+    %% paint in a classDiagram.
   </pre>
+  <p class="legend"><b>Scope</b> — {{which package/repo/layer EVERY node lives in; name explicitly any node that is outside it, and say what this spec does/doesn't change there}}.<br>
+    <b>Colour</b> (<a href="#diagram-key">full key</a>) — <span style="background:#fde8e8;border:1px solid #b3261e;border-radius:3px;padding:0 8px;margin-right:2px">&nbsp;</span><b>removed</b>: {{…}} · <span style="background:#fff4e5;border:1px solid #b26a00;border-radius:3px;padding:0 8px;margin-right:2px">&nbsp;</span><b>reshaped</b>: {{…}} · <span style="background:#e6f4ec;border:1px solid #007f3b;border-radius:3px;padding:0 8px;margin-right:2px">&nbsp;</span><b>unchanged</b>: {{…}} · <span style="background:#eceff3;border:1px solid #8a94a3;border-radius:3px;padding:0 8px;margin-right:2px">&nbsp;</span><b>another unit</b>: {{…}}.</p>
   <div class="callout c-warn"><span class="lbl">The coupling that constrains us</span>{{~N call sites across ~M files — the migration surface}}</div>
 </section>
 
@@ -191,7 +218,8 @@ classDiagram
       {{fields/methods in words}}
     }
   </pre>
-  <p class="legend"><span class="tag new">new</span> {{…}} · <span class="tag reuse">reuse</span> {{…}} · <span class="tag gen">adapter</span> {{…}}</p>
+  <p class="legend"><b>Scope</b> — {{which unit every box lives in; if no foreign node appears, SAY SO and say why — e.g. the target changes nothing the consumer can see}}.<br>
+    <b>Colour</b> (<a href="#diagram-key">full key</a>) — <span style="background:#f0e9f8;border:1px solid #6b3fa0;border-radius:3px;padding:0 8px;margin-right:2px">&nbsp;</span><b>new</b>: {{…}} · <span style="background:#fff4e5;border:1px solid #b26a00;border-radius:3px;padding:0 8px;margin-right:2px">&nbsp;</span><b>reshaped</b>: {{…}} · <span style="background:#e6f4ec;border:1px solid #007f3b;border-radius:3px;padding:0 8px;margin-right:2px">&nbsp;</span><b>unchanged</b>: {{…}}.</p>
 </section>
 
 <!-- ========================= 7 · TYPE / INTERFACE DEFINITIONS =========== -->
@@ -206,6 +234,23 @@ classDiagram
   <pre><code class="language-ts">{{full interface / class body}}</code></pre>
   <h3>4.2 · {{Second type}}</h3>
   <pre><code class="language-ts">{{…}}</code></pre>
+
+  <!-- REQUIRED whenever this unit has consumers. Routing a decision out to a
+       consumer (§12) is only honest if you also say whether you are handing it
+       a CODE change. One row per exported symbol the change touches; be
+       explicit that an unchanged signature with changed NUMBERS is still a
+       breaking change for the reader, just not for the compiler. If a row
+       says "yes, breaks", ask whether the break is necessary — an additive
+       field usually buys the same design at no migration cost. -->
+  <h3>4.3 · The public API delta — what a consumer must actually change</h3>
+  <table>
+    <thead><tr><th>Exported surface</th><th>Change</th><th>Breaks a caller?</th></tr></thead>
+    <tbody>
+      <tr><td><code>{{symbol}}</code></td><td>{{none / additive field / reshaped}}</td><td class="ok">{{No — additive}}</td></tr>
+      <tr><td><code>{{symbol}}</code></td><td>{{…}}</td><td class="red">{{Yes — names the call sites that break}}</td></tr>
+    </tbody>
+  </table>
+  <div class="callout c-warn"><span class="lbl">What changes for every consumer, types or not</span>{{If behaviour moves behind an unchanged signature, say so here: no compiler will report it. Note the dependency range too — under 0.x, a caret range does NOT accept the next minor, so the upgrade is a deliberate, reviewed bump.}}</div>
 </section>
 
 <!-- ========================= 8 · RATIONALE / STRESS-TEST =============== -->
@@ -259,14 +304,30 @@ classDiagram
 </section>
 
 <!-- ========================= 12 · OPEN QUESTIONS → DECISIONS =========== -->
+<!-- NUMBER EVERY ROW (Q1, Q2, …), open and settled alike, numbered across the
+     whole table so a number never changes meaning once a question is answered.
+     Reviewers refer to questions by number ("Q3 is really a UI call"); an
+     unnumbered row can only be quoted back in full, which wastes a round trip.
+     SCOPE COLUMN — say, per question, whether THIS spec is entitled to answer
+     it at all. Product and presentation questions arrive mixed in with design
+     ones and become policy inside a shared unit if nobody separates them. The
+     test: WOULD A DIFFERENT CONSUMER BE ENTITLED TO A DIFFERENT ANSWER? If yes,
+     this artefact must not decide it. Don't just delete such a question —
+     SPLIT it: keep the half that says what must be computed or CARRIED so the
+     choice is possible (provenance, both units of measure, a discriminant),
+     and route the rest, marked, so it isn't lost. Anything routed out must be
+     reconciled with the API-delta table in §7: if a consumer is being handed a
+     decision, say explicitly whether it is also being handed a code change. -->
 <!-- Every unknown parked from step 1 lands here as an explicit question. As they
      resolve, tick them (tag.ok) and record the decision — don't fabricate. -->
 <section id="questions">
   <h2>9 · Open questions</h2>
   <table>
-    <thead><tr><th>#</th><th>Question</th><th>Decision</th></tr></thead>
+    <thead><tr><th style="width:38px">#</th><th style="width:96px">Scope</th><th>Question</th><th style="width:230px">Status</th></tr></thead>
     <tbody>
-      <tr><td><span class="tag amber">open</span></td><td>{{expensive-to-undo fork left open}}</td><td>{{— awaiting steer}}</td></tr>
+      <tr><td><b>Q1</b></td><td><span class="tag new">{{this unit}}</span></td><td>{{expensive-to-undo fork left open — the half THIS spec must answer}}</td><td><span class="tag amber">open</span> {{— awaiting steer; my lean is …}}</td></tr>
+      <tr><td><b>Q2</b></td><td><span class="tag gen">{{consumer}}</span></td><td>{{a product/presentation call that surfaced here. State what this spec does to make it POSSIBLE, so the routing is a hand-off and not a shrug}}</td><td><span class="tag reuse">out of scope</span> {{— routed to {{…}}; blocks nothing here}}</td></tr>
+      <tr><td><b>Q3</b></td><td><span class="tag new">{{this unit}}</span></td><td>{{…}}</td><td><span class="tag ok">settled</span> {{decision + WHY}}</td></tr>
     </tbody>
   </table>
 </section>
@@ -291,34 +352,40 @@ classDiagram
 
   <h3>Component dependency graph</h3>
   <pre class="mermaid">
-graph LR
-  %% node shapes: ([atom]) [[hub]] {{external}} [view] ; edges = imports.
-  %% classDef atom/hub/nw = colour ; dotted -.->|new| = edges the change adds.
-  {{NodeA}} --> {{NodeB}}
-  classDef atom fill:#eaf2fb,stroke:#005EB8;
-  classDef hub fill:#e6f4ec,stroke:#007f3b;
-  classDef nw fill:#f0e9f8,stroke:#6b3fa0;
+graph TD
+  %% SHAPE = structural role: ([atom]) [[hub]] [ordinary] ; edges = imports.
+  %% COLOUR = change status, the SAME meaning as every other figure.
+  %% Put each unit in its own subgraph so repo/package boundaries are drawn,
+  %% not asserted — this is what makes "which unit is this?" unanswerable-proof.
+  subgraph OTHER["{{other unit}} — a DIFFERENT {{repo/package}} · consumers only · not changed here"]
+    {{Consumer}}
+  end
+  subgraph SELF["{{this unit}} — what this spec changes"]
+    {{NodeA}} --> {{NodeB}}
+  end
+  {{Consumer}} --> {{NodeA}}
+  classDef cnew fill:#f0e9f8,stroke:#6b3fa0;
+  classDef creshape fill:#fff4e5,stroke:#b26a00;
+  classDef csame fill:#e6f4ec,stroke:#007f3b;
+  classDef csite fill:#eceff3,stroke:#8a94a3,stroke-dasharray: 5 4;
+  style OTHER fill:#f4f6f9,stroke:#8a94a3,stroke-dasharray: 5 4;
+  style SELF fill:#ffffff,stroke:#005EB8;
   </pre>
-  <p class="legend"><b>Key</b> —
-    <span style="background:#eaf2fb;border:1px solid #005EB8;border-radius:9px;padding:0 7px;">( stadium )</span>
-    shared leaf atom ·
-    <span style="background:#e6f4ec;border:1px solid #007f3b;padding:0 7px;">[[ box ]]</span>
-    type/data hub ·
-    <span style="background:#f0e9f8;border:1px solid #6b3fa0;padding:0 7px;">purple</span>
-    added by the change ·
-    <span style="border:1px solid #8a94a3;padding:0 7px;">&#123;&#123; hexagon &#125;&#125;</span>
-    external library type ·
-    <span style="border:1px solid #8a94a3;padding:0 7px;">[ rectangle ]</span>
-    single-use node · <b>dotted arrow</b> = new dependency the change adds ·
-    <code>· in N</code> = fan-in (importer count).</p>
+  <p class="legend"><b>Scope</b> — the boxes are separate {{repos/packages}}. {{Name them, and say what crosses between: the arrows into the boundary ARE the public contract}}.<br>
+    <b>Colour = what happens to it</b> (<a href="#diagram-key">full key</a>) — <span style="background:#f0e9f8;border:1px solid #6b3fa0;border-radius:3px;padding:0 8px;margin-right:2px">&nbsp;</span><b>new</b> · <span style="background:#fff4e5;border:1px solid #b26a00;border-radius:3px;padding:0 8px;margin-right:2px">&nbsp;</span><b>reshaped</b>: {{…}} · <span style="background:#e6f4ec;border:1px solid #007f3b;border-radius:3px;padding:0 8px;margin-right:2px">&nbsp;</span><b>unchanged</b> · <span style="background:#eceff3;border:1px solid #8a94a3;border-radius:3px;padding:0 8px;margin-right:2px">&nbsp;</span>another unit.<br>
+    <b>Shape = structural role</b>, an independent axis — <span style="border:1px solid #8a94a3;border-radius:11px;padding:0 8px;">( stadium )</span> shared leaf atom · <span style="border:3px double #8a94a3;padding:0 6px;">[[ double box ]]</span> hub many modules import · <span style="border:1px solid #8a94a3;padding:0 7px;">[ plain box ]</span> ordinary module. <b>Dotted arrow</b> = a dependency this change adds; <code>· in N</code> = fan-in today.</p>
 
   <h3>Type dependency graph</h3>
   <pre class="mermaid">
 classDiagram
   direction LR
   %% types as nodes ; --> composition/reference ; ..> dependency.
+  %% Colour per-node (style X fill:…,stroke:…) — classDef will NOT paint here.
   {{TypeA}} --> {{TypeB}} : {{ref}}
   </pre>
+  <p class="legend"><b>Scope</b> — {{which unit the types live in; which of them a consumer actually names in its own code, since those are the ones whose field names must be held}}.<br>
+    <b>Colour</b> (<a href="#diagram-key">full key</a>) — <span style="background:#f0e9f8;border:1px solid #6b3fa0;border-radius:3px;padding:0 8px;margin-right:2px">&nbsp;</span><b>new</b>: {{…}} · <span style="background:#fff4e5;border:1px solid #b26a00;border-radius:3px;padding:0 8px;margin-right:2px">&nbsp;</span><b>reshaped</b>: {{…}} · <span style="background:#e6f4ec;border:1px solid #007f3b;border-radius:3px;padding:0 8px;margin-right:2px">&nbsp;</span><b>unchanged</b>: {{…}}.<br>
+    <b>Arrows</b> — solid is composition or a held reference; dotted is a looser produced-from / read-by dependency.</p>
 </section>
 
 <footer>

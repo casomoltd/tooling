@@ -137,7 +137,35 @@ emit an empty or fabricated diagram.
      ids unique **case-insensitively** (`Foo`/`foo` collide into one node). None
      of this shows until the page renders (a broken diagram is a red error box, a
      grey or orphaned one a silent defect), so **glance at each diagram on open
-     and confirm it is coloured and connected**.
+     and confirm it is coloured and connected**. **Escape guillemet annotations
+     as `&lt;&lt;name&gt;&gt;`** — a bare `<<my-unit>>` inside `<pre>` is eaten
+     by the *browser*, not mermaid: any hyphenated tag is a valid custom-element
+     name, so `<my-unit>` is parsed as an element and the diagram dies with a
+     syntax error. Best caught by actually rendering the file: a headless
+     `chrome --headless --dump-dom --virtual-time-budget=15000 file://…` and a
+     grep for `Syntax error in text` checks every figure in one shot, and also
+     catches the silent defects (an uncoloured or orphaned node) that a glance
+     misses.
+   - **Every figure carries a two-part caption — no exceptions.** A diagram with
+     no legend, or a legend whose chips don't match the colours actually in the
+     picture, is the single most reliable way to lose a review round. Each
+     `<pre class="mermaid">` is immediately followed by a `.legend` giving
+     (a) **scope** — which package/repo/layer *every* node lives in, naming any
+     node that is outside it and what this spec does or doesn't change there —
+     and (b) **colour**, as swatches that are the same hex the diagram paints.
+     If a figure has no foreign node, say so and say why; "no boundary is drawn
+     here" is information, silence isn't.
+   - **One colour key for the whole document.** Fill the skeleton's
+     `#diagram-key` card once and have every legend link back to it. Colour
+     means **change status** (new / reshaped / unchanged / removed / another
+     unit) in every figure; where a second axis is needed, carry it on **shape**,
+     not on a second colour meaning. A reader holds one key, not four. A purely
+     *logical* figure (an execution or calculation flow) is exempt — but it must
+     say so in its legend and explain any highlight it does use.
+   - **Number every open question, and scope it.** Rows are `Q1, Q2, …` across
+     the whole table, open and settled alike, so a number never changes meaning.
+     Each carries a **scope** cell saying whether this spec is entitled to
+     answer it at all — see the Guardrail below.
    - **Lead with the type/interface definitions over duplication** — extract a
      shared generic core validated by **≥2 real callers** rather than bolting on
      an (N+1)th variant.
@@ -183,6 +211,17 @@ cross into implementation.
   names, tracker database IDs, or absolute workspace paths; stay source-agnostic.
 - **Never re-author the frozen `<head>`/`<style>`** — copy the skeleton; the
   fixed design system is the point. Fill body sections only.
+- **Never answer a question a different consumer would be entitled to answer
+  differently.** Product and presentation calls — what a headline figure quotes,
+  whether a table is drawn, whether a control is an age or a date — arrive mixed
+  in with design ones, and a spec that quietly settles them turns them into
+  policy inside a unit that several consumers share. Split each such question:
+  keep the half that says what must be **computed or carried** so the choice is
+  *possible* (provenance on a record, both units of measure, a discriminant),
+  and route the rest, marked, to the layer that owns it. Then **say whether the
+  routing comes with a code change**: an API-delta table stating, per exported
+  symbol, whether a caller breaks. Handing a consumer a decision without telling
+  it whether it must also change code is the half-finished version of this.
 - **Never invent figures or citations** — every data cell traces to a source;
   unknowns go to Open questions, not a fabricated value.
 - **Never proceed past a genuinely ambiguous brief** — fail loud and ask.
