@@ -119,6 +119,38 @@ emit an empty or fabricated diagram.
      plus a quick import-edge scan (grep the imports); fill the fan-in reuse
      table, mark the units in the change's scope, and keep the skeleton's fixed
      colour/shape key. This is the map the user judges reuse from — never skip it.
+   - **Author every diagram to FIT the page width — and measure it, don't eyeball
+     it.** The skeleton's content box is 1080px wide with 24px padding, and the
+     `.mermaid` card adds 20px padding plus a border, leaving **~990px** of usable
+     width. A diagram wider than that spills into a horizontal scrollbar, which
+     reads as broken however legible the text is. Measure by rendering headless
+     and reading each SVG's `viewBox` width (`chrome --headless --dump-dom
+     --virtual-time-budget=15000 file://…`, then extract `viewBox="0 0 W H"`);
+     compare every figure to the budget in one pass. Levers, in the order they
+     actually pay off:
+     1. **`TD` over `LR`.** Far the biggest win — a left-to-right chain of two
+        3-node groups measured 1733px; the identical graph as `TD` measured
+        **206px**. Vertical is also usually the better metaphor (a ledger is
+        stacked rows, a pipeline is stages).
+     2. **Short node labels**, with the detail in the `.legend` beneath.
+     3. **Never repeat in a node what an adjacent table already states** — e.g.
+        per-node fan-in counts when a fan-in table sits directly above. That is
+        the one-representation-per-fact rule, and it buys width for free.
+     4. **Collapse siblings that share a role into one node** — three consumers
+        of the same boundary, or two sibling data files, can be one box whose
+        members list them.
+     5. **Short subgraph titles** — a long title sets that subgraph's *minimum*
+        width, so a sentence-length title silently widens the whole figure. Put
+        the sentence in the legend.
+     6. **Short edge labels.**
+     Past a point, width is set by **how many nodes sit in the widest rank**, not
+     by label length — when trimming text stops helping, remove or merge nodes,
+     or split the figure in two. **Check `subgraph` wrappers before you trim
+     anything**: cluster padding, plus the way a cluster pins its members
+     together against the layout, costs far more width than long text. Removing
+     two of them took one figure from 1225px to 945px after label-trimming had
+     stalled — and the grouping they carried was better served by node shape
+     plus a line in the legend.
    - **Keep every mermaid diagram legible, never shrunk-to-fit** — the skeleton
      sets `useMaxWidth: false` so a wide graph renders at full size and scrolls
      inside its `overflow-x` box rather than being squeezed to container width
@@ -155,6 +187,17 @@ emit an empty or fabricated diagram.
      and (b) **colour**, as swatches that are the same hex the diagram paints.
      If a figure has no foreign node, say so and say why; "no boundary is drawn
      here" is information, silence isn't.
+   - **A legend is a key, not an inventory — and caption bloat has exactly
+     three causes.** A legend maps symbol to meaning and then stops. It must
+     never list *which* nodes carry a symbol — "purple: the ledger, its years,
+     segments, the converter…" — because the reader can see that by looking at
+     the picture. When a caption grows past a few lines it is carrying
+     something that belongs elsewhere, and it is always one of three things:
+     an **enumeration** (delete it, the figure already shows it), **per-item
+     detail** (move it to the reference table below), or **argument** (move it
+     to prose *above* the figure, where it reads better anyway). Applying this
+     to one real spec took its largest caption from ~3,300 characters to under
+     1,000 without losing a sentence worth keeping.
    - **One colour key for the whole document.** Fill the skeleton's
      `#diagram-key` card once and have every legend link back to it. Colour
      means **change status** (new / reshaped / unchanged / removed / another
@@ -162,6 +205,100 @@ emit an empty or fabricated diagram.
      not on a second colour meaning. A reader holds one key, not four. A purely
      *logical* figure (an execution or calculation flow) is exempt — but it must
      say so in its legend and explain any highlight it does use.
+   - **A process or flow diagram is complete when a reader can answer all seven
+     of these from the picture alone.** The failure mode is a tidy spine of
+     verbs that quietly omits everything around it — and it survives review
+     because it *looks* finished. Walk the list:
+     1. **What enters** — every argument as its own node, **entering at the
+        step that consumes it**, never collected into one "inputs" box at the
+        top. Drawn this way it makes a real property checkable at a glance:
+        whether any input is threaded through the pipeline and re-consulted.
+     2. **What the system itself owns** — its reference tables, cited data,
+        constants. A diagram showing only caller inputs implies the thing
+        computes out of thin air, and that omission is easy to miss.
+     3. **Where iteration sets come from.** "For each X" is incomplete without
+        the step that enumerates X and the bound that ends it.
+     4. **What each operation IS.** A box named `revaluation` hides that it is
+        one number plus a conditional adjustment. Decompose it, or hang a
+        non-step annotation node off it saying what it is made of.
+     5. **The failure path** — what throws, and where. Happy-path-only diagrams
+        hide the most opinionated decisions in the design.
+     6. **What comes out**, in the caller's terms.
+     7. **What is a VIEW rather than part of the calculation** — drawn off to
+        one side, so derived extras are never mistaken for pipeline stages.
+   - **One box, one operation — and be honest about the branching.** A node
+     captioned "label each year with its rule" is three decisions in a trench
+     coat; expand until no box hides a choice. Then state where branching
+     actually lives. "Every decision is in an up-front derivation and the loop
+     below is uniform" is both stronger and more checkable than "there are no
+     branches" — and unlike the latter, it survives someone reading the boxes.
+   - **Steps and annotations must look different.** A node saying *what a thing
+     is* is not a step in the process. Give it a distinct shape and a dashed
+     border, and say so in the legend, or readers will count it as a stage.
+   - **Make every class in a diagram click through to its definition.** A
+     reader looking at a box wants the fields, and scrolling to find them
+     breaks the thread. Mermaid supports `click ClassName href "#anchor"`
+     (the skeleton already sets `securityLevel: 'loose'`, which it needs), so
+     give each type an anchored heading above its code block —
+     `<h5 id="t-Name" style="scroll-margin-top:68px">` — and emit one `click`
+     line per class. The `scroll-margin-top` matters: without it the sticky
+     TOC covers whatever you jump to. Two payoffs beyond navigation: it splits
+     a wall of types into one block per type, and it lets the **boxes stay
+     terse**, because the explanation now lives one click away instead of
+     being crammed into node labels.
+   - **Use real UML member syntax, and state the notation in the legend.**
+     Bare words in a class box are an undifferentiated blob — a reader cannot
+     tell a field from a method. Write `+field Type` and `+method() Return`
+     (mermaid keys on the parentheses and draws the compartment divider
+     itself), and add `<<enum>>` / `<<union>>` / `<<function>>` stereotypes
+     where the thing is not an ordinary class. Then say in the legend which
+     end each relationship symbol attaches to: a filled diamond marks the
+     *whole* in a composition, a plain arrow is an association to something
+     shared, and a dashed dependency points **from** the dependent **to** what
+     it depends on. Reviewers do ask "is this arrow the right way round?", and
+     the answer belongs on the page. Typed members are usually *narrower* than
+     prose ones, so this tends to buy width rather than cost it.
+   - **Pair a class diagram with a reference table — the diagram cannot say
+     WHY.** A box shows a name and its fields and has no room for the reason
+     the thing exists, which is the question a reviewer actually asks first.
+     Put a table under the figure, one row per box: **name** (linked to its
+     definition), **kind**, **status**, and **responsibility — and why it needs
+     to exist**. It pays three times over: the reason is recorded where someone
+     looks for it, per-item detail leaves the caption, and the boxes can stay
+     terse because the prose now has a better home. Keep table and figure in
+     exact correspondence — a row per box, no more and no fewer — since drift
+     between them is the same staleness trap as drift between two diagrams.
+   - **Name the kind; "class" is usually wrong.** A diagram of boxes in a
+     TypeScript or Python codebase is rarely all classes — it is interfaces,
+     discriminated unions, string-literal unions, function types, protocols,
+     dataclasses, enums. Read each kind off its definition rather than
+     assuming, put it in the reference table, and give the node a matching
+     stereotype (`<<discriminated union>>`, `<<function type>>`), worded
+     identically in both. This is not pedantry: the union is often exactly
+     where a design's provenance or variance lives, and the function type is
+     often what keeps a loop branchless — so mislabelling them hides the two
+     most interesting things in the model.
+   - **Audit relationships across diagrams, not just within one.** Two figures
+     describing the same model will drift: the same pair rendered `A *-- B` in
+     one and `A --> B : has` in the other, or a dependency drawn in opposite
+     directions in each. Both happened in a real spec. Before publishing, list
+     every edge in every figure and reconcile them — divergence is a signal
+     that one of them is stale, not a formatting nit.
+   - **Keep decision history OUT of the body — collect it in one section.** A
+     spec that survives a few review rounds accumulates archaeology: "an earlier
+     draft said X, which was wrong, it is gone." Each sentence was worth writing
+     the moment it was written and is dead weight afterwards — it makes the body
+     narrate its own history instead of stating what the design *is*, and a
+     reader hunting the current answer has to parse which paragraph is live. Two
+     rules: **the body is written in the present tense about the current
+     design**, and any position reached by *reversing* an earlier one goes in a
+     single **Decision history** section near the end (was / is / why, newest
+     first). That section earns its place — it stops a reviewer re-proposing the
+     rejected option — but it only works if it is the *only* place. When a
+     review reverses something, move the story there and rewrite the body clean;
+     do not leave a trail. Distinguish this from **rationale**, which stays: "two
+     ledgers would need concatenating, so there is one" is timeless design
+     reasoning; "an earlier draft had two ledgers" is archaeology.
    - **Number every open question, and scope it.** Rows are `Q1, Q2, …` across
      the whole table, open and settled alike, so a number never changes meaning.
      Each carries a **scope** cell saying whether this spec is entitled to
@@ -222,6 +359,13 @@ cross into implementation.
   routing comes with a code change**: an API-delta table stating, per exported
   symbol, whether a caller breaks. Handing a consumer a decision without telling
   it whether it must also change code is the half-finished version of this.
+- **Never claim a property without saying what enforces it and where it
+  stops.** "The rows are immutable"; "the caller already has this data". A
+  spec's comfortable-sounding words become load-bearing fast, and a reader
+  will build on them. State the *mechanism* — compile-time, runtime, or merely
+  a convention — and state the *gap*: what it does not cover, measured rather
+  than assumed. A claim with a stated limit can be trusted; one without invites
+  someone to find the limit in production.
 - **Never invent figures or citations** — every data cell traces to a source;
   unknowns go to Open questions, not a fabricated value.
 - **Never proceed past a genuinely ambiguous brief** — fail loud and ask.

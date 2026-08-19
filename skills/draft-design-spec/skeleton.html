@@ -119,6 +119,7 @@
     <a href="#tests">7 · Tests & gates</a>
     <a href="#phasing">8 · Phasing</a>
     <a href="#questions">9 · Open questions</a>
+    <a href="#history">10 · Decision history</a>
     <a href="#inventory">Appendix · Graphs</a>
   </div>
 </nav>
@@ -166,6 +167,10 @@
   <h2>2 · Current structure &amp; coupling</h2>
   <p>{{Prose: what exists today and the constraint it imposes.}}</p>
 
+  <!-- WIDTH BUDGET: ~990px usable inside the .mermaid card. Author to fit;
+       measure the rendered SVG viewBox, don't eyeball. Prefer TD over LR (the
+       single biggest lever), keep node + subgraph labels short, and push
+       description to the .legend. See SKILL.md for the full list. -->
   <!-- ONE key for EVERY figure in the document. Define it once, here, and have
        each figure's legend link back to it. Do not invent a second colour
        meaning later in the page: a reader holds one key, not four. -->
@@ -212,12 +217,29 @@ classDiagram
   <div class="layer"><h4><span class="n">2</span>{{Layer 2 — e.g. resolver/factory}}</h4>{{what it owns}}</div>
   <div class="big-arrow">↓</div>
   <div class="layer"><h4><span class="n">3</span>{{Layer 3 — e.g. the domain object}}</h4>{{what it owns}}</div>
+  <!-- If the target is a PROCESS as well as an object model, draw the flow too,
+       and run the seven-point completeness check in SKILL.md over it: inputs
+       entering AT their point of use (not a single "inputs" box), the data the
+       system itself owns, where iteration sets are enumerated from, what each
+       operation is made of, the failure path, the output, and anything that is
+       a VIEW drawn off to one side. One box = one operation; a box hiding two
+       decisions reads as finished and is not. -->
   <pre class="mermaid">
 classDiagram
     class {{Target}} {
       {{fields/methods in words}}
     }
   </pre>
+  <!-- REFERENCE TABLE: one row per box, no more and no fewer. The diagram
+       cannot say WHY a type exists; this is where that goes, and having it
+       here is what keeps the caption below a key rather than an essay. -->
+  <h4>What each type is for</h4>
+  <table>
+    <thead><tr><th style="width:170px">Type</th><th style="width:88px">Status</th><th>Responsibility — and why it needs to exist</th></tr></thead>
+    <tbody>
+      <tr><td><a href="#t-{{TypeName}}"><code>{{TypeName}}</code></a><br><span style="font-size:11px;color:#5b6472;font-style:italic">{{interface | discriminated union | function type | enum}}</span></td><td>{{new}}</td><td>{{what it owns, and the reason it has to exist at all}}</td></tr>
+    </tbody>
+  </table>
   <p class="legend"><b>Scope</b> — {{which unit every box lives in; if no foreign node appears, SAY SO and say why — e.g. the target changes nothing the consumer can see}}.<br>
     <b>Colour</b> (<a href="#diagram-key">full key</a>) — <span style="background:#f0e9f8;border:1px solid #6b3fa0;border-radius:3px;padding:0 8px;margin-right:2px">&nbsp;</span><b>new</b>: {{…}} · <span style="background:#fff4e5;border:1px solid #b26a00;border-radius:3px;padding:0 8px;margin-right:2px">&nbsp;</span><b>reshaped</b>: {{…}} · <span style="background:#e6f4ec;border:1px solid #007f3b;border-radius:3px;padding:0 8px;margin-right:2px">&nbsp;</span><b>unchanged</b>: {{…}}.</p>
 </section>
@@ -230,7 +252,11 @@ classDiagram
      by access pattern). Use a .grid2 for a genuine class-vs-functional option. -->
 <section id="types">
   <h2>4 · Type definitions</h2>
+  <!-- ONE anchored block per type, so the class diagrams can `click` through
+       to them. The id must match the diagram's href, and scroll-margin-top
+       stops the sticky TOC covering the landing point. -->
   <h3>4.1 · {{Core type}}</h3>
+  <h5 id="t-{{TypeName}}" style="scroll-margin-top:68px;margin:20px 0 6px;font-size:13.5px;font-weight:600;color:#43286b"><code>{{TypeName}}</code></h5>
   <pre><code class="language-ts">{{full interface / class body}}</code></pre>
   <h3>4.2 · {{Second type}}</h3>
   <pre><code class="language-ts">{{…}}</code></pre>
@@ -328,6 +354,25 @@ classDiagram
       <tr><td><b>Q1</b></td><td><span class="tag new">{{this unit}}</span></td><td>{{expensive-to-undo fork left open — the half THIS spec must answer}}</td><td><span class="tag amber">open</span> {{— awaiting steer; my lean is …}}</td></tr>
       <tr><td><b>Q2</b></td><td><span class="tag gen">{{consumer}}</span></td><td>{{a product/presentation call that surfaced here. State what this spec does to make it POSSIBLE, so the routing is a hand-off and not a shrug}}</td><td><span class="tag reuse">out of scope</span> {{— routed to {{…}}; blocks nothing here}}</td></tr>
       <tr><td><b>Q3</b></td><td><span class="tag new">{{this unit}}</span></td><td>{{…}}</td><td><span class="tag ok">settled</span> {{decision + WHY}}</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ========================= 13 · DECISION HISTORY ===================== -->
+<!-- The ONE home for positions reached by reversing an earlier one. Keeps the
+     body in the present tense about the current design: when a review reverses
+     something, move the story here and rewrite the body clean, leaving no trail
+     of "an earlier draft said…". Distinguish from RATIONALE, which stays in the
+     body — "X would need Y, so we do Z" is timeless; "an earlier draft did X"
+     is archaeology. Omit the section entirely on a first draft; it has nothing
+     to say until something has actually been reversed. -->
+<section id="history">
+  <h2>10 · Decision history</h2>
+  <p>Positions reached by <b>reversing an earlier one</b>, kept here so the body can state what the design <i>is</i> rather than narrate how it got there — and so a reader wondering "why not the obvious thing?" finds the answer without re-proposing it. Newest first; everything here is settled.</p>
+  <table>
+    <thead><tr><th style="width:210px">Reversed</th><th>Was</th><th>Is, and why</th></tr></thead>
+    <tbody>
+      <tr><td><b>{{the decision}}</b></td><td>{{what was proposed first}}</td><td>{{what it is now, and the reason the first answer failed}}</td></tr>
     </tbody>
   </table>
 </section>
