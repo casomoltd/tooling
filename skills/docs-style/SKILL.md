@@ -67,9 +67,17 @@ durability. **Defers**:
   it. No changelog narration — never "now uses X instead of Y", "the old Z is
   gone", or a stale staging banner ("lives here until the real home exists"). By
   the time someone reads it, the transition is context noise; state what is.
+- **The incident is not the reason.** A rule earns its place by what it
+  prevents, stated in the present — never by the story of the time it was
+  broken. Strip "three attempts each produced…", "this grew to 578 lines",
+  "it arrived once…"; write the live consequence instead ("the other order
+  overstates a real statement by 3.2%"), which is shorter and still a warning.
+  This one hides behind *explain WHY*: a war story feels like rationale, but
+  the rationale is what goes wrong **now**, not what went wrong once.
 - The **one exception** is a doc whose whole job is the record: a dated audit
   trail or changelog explicitly logs what changed and why. If a doc isn't that,
-  it reads as standing truth.
+  it reads as standing truth. **A commit message is that record** — history
+  belongs there, which is why a doc never needs to carry it.
 - **Don't enshrine a reconstructed or guessed value.** If you can't verify a real
   figure, ID, or path, ask for it — a plausible reconstruction committed as fact
   is worse than an obvious gap.
