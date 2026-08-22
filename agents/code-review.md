@@ -166,6 +166,40 @@ enough surrounding code (definitions, call sites) to judge design intent.
   linked in the code at the data, so provenance is re-checkable at the number, not
   only in a test file. A uniform offset across the table is a wrong-transform smell.
 
+- **A fallback that rescues a computation, reused in a claim.** Flag a `??`
+  (or `||`, or a clamp) whose stand-in value also reaches prose, a label or an
+  axis tick. A default is fine for arithmetic — a layout has to start
+  *somewhere* — and wrong the moment the same value is printed under a word
+  that asserts what it is, because the reader cannot tell a real value from a
+  placeholder. The numeric form is a clamp that answers an out-of-range
+  question with its own boundary, so several distinct inputs report one
+  figure and a monotonic series stops being monotonic. The fix is to give the
+  fact a real source, or to stop the control asking a question it has no
+  answer for — **never to relabel the stand-in**.
+- **An assertion too weak to fail.** Flag a new or edited test whose
+  expectation checks only a sign or a direction (`toBeGreaterThan`,
+  `toBeTruthy`, "is not empty") where a magnitude is available: such a test
+  passes while the value under it is wrong by any amount in the right
+  direction. Flag too an expected value that reads as though it came from
+  **memory rather than the cited source** — a wrong oracle costs the same
+  debugging time as a real defect and buys nothing.
+- **A guard nobody has watched fail.** Flag a newly-added check, gate or
+  invariant with no evidence it engages — a pin proved failing against the
+  pre-fix code, a canary, a deliberately broken input. Three ways they pass
+  vacuously: a check that runs against a build artefact **it does not own**,
+  so it asserts against whatever was last built; an invariant placed where
+  the pipeline never executes it; and a selector borrowed from a dependency
+  that a major version has moved, which still ships and matches nothing.
+  **Break it on purpose and watch it fail, or it is untested.**
+- **An instrumented event whose denominator cannot answer its question.**
+  Flag an event or property where the population counted is not the
+  population implied: users the system *detected* reported as evidence of
+  demand, when only users who *asked* are that; a control measuring what to
+  BUILD sharing a series with one measuring what CONVERTS; or a rename that
+  silently continues a series whose meaning changed. Flag too a key **nothing
+  can emit** — a dead key reads later as a series that broke rather than one
+  that was never wired, so it is worse than no key at all.
+
 ## Ignore — owned elsewhere (never re-flag)
 
 - **Mechanical** rules linters already enforce: eslint (max-len 88, import

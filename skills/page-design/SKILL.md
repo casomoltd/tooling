@@ -125,28 +125,50 @@ apply. Provenance in parentheses.
     (GDS)
     **Check:** the opening answers; nothing warms up to the topic.
 
+15. **Seeded state is presented one way, everywhere on the page.** A tool
+    that opens on a worked example is showing the reader someone else's
+    figures. Opening that way is right — an empty calculator teaches
+    nobody — but the page must then be *consistent* about it. If the
+    headline and the chart state the seeded figures plainly, a single
+    control cannot hedge by hiding itself until the reader has "earned"
+    it, and no label may claim the output is theirs until it is.
+    **Check:** every surface treats untouched defaults the same way, and
+    nothing reads as the reader's own until they have supplied it. Where
+    two states cannot carry the distinction honestly, use three — an
+    example, a partial estimate, and their own data — rather than
+    stretching one word across both.
+
 ### Word count
 
-15. **No target.** Comprehensive on the question, nothing else. Length is an
+16. **No target.** Comprehensive on the question, nothing else. Length is an
     output, not an input — never pad to a number, never trim below completeness.
 
 ### Links
 
-16. **Descriptive anchors only.** Never "click here" / "read more"; the anchor text
+17. **Descriptive anchors only.** Never "click here" / "read more"; the anchor text
     says where it goes.
     **Check:** every anchor is meaningful out of context.
 
-17. **Cite every figure.** Each figure carries a link to its primary external
+18. **Cite every figure.** Each figure carries a link to its primary external
     source. (E-E-A-T)
     **Check:** no unsourced number.
 
-18. **Cluster related links.** Internal links serve the topical cluster; related
+19. **Provenance names the source AND the position in it.** Where a
+    figure is read off a published table, name enough of it that a
+    reader can find the same row. A band, grade or category alone is
+    half an answer whenever the table has steps within it — two people
+    in the same band can hold different figures. Name the table and the
+    position on it.
+    **Check:** every derived figure states what it was read off, at a
+    granularity that identifies one row.
+
+20. **Cluster related links.** Internal links serve the topical cluster; related
     links sit at section ends, not dense mid-sentence. (NN/g)
     **Check:** related links are grouped, not scattered through prose.
 
 ### Regulatory framing
 
-19. **Not-advice framing, visibly.** On every page that shows figures, an
+21. **Not-advice framing, visibly.** On every page that shows figures, an
     illustrative-not-advice framing is visibly present, and there are no verdicts or
     recommendations anywhere — including microcopy. Link to the site's own
     regulatory-posture statement rather than restating it. (non-negotiable)

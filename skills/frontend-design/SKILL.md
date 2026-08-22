@@ -58,6 +58,40 @@ Interpret creatively and make unexpected choices that feel genuinely designed fo
 
 Remember: Claude is capable of extraordinary creative work. Don't hold back, show what can truly be created when thinking outside the box and committing fully to a distinctive vision.
 
+## What You Never Wrote Will Beat What You Did
+
+A family of traps where the source reads correctly and something else
+wins. None of these throw, and most are invisible in a screenshot at a
+glance — so the defence in every case is to read the **computed** value
+in a real browser rather than confirm the rule was served.
+
+- **Style the text element, never the box around it.** A rule aimed at a
+  container is inherited, and inheritance loses to anything targeting the
+  text by element — a bare `article p` sets size, colour *and* family and
+  beats a class the child merely inherits from its wrapper. Aim at the
+  children so the generated selector out-ranks it. Fixing this one
+  surface at a time is the trap: the siblings go on inheriting.
+- **A type ramp that bakes `font-weight` cannot be composed with.** If a
+  size class also sets weight, then pairing it with a weight utility
+  loses on source order — the class is present, says what you meant, and
+  does nothing. Either keep weight out of the ramp, or mark every
+  override site.
+- **Utility frameworks emit only what they can SEE as literal text.** A
+  class assembled at runtime, or split across two string literals,
+  type-checks and never reaches the stylesheet. A grid template built by
+  concatenation still lays out *silently* on implicit auto columns, with
+  a column resolving to zero width. Write every class name whole.
+- **Variants generate for the framework's own utilities only.** A
+  responsive or state prefix on a hand-written class reads correctly,
+  passes lint, and matches nothing.
+- **Native inputs render in the BROWSER's locale, not the page's.** A
+  native date input can present month-first to a user whose site is
+  day-first, so a typed day silently lands in the month. Data copied off
+  paper wants a text input with a mask.
+- **Check which PROPERTY a utility uses before cancelling it.** Centring
+  implemented with `translate` is not undone by resetting `transform`,
+  and the element stays pulled half its size out of place.
+
 ## Reusable Components & Consistency
 
 Distinctive is not the same as bespoke-per-page. A polished interface is **consistent**: the same structural pattern looks and behaves the same everywhere it appears. Encapsulate every recurring UI structure — data tables, cards, callouts, stat tiles, media objects — in **one shared component** and reuse it, rather than re-rolling the markup and styling each time it shows up.

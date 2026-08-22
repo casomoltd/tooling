@@ -133,6 +133,28 @@ function forecast(opts: {
 }) { /* … */ }
 ```
 
+## Kill the Bug Class, Don't Guard the Instance
+
+When a defect comes from two values being **independently settable**,
+the fix is not a validator. Remove the state that can disagree.
+
+A measurement and the date it was taken at, held as separate fields,
+let a caller pair a fresh figure with a stale date — a shape a guard
+can catch and a type can forbid. Ask for the two **together**, as one
+value that lands or doesn't, and the broken state has nowhere to live:
+the guard becomes unnecessary rather than merely present.
+
+The same move applies to a value **derived twice**. Two producers of
+one number agree by luck, not construction, and drift the moment
+either side's arithmetic changes. Watch for one quantity rounded,
+floored or converted independently at several call sites — a display,
+a table, that table's own comparison, a summary, a control. It only
+takes one of them to be wrong for the rest to be waiting to disagree,
+and the count of sites is the count of future defects. **One exported
+producer fixes all of them and makes the next one impossible.**
+
+Before writing a check that two things match, ask why there are two.
+
 ## Reuse the Library's Types and Values
 
 Before defining a consumer-side type for a domain concept, check
@@ -619,12 +641,55 @@ the implementation's own constant makes the test agree with whatever
 that constant is changed to, which is the one thing it exists to
 guard. Re-type the literal, and put its source at the assertion.
 
+**The strongest oracle predates the code.** A fixture whose expected
+values were derived by the same reasoning as the implementation
+agrees with whatever the implementation is changed to. One worked
+by hand from the source document *before* the code was written
+cannot. And a **wrong** oracle costs the same debugging time as a
+real defect and buys nothing, so read the source rather than
+recalling it — an assertion written from memory can fail a run
+against code that was right.
+
 Recorded output is still worth keeping as a **regression pin**; it
 is just not verification. Where a suite is pins-only, **label it as
 such in the module header** and name what would actually settle
 correctness (a real statement, a published worked example, a
 regulator's own calculator). An unlabelled pin reads as proof and
 quietly retires the question.
+
+## Doubt the Harness Before the Product
+
+When an automated check reports the application is broken, suspect the
+check first. These present as product defects and are not:
+
+- **A controlled input needs the framework's own setter.** Assigning
+  `input.value` and dispatching an `input` event does not move a
+  React-controlled field: React holds its own value tracker and dedupes
+  the event as "no change". Take the setter from the element
+  prototype's property descriptor, call it against the node, then
+  dispatch. The tell is a "failure" whose captured screen still shows
+  the original value.
+- **Scope the selector to the block you mean.** A pattern loose enough
+  to match a value elsewhere on the page will report a working control
+  as broken, and "the button" can resolve to one inside an overlay that
+  happens to be open.
+- **Forcing state open changes what you measure.** Expanding every
+  collapsed section to read its text also expands the ones that were
+  never on screen, inventing content. Query for what actually reaches
+  the DOM — a class rather than a component name, since a hand-rolled
+  copy carries the classes and not the name.
+- **A synthetic `.click()` bypasses hit-testing.** Drive with real
+  pointer coordinates when the thing under test is whether a click
+  lands at all.
+- **Element screenshots round their clip box**, so a sub-pixel
+  "layout shift" can be an artefact of the capture, not the page.
+- **A responsive preview that resizes a CONTAINER is a lie.**
+  Breakpoints resolve against the viewport, so narrowing a wrapper
+  leaves the wide variants applied. Use an iframe.
+
+For anything visual and client-rendered, assert the **computed** value
+in a real browser. Confirming a rule was *served* proves nothing: a
+selector the vendor has moved still ships and matches nothing.
 
 ## Link a Stopgap to Its Tracking Task
 
