@@ -53,6 +53,19 @@ enough surrounding code (definitions, call sites) to judge design intent.
   fact **local to this code** stays as a comment. Naming a source **artefact**
   for a magic constant (`the ratio the design brief used`) is provenance for the
   number and is fine; naming a person or a date is not.
+- **The WHY is the why NOW, never the why-it-changed.** Flag a comment that
+  argues its case against what the code used to be — "a slider drew this and
+  enforced it twice", "it was the only `.tsx` among nine `.ts` siblings", "this
+  replaced a callout that read as a layer over the card". The reader needs the
+  standing reason the code is shaped this way; they have never seen the version
+  being argued against and cannot check the claim. Rewrite to the live
+  consequence — *the bounds are the rule: you cannot stop paying in before you
+  joined* — which is shorter, checkable against the code in front of them, and
+  survives the next rewrite. This is the same rule
+  [`docs-style`](../skills/docs-style/SKILL.md) states for prose, and it is
+  harder to see here: a comparison to the old design **feels** like rationale,
+  which is why it survives review. If the history is worth keeping, the commit
+  message is where it belongs.
 - **A hand-written utility class silently beats a framework utility for the same
   property.** Where a project defines its own `text-*`/`bg-*` class that sets
   more than one property — a type ramp setting `font-size` **and**
