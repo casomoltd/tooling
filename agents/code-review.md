@@ -200,6 +200,14 @@ enough surrounding code (definitions, call sites) to judge design intent.
   can emit** — a dead key reads later as a series that broke rather than one
   that was never wired, so it is worse than no key at all.
 
+- **Copy that still describes the old behaviour.** When a change alters what
+  something DOES, flag any user-facing text still describing what it did — a
+  caption, a tooltip, a label, an empty state, a help entry. These read as
+  prose and survive review precisely because they are not code, so nothing
+  fails when they go stale, and the reader is then told one thing by the
+  interface and another by the copy beside it. The copy is part of the
+  behaviour: it changes in the same commit, not in a later pass.
+
 ## Ignore — owned elsewhere (never re-flag)
 
 - **Mechanical** rules linters already enforce: eslint (max-len 88, import
