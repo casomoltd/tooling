@@ -16,13 +16,25 @@
     "jscpd/",
     "readability/",
     "report/",
-    "README.md"
+    "README.md",
+    "!**/*.test.mjs"
   ],
   "scripts": {
-    "check": "node bin/verify-pack.mjs && tsc --noEmit -p hooks/tsconfig.json && node hooks/test.mts && npm run lint:skills",
-    "lint:skills": "remark --frail --quiet --no-stdout --rc-path bin/skills-lint.config.mjs skills docs",
-    "build": "echo 'no-op: source-only repo (consumed as a git-dep), nothing to build'",
+    "check": "node bin/check-gates.mjs && node bin/verify-pack.mjs && npm run typecheck && npm run test && npm run lint:md",
+    "typecheck": "tsc --noEmit -p hooks/tsconfig.json",
+    "test": "node hooks/test.mts && node bin/check-gates.test.mjs",
+    "lint:md": "remark --frail --quiet --no-stdout --rc-path bin/skills-lint.config.mjs skills docs",
+    "build": "echo 'no-op: source-only repo, nothing to build'",
     "prepare": "husky || true"
+  },
+  "casomo": {
+    "gates": {
+      "lint": "publishes the shared eslint config but has none of its own yet",
+      "knip": "no knip config for this repo's mixed .mts/.mjs layout yet",
+      "jscpd": "no jscpd config for this repo yet",
+      "spell": "no shared cspell config exists yet",
+      "build": "source-only repo — build is a deliberate no-op, nothing to verify"
+    }
   },
   "exports": {
     "./eslint": "./eslint/index.mjs",
@@ -35,6 +47,7 @@
   },
   "bin": {
     "build-report": "./bin/build-report.mjs",
+    "check-gates": "./bin/check-gates.mjs",
     "check-tags": "./bin/check-tags.sh",
     "check-version": "./bin/check-version.sh",
     "commit-msg": "./bin/commit-msg.sh",

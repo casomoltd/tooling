@@ -104,7 +104,7 @@ its own bin commands via `node_modules/.bin`.
 Claude Code skills/agents/docs tree: every `SKILL.md` / `agents/*.md` has
 parseable YAML frontmatter with `name` + `description`, and every relative link
 and `#anchor` resolves. tooling runs it over its own `skills/` in `npm run
-check` (`lint:skills`) — catching the breakage a rename or hand-edit leaves that
+check` (`lint:md`) — catching the breakage a rename or hand-edit leaves that
 Claude Code's loader silently swallows.
 
 To gate a consumer repo's docs (link/anchor integrity) at its own pre-commit,
@@ -218,15 +218,46 @@ fails loud on the former and warns on the latter.
 
 ## Quality gates
 
-There is no CI — all quality gates run locally via git hooks.
-Code should be deployment-ready by the time it's pushed to
-the remote.
+Quality gates run locally via git hooks, so code is
+deployment-ready by the time it reaches the remote. GitHub
+Actions re-runs `check` on push and publishes on a version tag;
+the local hooks are the gate, CI is the backstop.
 
-- **pre-commit**: Runs commitlint only (fast).
-- **pre-push**: Runs the full suite — `npm run check`,
-  `npm run build`, then version and tag guards. This ensures
-  lint, typecheck, spelling, and version bumps are all verified
-  before code reaches the remote.
+- **pre-commit**: `npm run check` — the repo's full health gate.
+- **commit-msg**: commitlint (house rules + the AI-attribution ban).
+- **pre-push**: `npm run check`, then the version and tag guards.
+
+**`check` owns the build.** A repo whose build fails is not
+healthy, and any assertion that reads build output has to run
+after the build in the same script — so `build` belongs in
+`check`, and appears nowhere else. Declaring it in the pre-push
+gate as well would give it two owners and build twice.
+
+### What every repo's `check` must contain
+
+`check` is a hand-written, ordered chain — the repos are
+heterogeneous and some orderings are load-bearing — but its
+**composition is enforced**, not remembered. Run `check-gates`
+as its first step:
+
+```json
+"check": "check-gates && npm run lint && npm run typecheck && ..."
+```
+
+It fails if a required gate is missing, if one is defined but
+never run (a dead gate), or if an exception outlives the problem
+it was written for. Required: `lint`, `typecheck`, `test`,
+`knip`, `jscpd`, `lint:md`, `spell`, `build`.
+
+A repo opts out by declaring a **reason** — a blank one fails, so
+an opt-out is never silent, and every exception is printed on
+each run:
+
+```json
+"casomo": {
+  "gates": { "test": "content site — no suite yet" }
+}
+```
 
 ## Usage
 

@@ -115,7 +115,7 @@ The **mechanical** half of this schema is linted, not just trusted:
 `bin/skills-lint.config.mjs` runs stock remark (`remark-frontmatter` +
 `remark-validate-links` + `remark-lint-frontmatter-schema`) to verify every
 skill/agent's frontmatter parses and carries `name` + `description`, and that every
-cross-link and `#anchor` resolves. `npm run check` (`lint:skills`) runs it over the
+cross-link and `#anchor` resolves. `npm run check` (`lint:md`) runs it over the
 `skills` tree and this `docs` tree, so a rename or hand-edit that breaks a link —
 the kind Claude Code's loader silently swallows — fails the build.
 
