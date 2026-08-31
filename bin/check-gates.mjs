@@ -19,8 +19,9 @@
 //
 // Declared exceptions are printed on every run: excusing a gap must not be the
 // same thing as hiding it.
-import {readFileSync} from "node:fs";
+import {readFileSync, realpathSync} from "node:fs";
 import {join} from "node:path";
+import {pathToFileURL} from "node:url";
 
 /** Gates every repo must define and run, absent a declared exception. */
 export const REQUIRED = [
@@ -129,4 +130,16 @@ const main = () => {
   );
 };
 
-if (import.meta.url === `file://${process.argv[1]}`) main();
+/** True only when this file is the entry point. npm installs a bin as a symlink,
+ * so `process.argv[1]` is the link while `import.meta.url` is the target it
+ * resolves to — comparing them raw silently skips `main`, and the gate then
+ * "passes" in every consumer without ever running. Resolve before comparing. */
+const isEntryPoint = () => {
+  try {
+    return import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href;
+  } catch {
+    return false;
+  }
+};
+
+if (isEntryPoint()) main();

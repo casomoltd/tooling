@@ -3,6 +3,11 @@
 // package.json, so these assert the RULES — which a type cannot check — rather
 // than any real repo's current state, which would date the moment it changed.
 import {strict as assert} from "node:assert";
+import {spawnSync} from "node:child_process";
+import {mkdtempSync, rmSync, symlinkSync, writeFileSync} from "node:fs";
+import {tmpdir} from "node:os";
+import {join} from "node:path";
+import {fileURLToPath} from "node:url";
 import {evaluate, isGate, referencedGates, REQUIRED} from "./check-gates.mjs";
 
 // A package that satisfies every required gate, as the baseline to perturb.
@@ -109,6 +114,37 @@ it("segments that are not `npm run` register no gate", () => {
 it("gate membership is exact or check:-prefixed", () => {
   assert.ok(isGate("knip") && isGate("check:anything"));
   assert.ok(!isGate("lint:fix") && !isGate("dev") && !isGate("readability"));
+});
+
+// npm installs a bin as a SYMLINK, so the entry-point guard sees a different
+// path than the module resolves to. Get that wrong and `main` never runs: the
+// gate prints nothing, exits 0, and every consumer silently "passes". Unit
+// tests over `evaluate` cannot catch it, so drive the real symlinked binary.
+const runViaSymlink = (pkg) => {
+  const dir = mkdtempSync(join(tmpdir(), "check-gates-"));
+  try {
+    writeFileSync(join(dir, "package.json"), JSON.stringify(pkg));
+    const link = join(dir, "linked-check-gates.mjs");
+    symlinkSync(fileURLToPath(new URL("./check-gates.mjs", import.meta.url)), link);
+    return spawnSync("node", [link], {cwd: dir, encoding: "utf8"});
+  } finally {
+    rmSync(dir, {recursive: true, force: true});
+  }
+};
+
+it("actually runs when invoked through a symlink", () => {
+  const r = runViaSymlink(healthy());
+  assert.equal(r.status, 0, `stderr: ${r.stderr}`);
+  assert.match(r.stdout, /check-gates OK/);
+});
+
+it("still fails through a symlink — it cannot pass by doing nothing", () => {
+  const pkg = healthy();
+  delete pkg.scripts.knip;
+  pkg.scripts.check = chain(REQUIRED.filter((g) => g !== "knip"));
+  const r = runViaSymlink(pkg);
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /knip/);
 });
 
 if (fail.length) {
