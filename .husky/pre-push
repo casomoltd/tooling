@@ -1,1 +1,9 @@
-npm run check && ./bin/check-version.sh
+# Same gates as the shared `pre-push` bin every consumer repo runs, addressed
+# by path: husky puts `node_modules/.bin` on PATH, but this repo has no copy of
+# itself installed, so the bare bin names are unresolvable here.
+# The refs arrive once on stdin and both gates need them, so capture first.
+REFS=$(cat)
+npm run check \
+  && npm run build \
+  && echo "$REFS" | ./bin/check-version.sh \
+  && echo "$REFS" | ./bin/check-tags.sh
