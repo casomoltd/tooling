@@ -4,14 +4,16 @@
 PRE_PUSH_REFS=$(cat)
 export PRE_PUSH_REFS
 
-# Uniform pre-push for every repo: check, build, then the version/tag gates.
-# `npm run build` must exist in EVERY repo so this line never has to special-case
-# one. Where a repo produces no build output (a source-only repo like tooling,
-# consumed as a git-dep), define build as a no-op (`"build": "echo ..."`) rather
-# than omitting it — a missing script would abort the push with "Missing script:
-# build", which once made it ambiguous whether a source-only repo was even
-# pushable. No-op keeps the step honest and uniform.
+# Uniform pre-push for every repo: the repo's own health gate, then the
+# release-protocol gates.
+#
+# Building belongs to `check`, not here. A repo whose build fails is not
+# healthy, and any assertion that reads build output (SSR, page meta, sitemap)
+# has to run after the build inside that same script — so `check` is where the
+# step already has to live. Declaring it here as well would give the build two
+# owners and run it twice wherever `check` builds. A repo that needs a build
+# gate adds `npm run build` to its own `check`; one that produces no artifact
+# simply doesn't.
 npm run check \
-  && npm run build \
   && echo "$PRE_PUSH_REFS" | check-version \
   && echo "$PRE_PUSH_REFS" | check-tags

@@ -4,6 +4,5 @@
 # The refs arrive once on stdin and both gates need them, so capture first.
 REFS=$(cat)
 npm run check \
-  && npm run build \
   && echo "$REFS" | ./bin/check-version.sh \
   && echo "$REFS" | ./bin/check-tags.sh
