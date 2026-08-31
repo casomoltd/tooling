@@ -12,6 +12,33 @@ import type {Rule, ToolInput} from "./lib/rule.mts";
 
 const text = (input: ToolInput): string => String(input.command ?? "");
 
+// An unattended dependency sweep is the one automation that must commit and
+// push with nobody watching. It works inside a throwaway
+// `worktrees/dep-sweep-*` checkout, on the `dep-sweep` branch, and never
+// touches `main`. No human is present to answer an `ask`, so a confirm verdict
+// there does not gate that sweep — it refuses the command outright and the
+// whole branch-preparing half of the job dies. Hence the exemption below.
+//
+// It is whole-command strict — `cd <sweep worktree> && <one allowed action>`
+// and nothing else — for two reasons: a compound tail must not be able to
+// smuggle extra work in under the exemption, and a consumer whose settings
+// allow-list Bash has nothing stricter standing behind this predicate, so it
+// is the line rather than a hint to a prompt that would otherwise follow.
+const SWEEP_PATH = String.raw`/worktrees/dep-sweep-[\w.-]+`;
+const SWEEP_TARGET = String.raw`(?:"[^"]*${SWEEP_PATH}"|[^\s"]*${SWEEP_PATH})`;
+const SWEEP_ACTIONS = [
+  String.raw`git commit -F \S+`,
+  String.raw`git push --force-with-lease -u origin dep-sweep`,
+];
+const SWEEP_COMMAND = new RegExp(
+  String.raw`^cd\s+${SWEEP_TARGET}\s+&&\s+(?:${SWEEP_ACTIONS.join("|")})$`,
+);
+
+/** The sweep's own branch-side commands, which the `ask` rules step aside for.
+ * Only those two rules consult it — every `deny` stays absolute. */
+const isSweepCommand = (i: ToolInput): boolean =>
+  SWEEP_COMMAND.test(text(i).trim());
+
 // git history + remote safety.
 const gitRules: readonly Rule[] = [
   {
@@ -23,6 +50,7 @@ const gitRules: readonly Rule[] = [
     // Not `commit-tree`/`commit-graph` (plumbing/maintenance, not a commit).
     // Allows git's pre-verb flags (`git -C <dir> commit` is still a commit).
     matches: (i) =>
+      !isSweepCommand(i) &&
       /\bgit\s+(?:-C\s+\S+\s+|-c\s+\S+\s+|--[\w-]+(?:=\S+)?\s+)*commit\b(?!-)/.test(
         text(i),
       ),
@@ -33,7 +61,7 @@ const gitRules: readonly Rule[] = [
     reason:
       "git push is never automatic — confirm it's intended. " +
       "Prefer `git push --follow-tags` so annotated version tags ship too.",
-    matches: (i) => /\bgit\s+push\b/.test(text(i)),
+    matches: (i) => !isSweepCommand(i) && /\bgit\s+push\b/.test(text(i)),
   },
   {
     id: "git-force-push",

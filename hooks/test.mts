@@ -65,6 +65,51 @@ const bashCases: Case[] = [
   {command: "git commit-graph write", verdict: null},
   {command: "git commit-tree abc123", verdict: null},
   {command: "git tag -a v1.0.0 -m v1.0.0", verdict: null},
+
+  // ---- dependency-sweep carve-out ----
+  // An unattended sweep can't answer an `ask`, so its two branch-side shapes
+  // inside a `worktrees/dep-sweep-*` checkout must fall through cleanly.
+  {command: "cd /w/worktrees/dep-sweep-lib && git commit -F /tmp/msg.txt", verdict: null},
+  {command: 'cd "/w/my repo/worktrees/dep-sweep-lib" && git commit -F /tmp/msg.txt', verdict: null},
+  {
+    command: "cd /w/worktrees/dep-sweep-lib && git push --force-with-lease -u origin dep-sweep",
+    verdict: null,
+  },
+  // ...and everything else stays guarded. The exemption is the exact shape,
+  // not the directory: being in a sweep worktree licenses nothing on its own.
+  {
+    command: 'cd /w/worktrees/dep-sweep-lib && git commit -m "feat: x"',
+    verdict: "ask",
+    id: "git-commit-confirm",
+  },
+  {
+    command: "cd /w/worktrees/dep-sweep-lib && git push -u origin main",
+    verdict: "ask",
+    id: "git-push-confirm",
+  },
+  // A compound tail must not ride in under the carve-out.
+  {
+    command: "cd /w/worktrees/dep-sweep-lib && git commit -F /tmp/msg.txt && npm publish",
+    verdict: "ask",
+    id: "git-commit-confirm",
+  },
+  // A non-sweep worktree is an ordinary checkout.
+  {
+    command: "cd /w/worktrees/feature-x && git commit -F /tmp/msg.txt",
+    verdict: "ask",
+    id: "git-commit-confirm",
+  },
+  // The `deny` rules are absolute — the carve-out never reaches them.
+  {
+    command: "cd /w/worktrees/dep-sweep-lib && git push --force -u origin dep-sweep",
+    verdict: "deny",
+    id: "git-force-push",
+  },
+  {
+    command: "cd /w/worktrees/dep-sweep-lib && git reset --hard HEAD~1",
+    verdict: "deny",
+    id: "git-reset-hard",
+  },
 ];
 
 const editCases: Case[] = [
