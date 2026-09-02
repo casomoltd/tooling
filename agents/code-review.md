@@ -66,6 +66,17 @@ enough surrounding code (definitions, call sites) to judge design intent.
   harder to see here: a comparison to the old design **feels** like rationale,
   which is why it survives review. If the history is worth keeping, the commit
   message is where it belongs.
+- **A type weakened to silence the compiler** (`typescript` standard):
+  `Record<K,V>` relaxed to `Partial<Record<K,V>>`, a union widened, a field made
+  optional, a non-null assertion added. Relaxing a type IS disabling a check —
+  the same rule as "fix issues, don't weaken config", one level down, and it
+  leaves the config file untouched so nothing else flags it. Ask what the old
+  shape was asserting: a total `Record` made a forgotten key a build error, and
+  giving that up needs an argument. Weakening is right when the old type was
+  lying — forcing a value that does not exist — and that argument belongs in a
+  comment at the site. Flag a relaxation made in the same change as the error it
+  resolves, with no note saying why the old claim was wrong.
+
 - **A hand-written utility class silently beats a framework utility for the same
   property.** Where a project defines its own `text-*`/`bg-*` class that sets
   more than one property — a type ramp setting `font-size` **and**
@@ -99,6 +110,13 @@ enough surrounding code (definitions, call sites) to judge design intent.
   it: an omitted selector then returns a plausible-but-wrong answer with no error,
   and every call site can forget it the same way. The selector must be required (a
   missing one is a compile error) or fail loud (throw) — never defaulted.
+  **Apply the same reading to a defaulted RESULT**, not only a defaulted
+  parameter: an empty array, a `?? 0`, or a silently skipped element standing in
+  for data the caller expected. The justification is identical — no error, no
+  type failure, no failing test — and it is the half reviewers miss because the
+  rule's examples are all signatures. Skipping on an explicit declaration
+  (`{published: false, reason}`) is fine; skipping on a missing key is not,
+  because the code cannot tell a deliberate absence from a lost row.
   Distinguish a benign *tuning* default (page size, precision) that changes only
   *how* a result is computed, not *which* result you get.
 - **Crawlable navigation** (`typescript` standard): primary navigation — and any

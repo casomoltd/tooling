@@ -289,9 +289,69 @@ data. Enforcement is a design-review call (the `code-review` agent applies
 this rubric): a lint rule can ban a default on a locale-typed parameter,
 but "this default hides a wrong answer" is the reviewer's judgment.
 
+### The same failure on the way out
+
+The rule is usually read as being about inputs, and that reading misses
+half of it. A **defaulted result** hides a wrong answer exactly as well
+as a defaulted parameter: an empty array where data was expected, a
+`?? 0`, a silently skipped element. No error, no type failure, no failing
+test — the same three absences, reached from the other end.
+
+```ts
+// Bad: a missing entry becomes a shorter list. The caller cannot tell
+// "this market does not carry the item" from "someone deleted the row",
+// and gets a plausible answer either way.
+const listings = ALL_ITEMS.flatMap((id) => {
+  const entry = catalogue[id];
+  if (!entry) return [];         // ✗ absence inferred, not declared
+  return [{id, ...entry}];
+});
+
+// Good: absence is DECLARED, so the record stays total and a forgotten
+// entry is a compile error rather than an item that quietly vanishes
+// from the list.
+type Listing = Variant[] | {carried: false; reason: string};
+const catalogue: Record<ItemId, Listing> = { /* every item answered */ };
+```
+
+Skipping on a declaration is fine; skipping on a missing key is not.
+The test is whether the code can tell a deliberate absence from a
+mistake — if it cannot, neither can the caller.
+
 Flag: an optional parameter — or a `??`/`||` fallback, or a `[0]` pick —
 that selects locale/region/nation/period/currency/scheme; a function that
-returns data for a "default" locale when the caller passed none.
+returns data for a "default" locale when the caller passed none; and a
+function that answers a domain question with an empty or truncated
+result where the honest answer is to fail loud.
+
+## Don't Weaken a Type to Silence the Compiler
+
+`Record<K, V>` relaxed to `Partial<Record<K, V>>`, a union widened, a
+field made optional, a non-null assertion added — each is legitimate
+when it models something real, and each is also the fastest way to make
+an error go away. They are not distinguishable by looking at the diff:
+both arrive as a small type edit that turns the build green.
+
+The workspace rule *fix issues, don't disable checks* is usually read as
+being about config — `strict: false`, `skipLibCheck`. It applies with
+equal force one level down. Relaxing a type is disabling a check; the
+check is just narrower and the config file is untouched.
+
+Ask what the compiler was protecting. A total `Record` was asserting
+that every key has an answer — genuinely useful, because it makes a
+forgotten key a build error. If reality is that some keys have no value,
+say so **in the type** rather than by removing the guarantee: a union
+with an explicit "none, and here is why" arm keeps the record total and
+keeps the error.
+
+Weakening is right when the old type was lying — when it forced a value
+that does not exist, and code was inventing one to satisfy it. That is a
+real argument, and it belongs in a comment at the site, so the next
+reader can tell it from a build-green edit.
+
+Flag: a type relaxed in the same change that a compiler error appeared,
+with no note saying what the old shape was asserting and why that claim
+was wrong.
 
 ## Keep Shared Modules Presentation-Agnostic
 
