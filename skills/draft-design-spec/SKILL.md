@@ -15,7 +15,7 @@ description: >-
   change, a bug fix, or a quick question — those don't need a spec. NOT for
   reshaping code that already exists into an applied diff (that's design-pass) ·
   NOT for multi-source web research (that's deep-research) · NOT for logging the
-  work as a tracked ticket (that's create-task). After approval, hand off to
+  work as a tracked ticket (that's a ticket-authoring skill). After approval, hand off to
   implementation (optionally via design-pass).
 user-invocable: true
 argument-hint: "<brief | file | task-url> [-C <repo>]"
@@ -30,7 +30,7 @@ allowed-tools:
   - Bash(cp *)
   - Bash(xdg-open *)
   - Bash(open *)
-  - mcp__claude_ai_Notion__notion-fetch
+  - WebFetch
 ---
 
 # Draft Design Spec
@@ -65,13 +65,18 @@ Accept one of: an **inline prose brief**, a **file path**, or a **task-tracker
 ref / URL**. Resolve the target repo from `-C <path>` (git-style) or the current
 directory.
 
-- A **Notion task URL/ID** and the `notion-fetch` tool available → fetch it and
-  map the body onto the spec's seed: `## Context` → problem/motivation,
-  `## Definition of done` → acceptance criteria + scope, `## Notes` →
-  constraints. (Generic fetch — the user supplies the URL/ID; hardcode no
-  database identifiers.)
+- A **task or issue reference** (a URL or id — an issue tracker, a project
+  board, a ticket system) → fetch it with whatever tool the environment
+  provides for that tracker, and map its body onto the spec's seed: the
+  statement of the problem → problem/motivation, whatever the ticket uses for
+  done-ness → acceptance criteria + scope, the rest → constraints. Read the
+  ticket's own shape rather than expecting particular headings; trackers
+  differ and so do templates within one tracker.
 - **Inline / file** → read it directly into the same problem / criteria /
   constraints shape.
+
+The reference is always supplied by the caller. Hardcode no tracker, no
+database or project identifier, and no workspace-specific template.
 
 If the source is empty or the deliverable is genuinely ambiguous, **stop and
 ask** — do not guess a spec into existence.
@@ -335,8 +340,8 @@ authoring-into-scratch (no product-code writes) until the design is approved.
 
 On approval, the next step is explicit and **outside this skill**: implement the
 approved design (optionally via `casomoltd:design-pass` when it reshapes existing
-code), and/or log follow-ups with `create-task`. State the boundary — do not
-cross into implementation.
+code), and/or log follow-ups in the project's tracker. State the boundary —
+do not cross into implementation.
 
 ## Guardrails
 
@@ -382,9 +387,9 @@ cross into implementation.
 - **vs `deep-research`** — that fans out **web** searches for an external
   question; this grounds in the **local codebase** and returns an engineering
   design spec. External facts the brief needs are a deep-research pre-step.
-- **vs `create-task`** — that authors **one tracked ticket**; this **consumes** a
-  task as a source and never writes the tracker. Post-approval follow-ups route
-  to create-task.
+- **vs authoring a ticket** — a ticket-authoring skill writes **one tracked
+  item**; this **consumes** a task as a source and never writes to a tracker.
+  Post-approval follow-ups route back to whatever authors tickets here.
 - **vs the built-in plan mode** — plan mode yields an **ephemeral terminal**
   plan; this yields a **persistent, browser-rendered, iterable** artefact with
   diagrams and typed definitions. Run it *from within* planning mode as the

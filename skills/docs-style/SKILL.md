@@ -146,7 +146,7 @@ durability. **Defers**:
   a tool quirk as "the API is broken". Keep edits to minimal correctness fixes,
   not expansions.
 - **Name a doc or unit for the capability it provides**, verb-object
-  (`triage-backlog`, not `backlog`) — a name is an action you invoke, not the
-  noun it operates on.
+  (`archive-releases`, not `releases`) — a name is an action you invoke, not
+  the noun it operates on.
 - **88-column wrap** where prose allows. Don't hard-break a table row, URL, or
   link to hit it — those are the standard exceptions.

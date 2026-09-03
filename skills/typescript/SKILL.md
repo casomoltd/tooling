@@ -651,6 +651,47 @@ and re-check the factor against source, not as noise.
 pins one externally-known figure with an inline oracle; this pins a
 whole transcribed table to a committed, cited fixture.)
 
+## Point the Check at the Build Under Test
+
+The rules above govern the **expected value**. This one governs the
+other half: **what you actually measured.** A check can hold a
+perfectly good oracle and still be worthless because it was aimed
+at the wrong artefact — and that failure is quiet, because the
+wrong artefact answers in the right shape.
+
+The tell is a check that reads its targets from data carrying an
+**absolute** address:
+
+```ts
+// Bad: sitemap <loc> entries are absolute production URLs, so this
+// fetches the deployed site. Every response is a real 200 with real
+// content — it simply is not the build you just changed.
+for (const loc of locsFrom(sitemapXml)) {
+  assertHeading(await fetch(loc));
+}
+
+// Good: take the PATH from the data and the ORIGIN from the build
+// under test, so the check cannot silently retarget.
+for (const loc of locsFrom(sitemapXml)) {
+  const path = new URL(loc).pathname;
+  assertHeading(await fetch(`${baseUrl}${path}`));
+}
+```
+
+Same shape wherever a target is inherited rather than chosen: a
+config naming a production database, a fixture holding a deployed
+endpoint, a snapshot path resolved against the package root instead
+of the temp build. Split the two concerns — the **address of the
+thing** comes from the data, the **environment** comes from the
+harness — and keep the site's canonical constant for *comparison*
+only, never for fetching.
+
+**How you catch it without a rule: distrust a result that is too
+tidy.** A retargeted check reports the state of the untouched
+artefact, so it will happily tell you that nothing you just changed
+has changed. If a verification disagrees with an edit you know you
+made, suspect the target before the edit.
+
 ## Don't Pin a Computation to Its Own Output
 
 A test for a **computed model** — a projection, an amortisation, a
@@ -772,6 +813,47 @@ const note = incomingScaleNote(region);
 // <tracking task URL> (its DoD includes deleting this note).
 const note = incomingScaleNote(region);
 ```
+
+### Only where the tracker is visible to the repo's readers
+
+This rule stops at the repository boundary. In a **public** repo — one
+published to a registry, or open on a public forge — the tracking link
+must be one every reader can open: that repo's own public issue
+tracker. A link into anything the reader cannot reach is useless to
+them, and it discloses that the item exists, what it is called, and
+what the team is working on.
+
+The failure is easy to walk into precisely *because* the rule above is
+right: you write a stopgap, reach for its tracking item exactly as
+instructed, and the reference is correct in every way except that the
+repo is public and the tracker is not.
+
+Where no public issue exists, name the retirement **condition**
+instead. That is the more durable half anyway — a tracking item can be
+closed, moved or renamed, whereas "when the publisher issues the
+successor" stays true.
+
+```ts
+// Bad, in a PUBLIC repo: a link only the team can open
+// Stopgap until the new scale lands; retire with <internal tracker URL>
+
+// Good, in a public repo: the condition, not the tracker
+// Stopgap until the publisher issues the circular carrying the new
+// scale points; delete this note and read the figures from the scales.
+
+// Also good, where the repo has its own public issues
+// Stopgap until the upstream fix lands; retire with #412.
+```
+
+The same applies to prose in a public repo — a README, a docs page, a
+manifest — and to internal identifiers generally: tracker ids, private
+repo names, internal hostnames, people's names. Keep those in the
+private system where the work is planned.
+
+Note this cuts both ways for a **standard**: a rule published in a
+public repo must not name the internal systems its authors happen to
+use, or it stops being a generic standard and starts being a
+disclosure.
 
 This is the provenance rule (*cite the source at the data*, above)
 applied to temporary code: the "source" of a stopgap is the decision to

@@ -148,6 +148,20 @@ enough surrounding code (definitions, call sites) to judge design intent.
   `temporary`/`TODO` with **no link to the issue/task that tracks its removal**.
   Flag it — an unlinked stopgap silently becomes permanent; the comment must
   point to the tracking item whose definition-of-done retires the code.
+- **No private reference in a public repo** (`typescript` standard): the rule
+  above stops at the repository boundary, and following it is how the breach
+  happens — the author reaches for the tracking item exactly as instructed and
+  the repo turns out to be public. **Establish the repo's visibility first**
+  (`gh repo view --json visibility`, or a `publishConfig`/registry entry
+  implying it), then flag any link a public reader cannot open — an internal
+  tracker, a private wiki, a private repo — and any internal identifier:
+  tracker ids, private repo names, internal hostnames, people's names. Check
+  prose as well as code: README, docs and manifests are published too. In a
+  public repo the retirement CONDITION replaces the tracker link, or the
+  repo's own public issue does. Not a style point — it hands the reader a
+  dead link and discloses what the team is working on. Apply it to
+  **standards and skills** in a public repo too: naming the internal systems
+  the authors use turns a generic standard into a disclosure.
 - **Cross-path invariants** (both standards): when a change makes two paths that
   must agree produce a value two ways — a consumer's computation vs the
   library's, a fast path vs a reference path, a transform newly consolidated onto
@@ -155,6 +169,15 @@ enough surrounding code (definitions, call sites) to judge design intent.
   (`path A == path B`), and, where the figure is externally knowable, a missing
   oracle assertion citing its source inline. A per-path fixture pins one side;
   only the equivalence test catches the two diverging.
+- **A check aimed at the wrong artefact** (both standards): a verification
+  script, test or CI step whose targets are read from data carrying an
+  **absolute** address — sitemap `<loc>` entries, a config naming a deployed
+  host, a fixture holding a live endpoint — and fetched as-is rather than
+  recombined with the build under test. The oracle may be perfectly good; the
+  subject is wrong, and it fails quietly because the deployed artefact answers
+  in the same shape. Flag any `fetch`/request whose URL is not composed from a
+  harness-owned base, and any canonical site constant used to *fetch* rather
+  than to *compare*.
 - **A computation pinned to its own output** (both standards): a **computed
   model** — projection, amortisation, forecast, any multi-step arithmetic —
   added or changed with no assertion its own implementation couldn't have
