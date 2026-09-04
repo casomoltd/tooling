@@ -29,6 +29,18 @@ layer) — run it too; the rule you cite by name is the preloaded language stand
   then `--staged`); if the caller names specific files or a target, review those
   instead. You read the diff/files yourself — the caller need only point you at
   them.
+- **Read every touched file WHOLE, not just its changed lines.** The diff picks
+  which files are in scope; it does not bound what you may report in them.
+  Editing a file makes its existing contents your responsibility, so judge the
+  file as it now stands and report a pre-existing defect the same as a new one,
+  marking it as pre-existing so the author can weigh it.
+
+  This is not a licence to review the repo. Files the diff does not touch are
+  out of scope — that is `design-xray`'s job. What this closes is the specific
+  gap where an author edits a module heavily and nobody looks at the sixty
+  lines below the edit. A real case: a flag emoji and display labels sat in a
+  generic UK tax library from its first commit, through a round that rewrote
+  the very file they live in, because every review had been diff-scoped.
 - **The two rubric skills above**, preloaded as your single source of truth —
   `typescript` for `.ts`/`.tsx`, `python-style` for `.py`. Don't invent rules
   beyond them.
@@ -104,6 +116,28 @@ enough surrounding code (definitions, call sites) to judge design intent.
   consolidating refactor that drops the rule from a second path a caller still
   reaches, shared/`lib` modules kept presentation-agnostic (no user-facing copy
   or view-prop assembly in the data layer), exceptions reported not swallowed.
+- **No presentation in a calculation package** (`typescript` standard): a
+  package whose job is computation must not carry what a thing LOOKS like.
+  Flag, in any published library or `lib`-layer module: a `label`, `title`,
+  `name` or `description` field whose only reader is a renderer; an emoji, icon
+  name, colour, CSS class or flag; a `Record<Id, string>` of display copy; and
+  any doc comment naming a UI element — "for the region picker", "shown in the
+  dropdown" — which is the loudest tell, because the author is describing a
+  consumer's screen from inside a package that has none.
+
+  Two things sharpen it. **Check the consumers before recommending a move**: a
+  display field nothing reads is dead weight to delete, not a thing to relocate,
+  and it ships in the bundle either way. And **do not flag a canonical
+  identifier's label reflexively** — a library may legitimately own the one
+  correct wording for a value it defines, so that consumers cannot invent
+  competing names. The test is whether the value is the *thing's own name* (a
+  tax band, a loan plan) or *chrome around it* (a flag, an icon, a colour). The
+  first can be defended; the second cannot.
+
+  Extraction is where this gets in. Code lifted from an app into a package
+  brings the app's view model with it and nobody separates it at the time, so
+  look hardest at a package's oldest files, not its newest.
+
 - **No silent domain-default** (`typescript` standard): a parameter that selects
   *which* data — locale/region/nation/tax-year/currency/scheme — given a silent
   default (`= 'gb'`, `?? fallback`, a `[0]` pick) instead of being required. Flag

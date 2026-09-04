@@ -894,6 +894,46 @@ at the wrong layer rather than duplicated at the right one. Reviews run
 one repo at a time, so nobody is asked *"does this fact belong here,
 given what depends on this repo?"* unless the rule asks it.
 
+## A Calculation Package Holds No Presentation
+
+The sibling of the rule above, on the other axis. That one asks *which
+domain* a fact belongs to; this one asks *which layer* — and a package
+whose job is computation must not carry what a thing looks like.
+
+```ts
+// Bad, in a generic UK tax library
+/** UK nations for the region picker. */
+export const NATIONS = {
+  scotland: {label: 'Scotland', flag: '\uD83C\uDFF4…'},
+} as const;
+```
+
+The doc comment is the tell, and it is the loudest one available: *"for
+the region picker"* describes a control on a screen, from inside a
+package that has no screens. A calculation library cannot know what its
+caller renders — a CLI, a spreadsheet export and a web form all want a
+different answer, and only one of them wants an emoji.
+
+**Check the consumers before recommending a move.** A display field that
+nothing reads is not misplaced, it is dead, and deleting beats
+relocating. The flag above had zero readers across four repos and still
+shipped in every published bundle.
+
+**Do not apply this reflexively to labels.** A library may legitimately
+own the one correct wording for a value it defines, so that consumers
+cannot invent competing names for the same thing — a tax band, a loan
+plan. The test is whether the string is *the thing's own name* or
+*chrome around it*. `'Plan 4'` is a name. A flag is chrome. Where it is
+genuinely a name, keep it and say so at the declaration, because the
+next reader will ask.
+
+**Where this gets in is extraction.** Code lifted from an app into a
+package brings the app's view model with it, and the carve-out commit is
+busy proving the maths still passes. So the offending lines are usually
+as old as the package and have survived every review since — which is
+why a review must read a touched file whole rather than only its changed
+lines. Diff-scoped review cannot see a defect that predates the diff.
+
 ## One Value for Two Facts That Usually Agree
 
 When two facts share a representation because they almost always hold
