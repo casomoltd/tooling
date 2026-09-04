@@ -20,12 +20,13 @@
     "!**/*.test.mjs"
   ],
   "scripts": {
-    "check": "node bin/check-gates.mjs && node bin/verify-pack.mjs && npm run typecheck && npm run test && npm run lint:md",
+    "check": "node bin/check-gates.mjs && node bin/verify-pack.mjs && npm run check:private-refs && npm run typecheck && npm run test && npm run lint:md",
     "typecheck": "tsc --noEmit -p hooks/tsconfig.json",
     "test": "node hooks/test.mts && node bin/check-gates.test.mjs",
     "lint:md": "remark --frail --quiet --no-stdout --rc-path bin/skills-lint.config.mjs skills docs",
     "build": "echo 'no-op: source-only repo, nothing to build'",
-    "prepare": "husky || true"
+    "prepare": "husky || true",
+    "check:private-refs": "node bin/check-private-refs.mjs"
   },
   "casomo": {
     "gates": {
@@ -48,6 +49,7 @@
   "bin": {
     "build-report": "./bin/build-report.mjs",
     "check-gates": "./bin/check-gates.mjs",
+    "check-private-refs": "./bin/check-private-refs.mjs",
     "check-tags": "./bin/check-tags.sh",
     "check-version": "./bin/check-version.sh",
     "commit-msg": "./bin/commit-msg.sh",

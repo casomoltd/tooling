@@ -858,3 +858,132 @@ disclosure.
 This is the provenance rule (*cite the source at the data*, above)
 applied to temporary code: the "source" of a stopgap is the decision to
 remove it, so the link belongs at the code, not only in the tracker.
+
+## A Fact Belongs to the Layer That Owns Its Meaning
+
+A library that declares itself generic must not encode a fact that is
+only true inside one consumer's domain.
+
+The tell is in the justification, not the value. If explaining why a
+number is what it is requires naming a scheme, an employer, a contract
+or a published instrument, then the number belongs to whatever layer
+owns that scheme — not to the general-purpose library underneath it.
+
+```ts
+// Bad, in a generic tax library
+/** Standard contracted weekly hours.
+ *  rUK 37.5 (the health service's full-time week); the northern
+ *  administration reduced to 36 under its own staff agreement. */
+standardWeeklyHours: number;
+```
+
+There is no statutory UK working week. That value is one employer's
+terms, and the comment says so — which is the signal. The generic layer
+should take the hours from its caller; the domain layer above it holds
+the employer's week and passes it in.
+
+**The second tell is duplication across a dependency edge.** If the same
+named constant is defined in both a package and something that depends
+on it, ownership has never been decided — one of the two is a copy, and
+they will drift. Decide which layer owns it and delete the other.
+
+Why this needs saying at all: "import shared data from the library that
+owns it" assumes ownership is obvious. It is not when TWO libraries
+could plausibly own a fact, and it says nothing about a constant sitting
+at the wrong layer rather than duplicated at the right one. Reviews run
+one repo at a time, so nobody is asked *"does this fact belong here,
+given what depends on this repo?"* unless the rule asks it.
+
+## One Value for Two Facts That Usually Agree
+
+When two facts share a representation because they almost always hold
+the same value, nothing fails until the day they differ — and on that
+day every call site is already wrong.
+
+The tell is a variable whose name answers one question while some of
+its readers are asking another. Look for a single field feeding two
+kinds of consumer: one that treats it as an identifier of a published
+thing, and one that treats it as a property of the present moment.
+
+```ts
+// A year that answers two questions at once
+const CURRENT_YEAR = '2026-27';
+
+loadPayScale(CURRENT_YEAR, nation);   // which table was published
+computeTax(CURRENT_YEAR, region);     // which rates are in force now
+```
+
+Those coincide for as long as every party publishes on schedule. They
+separate the moment one runs late — and then the second call prices
+someone against rates nobody is using, silently, because the value is
+still a perfectly legal year.
+
+**Splitting the value is not enough.** Renaming one of them to
+`payYear` fixes today's call sites and leaves the next author free to
+pass either, because both are still the same type. Two facts that must
+not be substituted for one another want either distinct types, or a
+single constructor that takes both and is the only way to obtain the
+pair.
+
+**Then state the relationship as a rule.** If the two may legitimately
+diverge, say by how much and why, and assert it — a drift of one
+publishing cycle is a real-world state, a drift of two is a gap in your
+own data. An assertion that names the legitimate range turns a silent
+wrong number into a build failure with an explanation.
+
+Why this is not covered by "avoid magic constants": the constant here
+is fine, correctly named for one of its two uses, and has a single
+obvious home. The defect is that two questions were asked of it, and
+neither the name nor the type records which one a given caller meant.
+
+## Model the Domain Before Extending the Neighbour
+
+When a change introduces a new domain type, or reshapes existing domain
+data, map the structure and settle the model BEFORE writing the code.
+
+The failure it prevents is invisible from the inside. Reaching for the
+shape of the adjacent module — this one is a nation-by-year lookup, so
+the new one becomes a nation-by-year-by-family lookup — produces
+something that reads as consistent and is not modelling anything. It
+pattern-matches a neighbour, and the result looks right precisely
+because it matches.
+
+Two questions, asked early, catch most of it:
+
+- **What are the entities, and what does each one know?** A record whose
+  identity lives only in its container's keys cannot describe itself to
+  a caller.
+- **Which existing type already holds this?** Extending a neighbour's
+  shape is not the same as finding the type that owns the concept.
+
+Structural review AFTER the code is written finds these too — an
+anonymous record, an identifier collision — but finds them as rework
+rather than as design.
+
+## Put the Accessor on the Entity That Has the Coordinates
+
+For each exported function, ask whether some entity in the same package
+already carries **all** of its parameters as fields. If it does, the
+accessor belongs on that entity, and the free function is at best a
+low-level fallback for callers holding loose ids.
+
+```ts
+// Bad: the caller re-supplies what the entity already knows
+const award = awardFor(post.nation, post.taxYear, post.role.band);
+
+// Good: navigation, not query
+const award = post.award;
+```
+
+Equivalently: the API reads as a QUERY — *fetch the record where
+nation=X and scale=Y* — where the domain reading is NAVIGATION — *this
+post's award*. Query-shaped APIs over a domain model are a smell exactly
+when the entity exists.
+
+**What does not follow**, so the rule is not over-applied: this is not a
+licence to store the relationship on both ends. Back-pointers were
+considered and rejected in the case that produced this rule — one side
+had no entity at all (its ids were a string union) and the two ends sat
+at different granularities. The rule is *put the accessor on the entity
+that has the coordinates*, not *add back-pointers*.
+

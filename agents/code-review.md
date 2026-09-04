@@ -249,6 +249,39 @@ enough surrounding code (definitions, call sites) to judge design intent.
   interface and another by the copy beside it. The copy is part of the
   behaviour: it changes in the same commit, not in a later pass.
 
+- **A fact encoded at the wrong layer.** In a package that presents itself as
+  generic, flag a value whose justification names a scheme, an employer, a
+  contract or a published instrument — the comment explaining it is the
+  evidence. Flag too the same named constant defined on both sides of a
+  dependency edge: one of the two is a copy nobody has chosen to own, and they
+  drift. Ask *"does this fact belong here, given what depends on this repo?"* —
+  no per-repo review asks it otherwise.
+
+- **One value answering two questions.** Flag a single field or constant read
+  by two kinds of consumer — one identifying a published thing, one describing
+  the present moment — where the two only coincide because nothing has run
+  late yet. A name that fits one reader and not the other is the evidence
+  (`CURRENT_YEAR` used both to select a published table and to price today's
+  rates). Splitting the value is a partial fix while both halves keep the same
+  type: ask whether the two can still be substituted, and whether the
+  legitimate divergence between them is asserted anywhere. A drift of one
+  publishing cycle is a real state; a drift of two is a gap in the repo's own
+  data, and only an assertion tells them apart.
+
+- **A domain type extended from its neighbour's shape.** Where a change adds or
+  reshapes domain data, flag a record whose identity exists only in its
+  container's keys (it cannot tell a caller what it applies to), and identifier
+  unions whose VALUES overlap (one id compiles where another is required and
+  returns a plausible wrong answer). Both are design faults that read as
+  consistent from inside the module.
+
+- **A query-shaped API where the entity already exists.** For an exported
+  function, check whether some entity in the same package already carries every
+  one of its parameters as fields. If so, the accessor belongs on that entity —
+  `post.award`, not `awardFor(post.nation, post.taxYear, post.band)`. Do not
+  extend this to back-pointers: the fix is where the accessor lives, not
+  storing the relationship twice.
+
 ## Ignore — owned elsewhere (never re-flag)
 
 - **Mechanical** rules linters already enforce: eslint (max-len 88, import

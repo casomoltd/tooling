@@ -25,6 +25,7 @@ import {parseArgs} from "node:util";
 import path from "node:path";
 import {loadConfig} from "./utils.mjs";
 import {
+  MIN_SCORABLE_WORDS,
   discoverSlugs,
   extractText,
   scoreText,
@@ -74,25 +75,42 @@ async function main() {
         result.consensusGrade <= maxGrade;
       pages.push({slug: s, ...result, pass});
     } catch (err) {
+      // A page we could not read is a FAILURE, not a pass. Recording
+      // it as passing meant a broken path or an unreadable file
+      // reported green, which is the same shape of blind spot as
+      // treating an unscored page as a pass.
       pages.push({
         slug: s,
         wordCount: 0,
         scores: null,
         consensusGrade: null,
-        pass: true,
+        pass: false,
         error: err.message,
       });
     }
   }
 
   const allPassed = pages.every((p) => p.pass);
+  // Named separately from the pass/fail count. An unscored page is not
+  // evidence of anything, and it should not be able to hide inside a
+  // green run — the reader of this output has to be told how much of
+  // the site was actually measured.
+  const unscored = pages.filter((p) => p.unscored).map((p) => p.slug);
   const threshold = {maxGrade};
-  const results = {pages, threshold, allPassed};
+  const results = {pages, threshold, allPassed, unscored};
 
   if (values.pretty) {
     console.error(formatPretty(results, threshold));
   }
   console.log(JSON.stringify(results, null, 2));
+
+  if (unscored.length > 0) {
+    console.error(
+      `\nreadability: ${unscored.length} page(s) under `
+      + `${MIN_SCORABLE_WORDS} words were NOT scored — they are not `
+      + `passing, they are unmeasured:\n  ${unscored.join("\n  ")}`,
+    );
+  }
 
   process.exit(allPassed ? 0 : 1);
 }
