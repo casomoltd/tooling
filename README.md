@@ -403,7 +403,12 @@ only and on explicit request; the agents never do it.
 (`@casomoltd/paye-calc`, `@casomoltd/nhs-pay`), publishes to the public
 npm registry via OIDC trusted publishing — install with no auth or
 `.npmrc`. A version-tag push (`npm version patch` → `git push
---follow-tags`) triggers `publish.yml`. That workflow currently pins
-`npm@11.9.0`: npm 12.0.0 shipped regressions (disabled git-protocol deps,
-a broken provenance/sigstore path, and a stricter `npm ci`) — revert to
-`npm@latest` once a 12.x fixes them.
+--follow-tags`) triggers `publish.yml`. That workflow carries **no npm
+pin**: it builds on Node 24, whose bundled npm 11.x is already the range
+we want — at or above the `npm >= 11.5.1` trusted publishing needs, and
+short of npm 12, which still refuses non-registry fetches by default
+(`EALLOWREMOTE`) and so cannot regenerate a lockfile that resolves a
+transitive remote tarball. The other two npm 12.0.0 regressions this
+once guarded against are fixed: `npm ci` strictness (12.0.2 installs
+Linux-generated locks cleanly) and the provenance/sigstore crash
+(12.0.1). Re-test the fetch block before moving to npm 12.
