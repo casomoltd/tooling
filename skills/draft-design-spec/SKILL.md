@@ -308,6 +308,30 @@ emit an empty or fabricated diagram.
      the whole table, open and settled alike, so a number never changes meaning.
      Each carries a **scope** cell saying whether this spec is entitled to
      answer it at all — see the Guardrail below.
+   - **State each decision exactly once.** A spec long enough to be useful is
+     long enough to say the same thing in two places, and the second copy is
+     never re-read when the first is revised. Then the two disagree, and the
+     build follows whichever section it happened to read — usually the
+     appendix, because that is where the implementation detail lives. Before
+     publishing, list the decisions the spec makes and check each appears in
+     one section; where another section needs it, cross-reference by number
+     rather than restating. The same rule applies outward: if a decision is
+     already recorded somewhere durable, link to that and do not re-derive it
+     here, because re-derivation is how two records drift.
+   - **Cite a rule, or mark it as proposed.** Every "you should always" in a
+     spec is either an external standard, a decision recorded elsewhere, or an
+     invention of this document — and a reader cannot tell which from the
+     prose. Give a rule's URL or doc path, or say plainly that it is proposed
+     here and has no external source. A rule written in the register of
+     received wisdom cannot be checked, and one that is *nearly* an external
+     standard is the most expensive kind to get wrong.
+   - **Name the acceptance artefact, and say it outranks the prose.** Where a
+     wireframe, mockup or reference implementation exists, say so at the top
+     and state that it wins on any disagreement. Prose describing a layout is
+     ambiguous in ways its author cannot see: one sentence describing "cards"
+     will be read as one card or as N cards depending on which paragraph the
+     builder weights, and both readings feel principled from inside. A picture
+     settles it, but only if the spec has said which one to trust.
    - **Lead with the type/interface definitions over duplication** — extract a
      shared generic core validated by **≥2 real callers** rather than bolting on
      an (N+1)th variant.
