@@ -183,6 +183,20 @@ emit an empty or fabricated diagram.
      grep for `Syntax error in text` checks every figure in one shot, and also
      catches the silent defects (an uncoloured or orphaned node) that a glance
      misses.
+   - **Number every figure, and title it.** Figures are numbered `F1, F2, …`
+     sequentially across the whole document — the same discipline as the
+     question rows, so a number never changes meaning. Open each caption with
+     **`Figure N — <short title>`**, and give the figure an anchor
+     (`<div id="fig-N" style="scroll-margin-top:68px">` around the `<pre>`, the
+     `scroll-margin-top` so a sticky TOC doesn't cover the landing point). Then
+     **cross-reference figures by number** in prose, in the reference tables and
+     in the open-questions rows — "see F3", never "the diagram in the target
+     model section".
+     **Why it is not cosmetic:** without a handle, a reviewer has to *describe a
+     picture back to you* to say anything about it, and you have to guess which
+     box they meant. That is a wasted round trip on the artefact whose entire
+     purpose is to make review cheap — and it fails exactly when the spec is big
+     enough to need reviewing.
    - **Every figure carries a two-part caption — no exceptions.** A diagram with
      no legend, or a legend whose chips don't match the colours actually in the
      picture, is the single most reliable way to lose a review round. Each

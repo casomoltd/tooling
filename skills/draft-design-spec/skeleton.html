@@ -171,6 +171,10 @@
        measure the rendered SVG viewBox, don't eyeball. Prefer TD over LR (the
        single biggest lever), keep node + subgraph labels short, and push
        description to the .legend. See SKILL.md for the full list. -->
+  <!-- FIGURE NUMBERING: wrap every figure in <div id="fig-N"> and open its
+       legend with <b>Figure N — title</b>, numbered F1..Fn across the WHOLE
+       document. Cross-reference by number ("see F3"), never by section name —
+       otherwise a reviewer has to describe the picture back to you. -->
   <!-- ONE key for EVERY figure in the document. Define it once, here, and have
        each figure's legend link back to it. Do not invent a second colour
        meaning later in the page: a reader holds one key, not four. -->
@@ -190,6 +194,7 @@
     <p style="margin-bottom:0;font-size:13.5px"><b>Shape</b> is a SECOND, independent axis and only in the component graph: <span style="border:1px solid #8a94a3;border-radius:11px;padding:1px 9px">stadium</span> shared leaf atom · <span style="border:3px double #8a94a3;padding:1px 7px">double box</span> hub many modules import · <span style="border:1px solid #8a94a3;padding:1px 7px">plain box</span> ordinary module. <b>Dotted arrow</b> = a dependency this change adds.</p>
   </div>
 
+  <div id="fig-1" style="scroll-margin-top:68px">
   <pre class="mermaid">
 classDiagram
     class {{Existing}} {
@@ -201,7 +206,8 @@ classDiagram
     %% Colour with per-node `style X fill:…,stroke:…`; classDef does not
     %% paint in a classDiagram.
   </pre>
-  <p class="legend"><b>Scope</b> — {{which package/repo/layer EVERY node lives in; name explicitly any node that is outside it, and say what this spec does/doesn't change there}}.<br>
+  <p class="legend"><b>Figure 1 &mdash; {{short title}}</b><br>
+    <b>Scope</b> — {{which package/repo/layer EVERY node lives in; name explicitly any node that is outside it, and say what this spec does/doesn't change there}}.<br>
     <b>Colour</b> (<a href="#diagram-key">full key</a>) — <span style="background:#fde8e8;border:1px solid #b3261e;border-radius:3px;padding:0 8px;margin-right:2px">&nbsp;</span><b>removed</b>: {{…}} · <span style="background:#fff4e5;border:1px solid #b26a00;border-radius:3px;padding:0 8px;margin-right:2px">&nbsp;</span><b>reshaped</b>: {{…}} · <span style="background:#e6f4ec;border:1px solid #007f3b;border-radius:3px;padding:0 8px;margin-right:2px">&nbsp;</span><b>unchanged</b>: {{…}} · <span style="background:#eceff3;border:1px solid #8a94a3;border-radius:3px;padding:0 8px;margin-right:2px">&nbsp;</span><b>another unit</b>: {{…}}.</p>
   <div class="callout c-warn"><span class="lbl">The coupling that constrains us</span>{{~N call sites across ~M files — the migration surface}}</div>
 </section>
