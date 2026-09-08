@@ -11,77 +11,124 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{PACKAGE}} · {{TITLE}} — Design Spec</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600;700&family=Share+Tech+Mono&display=swap">
 <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script>
-  mermaid.initialize({ startOnLoad: true, theme: 'neutral', securityLevel: 'loose', themeVariables: { fontSize: '15px' }, flowchart: { htmlLabels: true, useMaxWidth: false }, class: { useMaxWidth: false } });
+  mermaid.initialize({ startOnLoad: true, theme: 'neutral', securityLevel: 'loose', themeVariables: { fontSize: '15px', fontFamily: '"IBM Plex Sans", ui-sans-serif, system-ui, sans-serif' }, flowchart: { htmlLabels: true, useMaxWidth: false }, class: { useMaxWidth: false } });
   window.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('pre code').forEach(el => { try { hljs.highlightElement(el); } catch (e) {} });
   });
 </script>
 <style>
   :root {
-    --accent: #005EB8; --accent-dark: #003087; --ink: #1a1f29; --muted: #5b6472;
-    --line: #e2e6ec; --bg: #f6f8fb; --card: #ffffff;
+    /* Brand chrome. These values are COPIED from the company site's design
+     tokens rather than imported, because this file must stay self-contained:
+     it is opened from disk with no server and cannot fetch. Retire the copy
+     once a single source ships alongside this skeleton and a check enforces
+     agreement between them.
+
+     The site is a mid-grey ground carrying white cards, punctuated by full-
+     bleed BLACK bands at the head and foot. Type is IBM Plex Mono for every
+     heading over IBM Plex Sans body; Share Tech Mono is reserved for the
+     single `$` prompt glyph that opens a section, and is used nowhere else.
+     Orange is the only chromatic colour in the whole system — there is no
+     second brand hue, so anything else on the page is a status, not a brand.
+
+     Status colours below are NOT brand: they are the diagram key's
+     vocabulary and mean the same thing in every figure.
+
+     These are DEFAULTS, not a requirement. Everything below is a custom
+     property, so a consumer of this skill rebrands their own specs by
+     adding a later `:root` block overriding the ones they care about —
+     no fork of the skeleton needed. */
+    --bg: #DADADA;        /* surface-mid — the ground the cards sit on */
+    --card: #FFFFFF;      /* white — every panel, figure and code frame */
+    --panel: #EFEFEF;     /* surface-light — table heads, inline code */
+    --ink: #2C2C2C;       /* text-dark */
+    --muted: #707070;     /* text-muted */
+    --dim: #8A8A8A;       /* text-mid */
+    --line: #C0C0C0;      /* border */
+    --accent: #F6643A;    /* accent — the only brand colour */
+    --black: #000000;     /* the head and foot bands */
+    --on-black: #EFEFEF;  /* text-white, for use on those bands only */
+    --radius: 12px;       /* rounded-xl */
+    --shadow: 0 1px 3px rgba(0,0,0,.1), 0 1px 2px -1px rgba(0,0,0,.1);  /* shadow-sm */
     --ok: #007f3b; --ok-bg: #e6f4ec; --amber: #a8720a; --amber-bg: #fbf3e2;
     --red: #b3140c; --red-bg: #fbe9e8; --gen: #6b3fa0; --gen-bg: #f0e9f8;
+    --info: #1451a0; --info-bg: #eaf2fb;
     --code-bg: #0d1117;
+    --sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --prompt: "Share Tech Mono", "IBM Plex Mono", ui-monospace, monospace;
   }
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
   body { margin: 0; background: var(--bg); color: var(--ink);
-    font: 16px/1.62 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
-  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px 120px; }
-  header.hero { background: linear-gradient(135deg, var(--accent-dark), var(--accent)); color: #fff; padding: 40px 0 34px; }
+    font: 16px/1.62 var(--sans); -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px 60px; }
+  header.hero { background: var(--black); color: var(--on-black); padding: 44px 0 36px; }
   header.hero .wrap { padding-bottom: 0; }
-  header.hero .eyebrow { text-transform: uppercase; letter-spacing: .12em; font-size: 12px; opacity: .85; font-weight: 600; }
-  header.hero h1 { margin: 8px 0 6px; font-size: 30px; line-height: 1.2; }
-  header.hero p.sub { margin: 0; font-size: 17px; opacity: .93; max-width: 780px; }
+  header.hero .eyebrow { font-family: var(--mono); text-transform: lowercase; letter-spacing: .04em; font-size: 13px; color: #A0A0A0; font-weight: 400; }
+  /* The site opens each section with an orange shell prompt. It is the one
+     place Share Tech Mono appears, and the one flash of colour in the band. */
+  header.hero .eyebrow::before { content: "$ "; font-family: var(--prompt); color: var(--accent); }
+  header.hero h1 { font-family: var(--mono); font-size: 32px; font-weight: 700; line-height: 1.2; margin: 6px 0 10px; color: var(--on-black); }
+  header.hero p.sub, header.hero .sub { margin: 0; font-size: 16px; color: #A0A0A0; max-width: 780px; }
+  header.hero a { color: var(--accent); }
   .pillrow { margin-top: 18px; display: flex; flex-wrap: wrap; gap: 8px; }
-  .pill { background: rgba(255,255,255,.16); border: 1px solid rgba(255,255,255,.28); color: #fff; padding: 4px 11px; border-radius: 999px; font-size: 12.5px; font-weight: 500; }
-  nav.toc { position: sticky; top: 0; z-index: 20; background: rgba(246,248,251,.93); backdrop-filter: blur(6px); border-bottom: 1px solid var(--line); margin-bottom: 30px; }
-  nav.toc .wrap { padding: 10px 24px; display: flex; flex-wrap: wrap; gap: 4px 16px; }
-  nav.toc a { color: var(--muted); text-decoration: none; font-size: 13px; font-weight: 500; padding: 4px 0; }
+  .pill { background: rgba(246,100,58,.14); border: 1px solid rgba(246,100,58,.5); color: #FFB79E; padding: 4px 11px; border-radius: 999px; font-size: 12px; font-family: var(--mono); }
+  /* The black band continues into the nav, the way the site runs a dark
+     utility strip under its hero before the grey body begins. */
+  nav.toc { position: sticky; top: 0; z-index: 20; background: rgba(0,0,0,.93); backdrop-filter: blur(6px); }
+  nav.toc .wrap { display: flex; gap: 18px; flex-wrap: wrap; padding-top: 11px; padding-bottom: 11px; }
+  nav.toc a { color: #C4C4C4; text-decoration: none; font-size: 13px; font-weight: 400; font-family: var(--mono); padding: 4px 0; }
   nav.toc a:hover { color: var(--accent); }
   section { margin: 0 0 46px; }
-  h2 { font-size: 23px; margin: 44px 0 14px; padding-top: 8px; border-top: 3px solid var(--accent); display: inline-block; }
-  h3 { font-size: 18px; margin: 28px 0 10px; color: var(--accent-dark); }
-  h4 { font-size: 15px; margin: 20px 0 8px; }
+  h2 { font-family: var(--mono); font-weight: 700; font-size: 24px; margin: 46px 0 14px; color: var(--ink); }
+  h2::before { content: "$ "; font-family: var(--prompt); font-weight: 400; color: var(--accent); }
+  h3 { font-family: var(--mono); font-weight: 600; font-size: 17px; margin: 28px 0 10px; color: var(--accent); }
+  h4 { font-family: var(--mono); font-weight: 600; font-size: 15px; margin: 20px 0 8px; color: var(--ink); }
+  h5 { font-family: var(--mono); font-weight: 600; font-size: 14px; margin: 18px 0 6px; color: var(--ink); }
   p { margin: 10px 0; }
   a { color: var(--accent); }
-  code:not(pre code) { background: #eef1f6; padding: 1.5px 6px; border-radius: 5px; font-size: 13.5px; font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace; color: #29405c; }
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px 22px; margin: 16px 0; box-shadow: 0 1px 2px rgba(20,30,50,.04); }
+  code:not(pre code) { background: var(--panel); border: 1px solid var(--line); padding: 1px 6px; border-radius: 5px; font-size: 13px; font-family: var(--mono); color: var(--ink); }
+  /* Cards are white, rounded and shadowed, never outlined — the site draws
+     depth with shadow-sm alone and uses no card border anywhere. */
+  .card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px 22px; margin: 16px 0; }
   .callout { border-radius: 10px; padding: 14px 18px; margin: 16px 0; border: 1px solid; font-size: 15px; }
-  .callout .lbl { font-weight: 700; text-transform: uppercase; letter-spacing: .05em; font-size: 11.5px; display: block; margin-bottom: 4px; }
-  .c-info { background: #eaf2fb; border-color: #bcd7f5; color: #1a3a5c; }
+  .callout .lbl { font-weight: 700; text-transform: uppercase; letter-spacing: .06em; font-size: 11.5px; font-family: var(--mono); display: block; margin-bottom: 4px; }
+  .c-info { background: var(--info-bg); border-color: #bcd7f5; color: #1a3a5c; }
   .c-decide { background: var(--gen-bg); border-color: #d3bff0; color: #43286b; }
   .c-warn { background: var(--amber-bg); border-color: #e6cf96; color: #6b4a08; }
   .c-key { background: var(--ok-bg); border-color: #a9d9bd; color: #10502f; }
-  table { border-collapse: collapse; width: 100%; margin: 14px 0; font-size: 13.5px; }
+  table { border-collapse: collapse; width: 100%; margin: 14px 0; font-size: 13.5px; background: var(--card); }
   th, td { border: 1px solid var(--line); padding: 8px 11px; text-align: left; vertical-align: top; }
-  th { background: #eef2f7; font-weight: 600; color: #2b3646; }
+  th { background: var(--panel); font-weight: 600; font-family: var(--mono); color: var(--ink); }
   td.ok { background: var(--ok-bg); } td.amber { background: var(--amber-bg); } td.red { background: var(--red-bg); }
-  .tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 5px; vertical-align: middle; }
+  .tag { display: inline-block; font-size: 11px; font-weight: 600; font-family: var(--mono); padding: 1px 7px; border-radius: 5px; vertical-align: middle; }
   .tag.ok { background: var(--ok-bg); color: var(--ok); } .tag.amber { background: var(--amber-bg); color: var(--amber); }
   .tag.red { background: var(--red-bg); color: var(--red); } .tag.gen { background: var(--gen-bg); color: var(--gen); }
-  .tag.new { background: #e3f0ff; color: #1451a0; } .tag.reuse { background: #eceff3; color: #56606e; }
+  .tag.new { background: var(--info-bg); color: var(--info); } .tag.reuse { background: var(--panel); color: var(--muted); }
   .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
   @media (max-width: 820px) { .grid2, .grid3 { grid-template-columns: 1fr; } nav.toc { display: none; } }
-  pre { background: var(--code-bg); border-radius: 10px; padding: 16px 18px; overflow-x: auto; margin: 14px 0; font-size: 12.8px; line-height: 1.55; }
-  pre code { font-family: "SF Mono", ui-monospace, Menlo, Consolas, monospace; color: #d7dde5; }
-  .mermaid { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 20px; margin: 16px 0; text-align: center; overflow-x: auto; }
+  pre { background: var(--code-bg); border-radius: var(--radius); padding: 16px 18px; overflow-x: auto; margin: 14px 0; font-size: 12.8px; line-height: 1.55; }
+  pre code { font-family: var(--mono); color: #d7dde5; background: none; border: 0; padding: 0; }
+  .mermaid { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; margin: 16px 0; text-align: center; overflow-x: auto; }
   .legend { font-size: 12.5px; color: var(--muted); margin-top: -6px; }
   ul.tight, ol.tight { margin: 8px 0; padding-left: 22px; } ul.tight li, ol.tight li { margin: 5px 0; }
-  .kbd { font-family: ui-monospace, monospace; background:#eef1f6; padding: 1px 6px; border-radius: 4px; font-size: 12.5px; }
+  .kbd { font-family: var(--mono); background: var(--panel); border: 1px solid var(--line); padding: 1px 6px; border-radius: 4px; font-size: 12.5px; }
   .q { border-left: 4px solid var(--gen); padding: 4px 0 4px 14px; margin: 14px 0; } .q b { color: var(--gen); }
-  .layer { border-left: 5px solid var(--accent); background: #fff; border: 1px solid var(--line); border-left-width: 5px; border-radius: 10px; padding: 16px 20px; margin: 14px 0; }
-  .layer h4 { margin-top: 0; color: var(--accent-dark); }
-  .layer .n { display:inline-block; background: var(--accent); color:#fff; width: 22px; height: 22px; border-radius: 50%; text-align:center; line-height: 22px; font-size: 12px; font-weight: 700; margin-right: 8px; }
-  .big-arrow { text-align:center; color: var(--muted); font-size: 20px; margin: 2px 0; }
+  .layer { background: var(--card); border-left: 5px solid var(--accent); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px 20px; margin: 14px 0; }
+  .layer h4 { margin-top: 0; color: var(--accent); }
+  .layer .n { display:inline-block; background: var(--accent); color: #fff; width: 22px; height: 22px; border-radius: 50%; text-align:center; line-height: 22px; font-size: 12px; font-weight: 700; font-family: var(--mono); margin-right: 8px; }
+  .big-arrow { text-align:center; color: var(--dim); font-size: 20px; margin: 2px 0; }
   footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 18px; margin-top: 50px; }
-  .stat { font-size: 30px; font-weight: 700; color: var(--accent-dark); }
+  .stat { font-size: 30px; font-weight: 700; font-family: var(--mono); color: var(--accent); }
   .statlbl { font-size: 12.5px; color: var(--muted); }
 </style>
 </head>
@@ -420,7 +467,7 @@ graph TD
   classDef csame fill:#e6f4ec,stroke:#007f3b;
   classDef csite fill:#eceff3,stroke:#8a94a3,stroke-dasharray: 5 4;
   style OTHER fill:#f4f6f9,stroke:#8a94a3,stroke-dasharray: 5 4;
-  style SELF fill:#ffffff,stroke:#005EB8;
+  style SELF fill:#ffffff,stroke:#1A4757;
   </pre>
   <p class="legend"><b>Scope</b> — the boxes are separate {{repos/packages}}. {{Name them, and say what crosses between: the arrows into the boundary ARE the public contract}}.<br>
     <b>Colour = what happens to it</b> (<a href="#diagram-key">full key</a>) — <span style="background:#f0e9f8;border:1px solid #6b3fa0;border-radius:3px;padding:0 8px;margin-right:2px">&nbsp;</span><b>new</b> · <span style="background:#fff4e5;border:1px solid #b26a00;border-radius:3px;padding:0 8px;margin-right:2px">&nbsp;</span><b>reshaped</b>: {{…}} · <span style="background:#e6f4ec;border:1px solid #007f3b;border-radius:3px;padding:0 8px;margin-right:2px">&nbsp;</span><b>unchanged</b> · <span style="background:#eceff3;border:1px solid #8a94a3;border-radius:3px;padding:0 8px;margin-right:2px">&nbsp;</span>another unit.<br>
