@@ -92,6 +92,14 @@ The skeleton's section spine, the TOC, and the numbering disciplines:
 - **Sections** — present, in order, each either saying something real or saying
   why it is N/A. Name any section that is still carrying skeleton guidance
   comments or `{{PLACEHOLDER}}` text.
+- **Numbering has no gaps, and titles are literal.** A jump from `9` to `11`
+  reads as a missing section and means the numbers stopped agreeing with the
+  siblings — a spec with nothing to record still carries `10 · Decision history`
+  and one line saying N/A. Flag any spine section whose title has drifted from
+  the skeleton's, and in particular any boundary section not titled **`Out of
+  scope`**: "the line this spec stops at" and "what comes next" both hide the
+  section from a reader scanning for what the spec refuses. In a bundle, check
+  the same number means the same thing in every spec.
 - **TOC sync** — `nav.toc` labels match their `<h2>` text exactly (the rule the
   skeleton states in its own header comment).
 - **Figures** — *Number every figure, and title it*: contiguous `F1…FN` with no

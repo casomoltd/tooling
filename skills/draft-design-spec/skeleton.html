@@ -66,7 +66,8 @@
     <a href="#phasing">8 · Phasing</a>
     <a href="#questions">9 · Open questions</a>
     <a href="#history">10 · Decision history</a>
-    <a href="#inventory">Appendix · Graphs</a>
+    <a href="#next">11 · Out of scope</a>
+    <a href="#inventory">Appendix · Dependency graphs</a>
   </div>
 </nav>
 
@@ -325,6 +326,23 @@ classDiagram
     <thead><tr><th style="width:210px">Reversed</th><th>Was</th><th>Is, and why</th></tr></thead>
     <tbody>
       <tr><td><b>{{the decision}}</b></td><td>{{what was proposed first}}</td><td>{{what it is now, and the reason the first answer failed}}</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ===================== 11 · OUT OF SCOPE ============================= -->
+<!-- What this spec deliberately does NOT do, and what would change that.
+     Title it exactly "Out of scope" — not "the line this spec stops at", not
+     "what comes next". A reader scanning for the boundary looks for those two
+     words; a coy title hides the section from the person who needs it most.
+     One row per excluded thing, each with the TRIGGER that would pull it in,
+     so a later reader can tell whether we have reached one yet. -->
+<section id="next">
+  <h2>11 · Out of scope</h2>
+  <table>
+    <thead><tr><th style="width:32%">Not doing</th><th>What would change that</th></tr></thead>
+    <tbody>
+      <tr><td><b>{{the thing}}</b></td><td>{{the concrete trigger — an event, a threshold, a request. Never "when we have time".}}</td></tr>
     </tbody>
   </table>
 </section>

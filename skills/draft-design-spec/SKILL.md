@@ -326,6 +326,17 @@ emit an empty or fabricated diagram.
      do not leave a trail. Distinguish this from **rationale**, which stays: "two
      ledgers would need concatenating, so there is one" is timeless design
      reasoning; "an earlier draft had two ledgers" is archaeology.
+   - **Name a section for what it holds, and number the spine without gaps.** The
+     boundary section is titled **`Out of scope`** — not "the line this spec stops
+     at", not "what comes next". A reader scanning for what a spec refuses looks
+     for those two words, and a coy title hides the section from the person who
+     most needs it. The same goes for the numbering: a spec that has no decision
+     history still carries **`10 · Decision history`** with one line saying N/A,
+     because a jump from 9 to 11 reads as a missing section, and because §10 must
+     mean the same thing in every spec a reader opens. Every excluded thing gets
+     the **trigger** that would pull it back in — a concrete event or threshold,
+     never "when we have time" — so a later reader can tell whether one has been
+     reached.
    - **Number every open question, and scope it.** Rows are `Q1, Q2, …` across
      the whole table, open and settled alike, so a number never changes meaning.
      Each carries a **scope** cell saying whether this spec is entitled to
