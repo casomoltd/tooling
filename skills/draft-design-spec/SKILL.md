@@ -108,10 +108,18 @@ emit an empty or fabricated diagram.
    `scratch/` to `.gitignore` if absent (fail loud if you can't). A consuming
    workspace's own `CLAUDE.md` may designate a different out-dir; honour it.
    Write into the repo, **never `/tmp`** (sandboxed browsers can't read it).
-2. Copy the skeleton — do **not** re-author its `<head>` or `<style>`:
+2. Copy the skeleton **and its two stylesheets** — do **not** re-author its
+   `<head>`, and do not inline the CSS back into the page:
    ```bash
-   cp "${CLAUDE_PLUGIN_ROOT}/skills/draft-design-spec/skeleton.html" <repo>/scratch/<slug>.html
+   SRC="${CLAUDE_PLUGIN_ROOT}/skills/draft-design-spec"
+   cp "$SRC/skeleton.html" <repo>/scratch/<slug>.html
+   cp "$SRC/casomo-tokens.css" "$SRC/casomo-spec.css" <repo>/scratch/
    ```
+   The page links them relatively, which loads over `file://` where a fetch
+   would be blocked. **One copy of each per output directory** — sibling specs
+   in the same dir share them, so a restyle is one edit rather than N. A page
+   that renders another product's UI inside it takes `casomo-tokens.css`
+   **alone**: the chrome sheet uses broad element selectors and will bleed.
    (If `CLAUDE_PLUGIN_ROOT` is unset — running from source — use the repo-relative
    `skills/draft-design-spec/skeleton.html`.)
 3. Fill the body sections (the nine numbered sections **plus the dependency-graph
@@ -389,8 +397,11 @@ do not cross into implementation.
   `CLAUDE.md` designates) — never `/tmp`, never a product source tree.
 - **Never bake private context** into the spec or this skill — no private repo
   names, tracker database IDs, or absolute workspace paths; stay source-agnostic.
-- **Never re-author the frozen `<head>`/`<style>`** — copy the skeleton; the
-  fixed design system is the point. Fill body sections only.
+- **Never re-author the frozen `<head>`, and never inline the stylesheets**
+  — copy `skeleton.html` plus `casomo-tokens.css` and `casomo-spec.css`; the
+  fixed design system is the point, and it stays fixable in one place only
+  while the CSS is a file rather than N pasted copies. Fill body sections
+  only. To recolour, override the tokens in a later `:root` block.
 - **Never answer a question a different consumer would be entitled to answer
   differently.** Product and presentation calls — what a headline figure quotes,
   whether a table is drawn, whether a control is an age or a date — arrive mixed

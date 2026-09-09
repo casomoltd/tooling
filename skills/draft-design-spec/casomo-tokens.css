@@ -1,0 +1,43 @@
+/* Casomo brand tokens.
+ *
+ * Link this next to any HTML that should carry the company's look. It
+ * declares custom properties and paints nothing, so it is safe to drop into
+ * a page that has its own stylesheet: nothing here can bleed into the
+ * page's own rules.
+ *
+ * The colours are transcribed by hand from the company site's design
+ * tokens. They have to be literal values: a rendered page is opened from
+ * disk over file:// with no server, so it cannot fetch at view time, and
+ * this package is a devDependency of the site rather than a dependency, so
+ * it cannot import at build time either. Nine colours are copied; the drift
+ * risk that creates, and what would retire the copy, are recorded at
+ * https://github.com/casomoltd/tooling/issues/6
+ *
+ * These are DEFAULTS. Every value is a custom property, so a consumer
+ * rebrands by adding a later :root block overriding the ones they care
+ * about — no fork of this file needed.
+ *
+ * The status colours are NOT brand. They are the diagram key's vocabulary
+ * and mean the same thing in every figure that uses this sheet.
+ */
+:root {
+  --bg: #DADADA;        /* surface-mid — the ground the cards sit on */
+  --card: #FFFFFF;      /* white — every panel, figure and code frame */
+  --panel: #EFEFEF;     /* surface-light — table heads, inline code */
+  --ink: #2C2C2C;       /* text-dark */
+  --muted: #707070;     /* text-muted */
+  --dim: #8A8A8A;       /* text-mid */
+  --line: #C0C0C0;      /* border */
+  --accent: #F6643A;    /* accent — the only brand colour */
+  --black: #000000;     /* the head and foot bands */
+  --on-black: #EFEFEF;  /* text-white, for use on those bands only */
+  --radius: 12px;       /* rounded-xl */
+  --shadow: 0 1px 3px rgba(0,0,0,.1), 0 1px 2px -1px rgba(0,0,0,.1);  /* shadow-sm */
+  --ok: #007f3b; --ok-bg: #e6f4ec; --amber: #a8720a; --amber-bg: #fbf3e2;
+  --red: #b3140c; --red-bg: #fbe9e8; --gen: #6b3fa0; --gen-bg: #f0e9f8;
+  --info: #1451a0; --info-bg: #eaf2fb;
+  --code-bg: #0d1117;
+  --sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --prompt: "Share Tech Mono", "IBM Plex Mono", ui-monospace, monospace;
+}

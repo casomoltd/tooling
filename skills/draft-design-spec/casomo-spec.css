@@ -1,0 +1,76 @@
+/* Design-spec document chrome — the layout half of the house style.
+ *
+ * Requires casomo-tokens.css, which must be linked BEFORE this file: every
+ * colour and face below is a var() from it. Splitting the two means a page
+ * can take the tokens alone (to stay on-brand while keeping its own
+ * layout) without inheriting these rules.
+ *
+ * Element selectors here are deliberately broad — this sheet expects to own
+ * the whole document. Do not link it into a page that renders someone
+ * else's UI inside it; take casomo-tokens.css alone there.
+ */
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); color: var(--ink);
+  font: 16px/1.62 var(--sans); -webkit-font-smoothing: antialiased; }
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px 60px; }
+header.hero { background: var(--black); color: var(--on-black); padding: 44px 0 36px; }
+header.hero .wrap { padding-bottom: 0; }
+header.hero .eyebrow { font-family: var(--mono); text-transform: lowercase; letter-spacing: .04em; font-size: 13px; color: #A0A0A0; font-weight: 400; }
+/* The site opens each section with an orange shell prompt. It is the one
+   place Share Tech Mono appears, and the one flash of colour in the band. */
+header.hero .eyebrow::before { content: "$ "; font-family: var(--prompt); color: var(--accent); }
+header.hero h1 { font-family: var(--mono); font-size: 32px; font-weight: 700; line-height: 1.2; margin: 6px 0 10px; color: var(--on-black); }
+header.hero p.sub, header.hero .sub { margin: 0; font-size: 16px; color: #A0A0A0; max-width: 780px; }
+header.hero a { color: var(--accent); }
+.pillrow { margin-top: 18px; display: flex; flex-wrap: wrap; gap: 8px; }
+.pill { background: rgba(246,100,58,.14); border: 1px solid rgba(246,100,58,.5); color: #FFB79E; padding: 4px 11px; border-radius: 999px; font-size: 12px; font-family: var(--mono); }
+/* The black band continues into the nav, the way the site runs a dark
+   utility strip under its hero before the grey body begins. */
+nav.toc { position: sticky; top: 0; z-index: 20; background: rgba(0,0,0,.93); backdrop-filter: blur(6px); }
+nav.toc .wrap { display: flex; gap: 18px; flex-wrap: wrap; padding-top: 11px; padding-bottom: 11px; }
+nav.toc a { color: #C4C4C4; text-decoration: none; font-size: 13px; font-weight: 400; font-family: var(--mono); padding: 4px 0; }
+nav.toc a:hover { color: var(--accent); }
+section { margin: 0 0 46px; }
+h2 { font-family: var(--mono); font-weight: 700; font-size: 24px; margin: 46px 0 14px; color: var(--ink); }
+h2::before { content: "$ "; font-family: var(--prompt); font-weight: 400; color: var(--accent); }
+h3 { font-family: var(--mono); font-weight: 600; font-size: 17px; margin: 28px 0 10px; color: var(--accent); }
+h4 { font-family: var(--mono); font-weight: 600; font-size: 15px; margin: 20px 0 8px; color: var(--ink); }
+h5 { font-family: var(--mono); font-weight: 600; font-size: 14px; margin: 18px 0 6px; color: var(--ink); }
+p { margin: 10px 0; }
+a { color: var(--accent); }
+code:not(pre code) { background: var(--panel); border: 1px solid var(--line); padding: 1px 6px; border-radius: 5px; font-size: 13px; font-family: var(--mono); color: var(--ink); }
+/* Cards are white, rounded and shadowed, never outlined — the site draws
+   depth with shadow-sm alone and uses no card border anywhere. */
+.card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px 22px; margin: 16px 0; }
+.callout { border-radius: 10px; padding: 14px 18px; margin: 16px 0; border: 1px solid; font-size: 15px; }
+.callout .lbl { font-weight: 700; text-transform: uppercase; letter-spacing: .06em; font-size: 11.5px; font-family: var(--mono); display: block; margin-bottom: 4px; }
+.c-info { background: var(--info-bg); border-color: #bcd7f5; color: #1a3a5c; }
+.c-decide { background: var(--gen-bg); border-color: #d3bff0; color: #43286b; }
+.c-warn { background: var(--amber-bg); border-color: #e6cf96; color: #6b4a08; }
+.c-key { background: var(--ok-bg); border-color: #a9d9bd; color: #10502f; }
+table { border-collapse: collapse; width: 100%; margin: 14px 0; font-size: 13.5px; background: var(--card); }
+th, td { border: 1px solid var(--line); padding: 8px 11px; text-align: left; vertical-align: top; }
+th { background: var(--panel); font-weight: 600; font-family: var(--mono); color: var(--ink); }
+td.ok { background: var(--ok-bg); } td.amber { background: var(--amber-bg); } td.red { background: var(--red-bg); }
+.tag { display: inline-block; font-size: 11px; font-weight: 600; font-family: var(--mono); padding: 1px 7px; border-radius: 5px; vertical-align: middle; }
+.tag.ok { background: var(--ok-bg); color: var(--ok); } .tag.amber { background: var(--amber-bg); color: var(--amber); }
+.tag.red { background: var(--red-bg); color: var(--red); } .tag.gen { background: var(--gen-bg); color: var(--gen); }
+.tag.new { background: var(--info-bg); color: var(--info); } .tag.reuse { background: var(--panel); color: var(--muted); }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+@media (max-width: 820px) { .grid2, .grid3 { grid-template-columns: 1fr; } nav.toc { display: none; } }
+pre { background: var(--code-bg); border-radius: var(--radius); padding: 16px 18px; overflow-x: auto; margin: 14px 0; font-size: 12.8px; line-height: 1.55; }
+pre code { font-family: var(--mono); color: #d7dde5; background: none; border: 0; padding: 0; }
+.mermaid { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; margin: 16px 0; text-align: center; overflow-x: auto; }
+.legend { font-size: 12.5px; color: var(--muted); margin-top: -6px; }
+ul.tight, ol.tight { margin: 8px 0; padding-left: 22px; } ul.tight li, ol.tight li { margin: 5px 0; }
+.kbd { font-family: var(--mono); background: var(--panel); border: 1px solid var(--line); padding: 1px 6px; border-radius: 4px; font-size: 12.5px; }
+.q { border-left: 4px solid var(--gen); padding: 4px 0 4px 14px; margin: 14px 0; } .q b { color: var(--gen); }
+.layer { background: var(--card); border-left: 5px solid var(--accent); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px 20px; margin: 14px 0; }
+.layer h4 { margin-top: 0; color: var(--accent); }
+.layer .n { display:inline-block; background: var(--accent); color: #fff; width: 22px; height: 22px; border-radius: 50%; text-align:center; line-height: 22px; font-size: 12px; font-weight: 700; font-family: var(--mono); margin-right: 8px; }
+.big-arrow { text-align:center; color: var(--dim); font-size: 20px; margin: 2px 0; }
+footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 18px; margin-top: 50px; }
+.stat { font-size: 30px; font-weight: 700; font-family: var(--mono); color: var(--accent); }
+.statlbl { font-size: 12.5px; color: var(--muted); }
