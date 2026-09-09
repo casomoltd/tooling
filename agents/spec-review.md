@@ -59,6 +59,14 @@ sed -e 's/<[^>]*>/ /g' spec.html | tr -s ' ' | sed '/^ *$/d' > /tmp/spec.txt
 Prefer `LC_ALL=C grep` for pattern sweeps — these files carry `§`, `·` and `—`,
 and a UTF-8 locale makes wide context expressions fail on complexity limits.
 
+**Run the structural validator first, before reading anything.** `npx html-validate
+<spec>.html` (its config ships beside the skeleton) is the only check that catches
+markup a browser silently repairs — a table row missing its opening cell, an
+unclosed heading that swallows every section after it, a stray end tag. These
+present to a reader as a column that looks empty or a section that looks
+mis-indented, never as an error, so they survive every human review. Report what it
+says before any judgement-level finding, and say so if it could not be run.
+
 Where a headless Chromium is available, render each spec once and grep the DOM for
 `Syntax error in text` to catch a broken mermaid figure, and count `<svg` against
 the number of `<pre class="mermaid">` blocks to catch one that silently did not

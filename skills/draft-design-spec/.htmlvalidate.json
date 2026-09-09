@@ -1,0 +1,15 @@
+{
+  "$comment": "Structural validation for a design spec. Copy this beside the spec, then: npx html-validate <slug>.html — it is the only thing that catches markup a browser silently 'recovers' from, which is how a table row lost its opening cell and dumped a whole column out of the table as loose text. Rules that are about production accessibility or house style are off: a spec is an internal reviewable document, not a shipped page, and a noisy checker gets ignored.",
+  "extends": ["html-validate:recommended"],
+  "rules": {
+    "doctype-style": "off",
+    "no-inline-style": "off",
+    "long-title": "off",
+    "attribute-boolean-style": "off",
+    "void-style": "off",
+    "no-trailing-whitespace": "off",
+    "wcag/h30": "off",
+    "wcag/h37": "off",
+    "wcag/h63": "off"
+  }
+}

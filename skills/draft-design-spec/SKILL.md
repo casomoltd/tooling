@@ -114,7 +114,10 @@ emit an empty or fabricated diagram.
    SRC="${CLAUDE_PLUGIN_ROOT}/skills/draft-design-spec"
    cp "$SRC/skeleton.html" <repo>/scratch/<slug>.html
    cp "$SRC/casomo-tokens.css" "$SRC/casomo-spec.css" <repo>/scratch/
+   cp "$SRC/.htmlvalidate.json" <repo>/scratch/
    ```
+   `.htmlvalidate.json` is the config for the structural check in step 4; it
+   sits beside the spec for the same reason the stylesheets do.
    The page links them relatively, which loads over `file://` where a fetch
    would be blocked. **One copy of each per output directory** — sibling specs
    in the same dir share them, so a restyle is one edit rather than N. A page
@@ -132,6 +135,15 @@ emit an empty or fabricated diagram.
      plus a quick import-edge scan (grep the imports); fill the fan-in reuse
      table, mark the units in the change's scope, and keep the skeleton's fixed
      colour/shape key. This is the map the user judges reuse from — never skip it.
+   - **Validate the markup before you read the page — a browser will not tell
+     you.** Browsers silently recover from broken HTML, so a malformed table
+     renders as *something* and the defect shows up as a column that looks
+     empty rather than as an error. Run
+     `npx html-validate <slug>.html` and fix everything it reports. This is
+     cheap, deterministic, and it catches the class of damage a bulk edit does:
+     a row that lost its opening cell, an unclosed heading swallowing every
+     section beneath it, a stray end tag. **A rendered page is not evidence the
+     markup is sound.**
    - **Author every diagram to FIT the page width — and measure it, don't eyeball
      it.** The skeleton's content box is 1080px wide with 24px padding, and the
      `.mermaid` card adds 20px padding plus a border, leaving **~990px** of usable
