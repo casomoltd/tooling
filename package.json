@@ -23,7 +23,7 @@
     "check": "node bin/check-gates.mjs && node bin/verify-pack.mjs && npm run check:private-refs && npm run typecheck && npm run test && npm run lint:md",
     "typecheck": "tsc --noEmit -p hooks/tsconfig.json",
     "test": "node hooks/test.mts && node bin/check-gates.test.mjs",
-    "lint:md": "remark --frail --quiet --no-stdout --rc-path bin/skills-lint.config.mjs skills docs",
+    "lint:md": "remark --frail --quiet --no-stdout --rc-path bin/skills-lint.config.mjs skills agents docs",
     "build": "echo 'no-op: source-only repo, nothing to build'",
     "prepare": "husky || true",
     "check:private-refs": "node bin/check-private-refs.mjs"
