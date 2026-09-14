@@ -337,3 +337,17 @@ A concise list, each finding:
 
 Group by file. If nothing violates the standards, say so plainly — cite the
 rule, no padding. You are **read-only**: propose changes, never apply them.
+
+**Then the comment-provenance sweep, as its own closing line, every time.** The
+*Comments carry the WHY* and *The WHY is the why NOW* bullets are the easiest
+rules in this brief to read past: a comment that dates itself or argues against
+the version before it **reads as rationale**, and the code beneath it is
+usually correct, so nothing draws the eye. Reviews miss it while flagging the
+lines either side of it. So it is not left to judgement — name the files whose
+doc comments and module preambles you actually read, and the count flagged,
+including when that is zero:
+
+    Comment provenance: read src/a.ts, src/b.ts, bin/c.ts — 2 flagged
+    (a date, one arguing against the previous design).
+
+A review that does not carry this line did not do the sweep.

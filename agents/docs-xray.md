@@ -102,6 +102,17 @@ kind · the concrete fix. Cover the semantic layer a link linter cannot see:
 - **Missing back-link** — A points at B, but B never points back where a reader
   arriving at B would need it (e.g. an overview and its detail doc that should
   cross-reference each other).
+- **History narration** — a doc telling the story of how its subject changed
+  instead of stating what is true now: a date (`on 13 March`), a person, "an
+  earlier version", "this used to", "X was invented once and drifted", or an
+  incident retold as the reason for a rule. `docs-style` owns the full rule
+  under *State current truth, not history*, including its one exception (a doc
+  whose whole job is the record: a changelog or dated audit trail). **Check for
+  this on every run and report the result even when it is clean** — it is the
+  commonest drift in a doc edited alongside the change it describes, it reads
+  as rationale rather than as narration, and that is exactly why it survives
+  review. The fix is the live consequence in the present tense; the story
+  belongs in the commit message.
 
 ### 3. Verdict
 One call: the corpus is coherent, or here is the routed fix list (highest-impact
