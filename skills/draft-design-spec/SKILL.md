@@ -117,7 +117,19 @@ emit an empty or fabricated diagram.
    cp "$SRC/.htmlvalidate.json" <repo>/scratch/
    ```
    `.htmlvalidate.json` is the config for the structural check in step 4; it
-   sits beside the spec for the same reason the stylesheets do.
+   sits beside the spec for the same reason the stylesheets do. It turns off
+   the rules that judge a **shipped page** rather than a document — inline
+   style, doctype style, title length, the WCAG heading rules — because a spec
+   is an internal reviewable artefact and a noisy checker is an ignored one.
+   What it deliberately leaves on is the structural half, which is the only
+   thing that catches markup a browser silently recovers from: that is how a
+   table row lost its opening cell and dumped a whole column out of the table
+   as loose text. **Do not add a `$comment` key to explain any of this in the
+   file itself** — html-validate's config schema sets `additionalProperties:
+   false`, so an unknown key is not ignored and not warned about: the config
+   is refused and the tool will not start. Only `$schema`, `extends`, `rules`,
+   `plugins`, `elements`, `transform`, `aria` and `root` are accepted. The
+   `$schema` line is there so an editor flags that mistake before a run does.
    The page links them relatively, which loads over `file://` where a fetch
    would be blocked. **One copy of each per output directory** — sibling specs
    in the same dir share them, so a restyle is one edit rather than N. A page
