@@ -97,6 +97,37 @@ durability. **Defers**:
   reader can't infer from the thing itself; it never just restates the mechanic
   in prose.
 
+## Where a repo's own docs live
+
+- **A rule about how the code works goes in a doc, never in the
+  agent-instruction file.** `CLAUDE.md` / `AGENTS.md` is an index and a set of
+  standing instructions, kept short precisely so it is read in full every
+  session. A paragraph of design reasoning there is not documentation, it is
+  rot: it pushes the instructions down the page, it is re-read by a machine on
+  every unrelated task, and a human looking for that rule will never think to
+  open it. Put the rule in the doc that owns the subject; the instruction file
+  carries at most one line pointing at it.
+- **Two standard docs, answering different questions.** A library carries
+  `docs/how-it-works.md`, the MODEL — the rules that govern it, the definitions
+  its behaviour turns on, its declared assumptions, and the reasoning behind any
+  of them a reader would otherwise reopen. And `docs/api.md`, the REFERENCE —
+  what is exported and what each name means. Subject docs sit alongside them
+  (how figures are verified, where sources are archived). A rule of the model
+  belongs in the first and is linked from the second.
+- **Never mint a doc for one rule.** A file named after a single rule cannot
+  grow, and it scatters the model across as many files as there are rules, so
+  the next reader must find all of them to know how the thing behaves. Add a
+  section to the model doc instead. The test: could a second rule of the same
+  kind join this file without its name becoming a lie? If not, the name is too
+  narrow and the file is a section wearing a filename.
+- **Record the decision, not only the rule.** Where a rule is the survivor of a
+  rejected alternative that cost real work — something built, measured and
+  reverted — say so and say what it cost. A rule with no recorded reason gets
+  reopened, and the argument is the only thing that stops it being proposed
+  again. This is where *state current truth, not history* yields: why the code
+  is the shape it is **is** current truth, unlike a narration of what it used to
+  be.
+
 ## Cross-links & inline mechanics
 
 - **Cross-document and file references are markdown links**
