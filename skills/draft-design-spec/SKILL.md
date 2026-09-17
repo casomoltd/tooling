@@ -166,8 +166,8 @@ emit an empty or fabricated diagram.
      compare every figure to the budget in one pass. Levers, in the order they
      actually pay off:
      1. **`TD` over `LR`.** Far the biggest win: a left-to-right chain runs
-        several times the width of the same graph as `TD`, routinely past the
-        budget. Vertical is also usually the better metaphor (a ledger is
+        several times the width of the same graph as `TD`, which is what puts
+        a figure past the budget. Vertical is also usually the better metaphor (a ledger is
         stacked rows, a pipeline is stages).
      2. **Short node labels**, with the detail in the `.legend` beneath.
      3. **Never repeat in a node what an adjacent table already states** — e.g.

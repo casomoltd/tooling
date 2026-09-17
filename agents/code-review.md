@@ -40,7 +40,7 @@ layer) — run it too; the rule you cite by name is the preloaded language stand
   gap where an author edits a module heavily and nobody looks at the sixty
   lines below the edit. A defect that predates the diff is invisible to a
   diff-scoped review, and an edited file's oldest lines are exactly where it
-  hides — through as many rounds as rewrite the file around it.
+  hides, surviving however many rounds rewrite the file around them.
 - **The two rubric skills above**, preloaded as your single source of truth —
   `typescript` for `.ts`/`.tsx`, `python-style` for `.py`. Don't invent rules
   beyond them.
