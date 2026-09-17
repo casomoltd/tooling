@@ -915,9 +915,8 @@ caller renders — a CLI, a spreadsheet export and a web form all want a
 different answer, and only one of them wants an emoji.
 
 **Check the consumers before recommending a move.** A display field that
-nothing reads is not misplaced, it is dead, and deleting beats
-relocating. The flag above had zero readers across four repos and still
-shipped in every published bundle.
+nothing reads is not misplaced, it is dead, and deleting beats relocating: it
+ships in every published bundle either way.
 
 **Do not apply this reflexively to labels.** A library may legitimately
 own the one correct wording for a value it defines, so that consumers
@@ -1021,9 +1020,8 @@ post's award*. Query-shaped APIs over a domain model are a smell exactly
 when the entity exists.
 
 **What does not follow**, so the rule is not over-applied: this is not a
-licence to store the relationship on both ends. Back-pointers were
-considered and rejected in the case that produced this rule — one side
-had no entity at all (its ids were a string union) and the two ends sat
-at different granularities. The rule is *put the accessor on the entity
+licence to store the relationship on both ends. Back-pointers do not follow,
+and they do not work where one side has no entity at all (its ids are a bare
+string union) or the two ends sit at different granularities. The rule is *put the accessor on the entity
 that has the coordinates*, not *add back-pointers*.
 

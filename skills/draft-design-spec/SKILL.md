@@ -122,9 +122,9 @@ emit an empty or fabricated diagram.
    style, doctype style, title length, the WCAG heading rules — because a spec
    is an internal reviewable artefact and a noisy checker is an ignored one.
    What it deliberately leaves on is the structural half, which is the only
-   thing that catches markup a browser silently recovers from: that is how a
-   table row lost its opening cell and dumped a whole column out of the table
-   as loose text. **Do not add a `$comment` key to explain any of this in the
+   thing that catches markup a browser silently recovers from — a table row
+   missing its opening cell dumps a whole column out of the table as loose
+   text, and renders without complaint. **Do not add a `$comment` key to explain any of this in the
    file itself** — html-validate's config schema sets `additionalProperties:
    false`, so an unknown key is not ignored and not warned about: the config
    is refused and the tool will not start. Only `$schema`, `extends`, `rules`,
@@ -165,9 +165,9 @@ emit an empty or fabricated diagram.
      --virtual-time-budget=15000 file://…`, then extract `viewBox="0 0 W H"`);
      compare every figure to the budget in one pass. Levers, in the order they
      actually pay off:
-     1. **`TD` over `LR`.** Far the biggest win — a left-to-right chain of two
-        3-node groups measured 1733px; the identical graph as `TD` measured
-        **206px**. Vertical is also usually the better metaphor (a ledger is
+     1. **`TD` over `LR`.** Far the biggest win: a left-to-right chain runs
+        several times the width of the same graph as `TD`, routinely past the
+        budget. Vertical is also usually the better metaphor (a ledger is
         stacked rows, a pipeline is stages).
      2. **Short node labels**, with the detail in the `.legend` beneath.
      3. **Never repeat in a node what an adjacent table already states** — e.g.
@@ -185,9 +185,8 @@ emit an empty or fabricated diagram.
      or split the figure in two. **Check `subgraph` wrappers before you trim
      anything**: cluster padding, plus the way a cluster pins its members
      together against the layout, costs far more width than long text. Removing
-     two of them took one figure from 1225px to 945px after label-trimming had
-     stalled — and the grouping they carried was better served by node shape
-     plus a line in the legend.
+     a wrapper buys more than trimming labels does, and the grouping it carried
+     is usually better served by node shape plus a line in the legend.
    - **Keep every mermaid diagram legible, never shrunk-to-fit** — the skeleton
      sets `useMaxWidth: false` so a wide graph renders at full size and scrolls
      inside its `overflow-x` box rather than being squeezed to container width
@@ -246,9 +245,9 @@ emit an empty or fabricated diagram.
      something that belongs elsewhere, and it is always one of three things:
      an **enumeration** (delete it, the figure already shows it), **per-item
      detail** (move it to the reference table below), or **argument** (move it
-     to prose *above* the figure, where it reads better anyway). Applying this
-     to one real spec took its largest caption from ~3,300 characters to under
-     1,000 without losing a sentence worth keeping.
+     to prose *above* the figure, where it reads better anyway). A caption that
+     survives all three is a fraction of its original length and loses nothing
+     worth keeping.
    - **One colour key for the whole document.** Fill the skeleton's
      `#diagram-key` card once and have every legend link back to it. Colour
      means **change status** (new / reshaped / unchanged / removed / another
@@ -332,8 +331,8 @@ emit an empty or fabricated diagram.
    - **Audit relationships across diagrams, not just within one.** Two figures
      describing the same model will drift: the same pair rendered `A *-- B` in
      one and `A --> B : has` in the other, or a dependency drawn in opposite
-     directions in each. Both happened in a real spec. Before publishing, list
-     every edge in every figure and reconcile them — divergence is a signal
+     directions in each. Before publishing, list every edge in every figure and
+     reconcile them — divergence is a signal
      that one of them is stale, not a formatting nit.
    - **Keep decision history OUT of the body — collect it in one section.** A
      spec that survives a few review rounds accumulates archaeology: "an earlier
