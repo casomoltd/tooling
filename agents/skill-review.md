@@ -85,7 +85,10 @@ and "currently" belong in a dated output, not a standing unit.
 
 ## Ignore — owned elsewhere (never re-flag)
 
-- **Broken links and anchors** — the markdown link linter owns them.
+- **Broken links, anchors, and code fences missing a language tag** — the
+  markdown linter owns all of it. A backticked path that should be a link is
+  still yours, because that is a judgement about where a rule lives; fence
+  formatting is not.
 - **How the docs corpus fits together**, orphans and reference graphs —
   `docs-xray` owns that.
 - **Reader-facing voice, banned words, brand tone** — a copy reviewer owns that.
