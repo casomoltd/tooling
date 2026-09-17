@@ -388,6 +388,17 @@ duplicated coverage, and missing back-links. It judges structure and
 cross-reference coherence against `docs-style` — not mechanical broken links
 (that's a markdown link linter) or prose voice (a content reviewer).
 
+**`casomoltd:skill-review`** reviews changed *skills and agent briefs* against
+`docs-style` and [the authoring schema](docs/skill-agent-schema.md): prose that
+narrates its own past rather than stating current truth, a unit missing the
+sections its profile needs, a rule restated from the skill that owns it, and a
+description that won't route. It closes with an explicit history sweep — the
+units it read and the count flagged, including zero — because that finding sits
+where a justification would and otherwise survives an ordinary read-through. The
+[`commit`](skills/commit/SKILL.md) skill routes staged `SKILL.md` and
+`agents/*.md` changes to it. Not link validity (a markdown link linter), not the
+corpus reference graph (`docs-xray`), not prose voice (a content reviewer).
+
 **Report output & `SCRATCH_DIR`.** `design-xray` and `docs-xray` persist their
 report — the `.md` plus an `.html` rendered by `bin/render-report.mjs` — so it
 outlives the run and opens in a browser. Each writes to a gitignored

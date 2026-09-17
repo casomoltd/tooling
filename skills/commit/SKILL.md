@@ -82,6 +82,11 @@ version bump or a config-only diff):
   `python-style` standard to `.py` (it picks the rubric by extension, so
   a Python-only repo like `ops` is reviewed just as fully) — plus the
   built-in `/code-review` for correctness bugs on any changed code.
+- **Skills and agent briefs** (`**/SKILL.md`, `agents/*.md`) →
+  `casomoltd:skill-review` — it applies the `docs-style` standard and the
+  authoring schema, and closes with an explicit history sweep. Prose that
+  narrates its own past sits where a justification would and the rule above it
+  is sound, so it survives an ordinary read-through.
 - **Reader-facing prose** — JSX text, headings and FAQ strings in page
   `.tsx`, `.md`, and `meta` titles/descriptions → the prose reviewer
   (`copy-review`) **if it's available**. It owns voice, banned words and
