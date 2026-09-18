@@ -23,8 +23,11 @@ truth rather than drifting narrative.
 
 `**/*.md` (declared in `paths:`) — dev and reference docs (README, CLAUDE.md,
 `docs/`, architecture notes) and the *prose inside* skill/agent definitions.
-Preloaded as the rubric wherever markdown is written or reviewed (e.g. the
-`docs-xray` agent). Marketing/brand copy is out of scope.
+Preloaded as the rubric wherever markdown is written or reviewed:
+[`doc-review`](../../agents/doc-review.md) applies it to one doc,
+[`skill-review`](../../agents/skill-review.md) to a skill or agent brief, and
+[`docs-xray`](../../agents/docs-xray.md) to the corpus graph. Marketing/brand
+copy is out of scope.
 
 ## Owns-vs-defers
 
@@ -84,6 +87,55 @@ durability. **Defers**:
 - **Verify an external source's recency *and* its content.** When you cite an
   outside reference, confirm both its last-updated date and that the *specific*
   thing you're citing actually changed — a page touch is not a content change.
+
+## The shape of a doc
+
+Voice governs the sentences; this governs what the doc is made of and what
+order it comes in. The failures it catches are a doc whose reader reaches the
+substance late, and a doc carrying three subjects under one name.
+
+- **Lead with the substance.** The thing the doc exists to say comes first, and
+  everything that merely orients the reader comes after it or not at all. Scope
+  notes, boundary tables and ownership preambles are furniture: each is worth a
+  line and none is worth the opening. The test is where the load-bearing content
+  falls — if it is halfway down, the front half is furniture and should be
+  shorter or moved.
+  This and *open with purpose before method* above differ by scale: one line
+  saying what the doc is for earns the opening, a screen of scope and ownership
+  does not.
+- **Get to the point inside a section too.** Say the thing, then qualify it. A
+  paragraph that circles a point before landing it has spent the reader's
+  attention on the approach.
+- **A leaf doc carries no contents table.** Indexing what exists is the
+  top-level `README`'s job, and a second index drifts from the first the day a
+  doc is added. A leaf may link the siblings it genuinely depends on; it may not
+  list them all.
+- **One doc, one subject.** The name is the contract. Content that does not fit
+  the name either means the content belongs elsewhere or the doc is misnamed,
+  and both are fixed by moving something rather than by widening the name. This
+  is the separation of concerns a module gets and a doc usually does not.
+  *Never mint a doc for one rule* below is the same test at the other end: this
+  catches a doc too broad for its name, that one a doc too narrow to deserve
+  one.
+- **Say what is out of scope, and link where it went.** A short *Out of scope*
+  section naming the neighbouring subject and pointing at the doc that owns it
+  is how a reader who arrived at the wrong document leaves quickly. Silence
+  makes them read the whole thing to find out.
+- **Link forward, not only outward.** When a section introduces something the
+  same doc defines properly further down, link to it there. A reader who does
+  not know the detail is coming either stops or reads on unsure whether they
+  have missed it.
+- **Give the best current answer, never "not built yet".** A section whose
+  content is that nothing exists yet has no content. State what it will be, as
+  the current best reading, and carry the open question wherever open questions
+  are tracked — with a reference back here so the two stay attached.
+- **No progress record, in either direction.** *State current truth* forbids
+  narrating the past; the same applies forward. What is planned, what a round
+  will tackle, what remains uncertain about the work itself: none of it is the
+  subject, all of it goes stale, and it swamps the part a reader came for.
+- **Headings name the thing, in as few words as carry it.** *Scope*, not *What
+  this document owns and what it does not*. *Shape B*, not *Shape B — what it
+  contains*. The extra words are read on every scan and earn nothing.
 
 ## Single source of truth
 

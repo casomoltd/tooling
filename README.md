@@ -388,6 +388,15 @@ duplicated coverage, and missing back-links. It judges structure and
 cross-reference coherence against `docs-style` — not mechanical broken links
 (that's a markdown link linter) or prose voice (a content reviewer).
 
+**`casomoltd:doc-review`** reviews *one repository doc* against `docs-style`:
+whether it gets to the point or buries it under furniture, whether it is one
+subject or three, whether a leaf carries an index belonging in the README,
+whether a section says "not built yet" where content should be, and whether the
+session's own progress has leaked in. A doc can be right in every sentence and
+fail this review, because what it judges is shape. Not link validity (a markdown
+link linter), not the corpus reference graph (`docs-xray`), not skills or agent
+briefs (`skill-review`).
+
 **`casomoltd:skill-review`** reviews changed *skills and agent briefs* against
 `docs-style` and [the authoring schema](docs/skill-agent-schema.md): prose that
 narrates its own past rather than stating current truth, a unit missing the

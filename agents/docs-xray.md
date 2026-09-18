@@ -145,6 +145,12 @@ artifact — that's the caller's step.
   single-source linking, no changelog narration); you *judge against* it but
   never reauthor. It's your preloaded standard, the way `design-xray` uses
   `python-style` / `typescript`.
+- **vs [`doc-review`](doc-review.md) and [`skill-review`](skill-review.md)** —
+  they apply the full `docs-style` rubric depth-first to **one** unit: a doc,
+  or a skill/agent brief. Your
+  history-narration check is a corpus-wide sweep across every file, which is a
+  lighter pass over the same rule and not a substitute for either. Report what
+  the sweep finds; leave the per-doc verdict to them.
 - **vs `design-xray`** — it maps *code* structure (modules, class hierarchy), and
   owns inline source-code doc-comments and in-code citations (it reads the
   modules). You map *docs* structure — the markdown corpus and the cross-reference

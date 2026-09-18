@@ -83,6 +83,15 @@ invisible to the link graph and rots silently.
 **6. Durable method, not point-in-time data.** Counts, versions, live figures
 and "currently" belong in a dated output, not a standing unit.
 
+**7. The shape rules apply to this prose too**, against
+[`docs-style`](../skills/docs-style/SKILL.md)'s *the shape of a doc*. A skill is read under time pressure by something deciding
+whether to act on it, so a buried lead costs more here than in a doc: check
+where the substance starts, whether the unit is one subject, whether a section
+has grown from a line of orientation into a screen of it, and whether a heading
+carries more words than it needs. [`doc-review`](doc-review.md) owns this for a doc and
+stops at the `SKILL.md` boundary; past that boundary it is yours, and without
+this item the rule has no enforcer in a skill or agent file at all.
+
 ## Ignore — owned elsewhere (never re-flag)
 
 - **Broken links, anchors, and code fences missing a language tag** — the
