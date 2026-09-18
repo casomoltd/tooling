@@ -16,4 +16,5 @@ export PRE_PUSH_REFS
 # simply doesn't.
 npm run check \
   && echo "$PRE_PUSH_REFS" | check-version \
-  && echo "$PRE_PUSH_REFS" | check-tags
+  && echo "$PRE_PUSH_REFS" | check-tags \
+  && echo "$PRE_PUSH_REFS" | check-linear

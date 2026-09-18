@@ -34,7 +34,7 @@
       "knip": "no knip config for this repo's mixed .mts/.mjs layout yet",
       "jscpd": "no jscpd config for this repo yet",
       "spell": "no shared cspell config exists yet",
-      "build": "source-only repo — build is a deliberate no-op, nothing to verify"
+      "build": "source-only repo \u2014 build is a deliberate no-op, nothing to verify"
     }
   },
   "exports": {
@@ -49,6 +49,7 @@
   "bin": {
     "build-report": "./bin/build-report.mjs",
     "check-gates": "./bin/check-gates.mjs",
+    "check-linear": "./bin/check-linear.sh",
     "check-private-refs": "./bin/check-private-refs.mjs",
     "check-tags": "./bin/check-tags.sh",
     "check-version": "./bin/check-version.sh",

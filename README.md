@@ -21,7 +21,8 @@ Shared linting, formatting, commit config, and CLI tools for Casomo Ltd's repos.
 | Command | Description |
 |---|---|
 | `check-version` | Pre-push guard — rejects push if `package.json` version hasn't changed vs `origin/main` |
-| `pre-push` | Husky pre-push hook — runs check, build, then version/tag guards |
+| `check-linear` | Pre-push guard — rejects a push that would put a merge commit on the remote. History is linear; a branch catches up by rebasing. Only what the push adds is judged, so merges already on the remote stay |
+| `pre-push` | Husky pre-push hook — runs check, then the version, tag and linear-history guards |
 | `pre-commit` | Husky pre-commit hook — runs `npm run check` |
 | `commit-msg` | Husky commit-msg hook — runs commitlint |
 | `readability` | Measure reading difficulty of page content |
