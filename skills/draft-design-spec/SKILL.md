@@ -1,17 +1,17 @@
 ---
 name: draft-design-spec
 description: >-
-  Turn a task or brief into a browser-reviewable, self-contained HTML design
-  spec authored into scratch — the pre-implementation planning artefact — then
-  iterate on the same file instead of a terminal wall-of-text plan. Reach for it
+  Turn a task or brief into a reviewable, self-contained HTML design spec
+  published as an Artifact — the pre-implementation planning artefact — then
+  iterate on the same Artifact instead of a terminal wall-of-text plan. Reach for it
   proactively, without being asked, whenever a task is SPEC-SIZED: a large
   redesign, a new feature or subsystem, a domain-model remodel, a package
   extension, or the target shape of a multi-file refactor that should be reviewed
   before any code is written. In planning mode it resolves the brief, grounds in
   the current state via the design-xray agent, and authors a 13-section spec
   (thesis, data reality, current + target class models with mermaid, full type
-  definitions, rationale, migration, phasing, open questions) the user reviews in
-  a browser. Writes NO product code. NOT for a small edit, a single-function
+  definitions, rationale, migration, phasing, open questions) the user reviews
+  and comments on in the published Artifact. Writes NO product code. NOT for a small edit, a single-function
   change, a bug fix, or a quick question — those don't need a spec. NOT for
   reshaping code that already exists into an applied diff (that's design-pass) ·
   NOT for multi-source web research (that's deep-research) · NOT for logging the
@@ -28,8 +28,7 @@ allowed-tools:
   - Bash(git *)
   - Bash(mkdir *)
   - Bash(cp *)
-  - Bash(xdg-open *)
-  - Bash(open *)
+  - Artifact
   - WebFetch
 ---
 
@@ -39,14 +38,22 @@ allowed-tools:
 
 Author a **browser-reviewable HTML design spec** from a brief and iterate on it —
 the pre-implementation planning artefact, writing **no product code**. One job:
-replace a terminal wall-of-text plan with a persistent, self-contained HTML file
-(class models, full type definitions, per-decision rationale) that the user reads
-and refines in a browser.
+replace a terminal wall-of-text plan with a persistent, self-contained page
+(class models, full type definitions, per-decision rationale) that the user reads,
+comments on and refines.
 
-This is a **planning-mode** step. The output is a single `scratch/<slug>.html`
-file, not a terminal plan and not the harness plan file. The pass stays
-**authoring-into-scratch only** — it makes no change to product code at any
-point; implementation is a separate, explicitly-approved step (see Boundaries).
+This is a **planning-mode** step. The output is **one published Artifact**, not a
+terminal plan, not the harness plan file, and not an HTML file left in the repo.
+The page is written locally only as the thing that gets published. The pass makes
+no change to product code at any point; implementation is a separate,
+explicitly-approved step (see Boundaries).
+
+**Why an Artifact rather than a file on disk.** Review is the whole purpose, and
+an Artifact is where review can actually happen: the user comments on the section
+they are reading, those comments come back addressed to their anchor, and each
+revision replaces the page at the same URL. A file in a scratch directory has to
+be found, opened, and described back in prose before anyone can say anything
+about it, and it accumulates as clutter nobody prunes.
 
 ## Scope
 
@@ -104,17 +111,18 @@ emit an empty or fabricated diagram.
 
 ## 3. Author the spec
 
-1. Ensure `<repo>/scratch/` exists and is gitignored — create the dir and add
-   `scratch/` to `.gitignore` if absent (fail loud if you can't). A consuming
-   workspace's own `CLAUDE.md` may designate a different out-dir; honour it.
-   Write into the repo, **never `/tmp`** (sandboxed browsers can't read it).
+1. Work in a scratchpad or temp directory the host gives you — never a product
+   source tree, never a committed path, and **nothing that needs a `.gitignore`
+   line**. The local copy is an input to publishing, not the deliverable, so it
+   does not have to survive the session.
 2. Copy the skeleton **and its two stylesheets** — do **not** re-author its
    `<head>`, and do not inline the CSS back into the page:
    ```bash
    SRC="${CLAUDE_PLUGIN_ROOT}/skills/draft-design-spec"
-   cp "$SRC/skeleton.html" <repo>/scratch/<slug>.html
-   cp "$SRC/casomo-tokens.css" "$SRC/casomo-spec.css" <repo>/scratch/
-   cp "$SRC/.htmlvalidate.json" <repo>/scratch/
+   CSS="${CLAUDE_PLUGIN_ROOT}/styles"
+   cp "$SRC/skeleton.html" <work>/<slug>.html
+   cp "$CSS/casomo-tokens.css" "$CSS/casomo-spec.css" <work>/
+   cp "$SRC/.htmlvalidate.json" <work>/
    ```
    `.htmlvalidate.json` is the config for the structural check in step 4; it
    sits beside the spec for the same reason the stylesheets do. It turns off
@@ -130,16 +138,30 @@ emit an empty or fabricated diagram.
    is refused and the tool will not start. Only `$schema`, `extends`, `rules`,
    `plugins`, `elements`, `transform`, `aria` and `root` are accepted. The
    `$schema` line is there so an editor flags that mistake before a run does.
-   The page links them relatively, which loads over `file://` where a fetch
-   would be blocked. **One copy of each per output directory** — sibling specs
-   in the same dir share them, so a restyle is one edit rather than N. A page
-   that renders another product's UI inside it takes `casomo-tokens.css`
-   **alone**: the chrome sheet uses broad element selectors and will bleed.
+   The stylesheets live in `styles/` at the package root, **not** beside this
+   skill: `bin/render-report.mjs` dresses the x-ray reports from the same two
+   files, so a restyle is one edit and a report and a spec cannot drift into
+   looking like two products. The page links them relatively, so they publish
+   alongside it as supporting files and the published page fetches them from
+   its own origin. A page that renders another product's UI inside it takes
+   `casomo-tokens.css` **alone**: the chrome sheet uses broad element
+   selectors and will bleed.
    (If `CLAUDE_PLUGIN_ROOT` is unset — running from source — use the repo-relative
    `skills/draft-design-spec/skeleton.html`.)
 3. Fill the body sections (the nine numbered sections **plus the dependency-graph
    appendix**) via `Edit`, following the skeleton's inline guidance comments (they
    carry the per-section spine). Load-bearing craft:
+   - **Never add a mermaid runtime to the page.** The artifact host ships its own
+     and renders every `pre.mermaid` itself, so a second one does not add a
+     fallback — it starts a race for the same elements. Mermaid scopes a
+     diagram's fills to the svg id it generated, so whichever runtime loses
+     leaves those rules matching nothing and every shape falls back to the SVG
+     default fill, which is black. That is what it looks like when it goes
+     wrong: not a missing diagram, a diagram of black boxes. Two consequences
+     follow from the host's own settings, which are `securityLevel: 'strict'`
+     and `useMaxWidth: false`. Wide diagrams still render full size rather than
+     being shrunk to fit, which is what the width budget below assumes. And
+     **`click` directives do not work** — see the click-through note below.
    - **Draw both dependency graphs by default** (the appendix) — a *component*
      dependency graph and a *type* dependency graph. Draw a **dependency** view
      (who imports/refers to whom), **not a containment tree**: reuse must be
@@ -160,10 +182,12 @@ emit an empty or fabricated diagram.
      it.** The skeleton's content box is 1080px wide with 24px padding, and the
      `.mermaid` card adds 20px padding plus a border, leaving **~990px** of usable
      width. A diagram wider than that spills into a horizontal scrollbar, which
-     reads as broken however legible the text is. Measure by rendering headless
-     and reading each SVG's `viewBox` width (`chrome --headless --dump-dom
-     --virtual-time-budget=15000 file://…`, then extract `viewBox="0 0 W H"`);
-     compare every figure to the budget in one pass. Levers, in the order they
+     reads as broken however legible the text is. The page carries no mermaid
+     runtime, so opening it locally renders no diagrams and there is nothing to
+     measure there. Measure the **sources** instead: paste them into a throwaway
+     page that loads mermaid from a CDN, render it headless, and read each
+     SVG's `viewBox` width (`viewBox="0 0 W H"`), comparing every figure to the
+     budget in one pass. Levers, in the order they
      actually pay off:
      1. **`TD` over `LR`.** Far the biggest win: a left-to-right chain runs
         several times the width of the same graph as `TD`, which is what puts
@@ -203,17 +227,15 @@ emit an empty or fabricated diagram.
      those per-node colours + a `.legend` key, **not `namespace` boxes**. Give
      **every node ≥1 edge** — a floating orphan distracts the reader — and keep
      ids unique **case-insensitively** (`Foo`/`foo` collide into one node). None
-     of this shows until the page renders (a broken diagram is a red error box, a
-     grey or orphaned one a silent defect), so **glance at each diagram on open
-     and confirm it is coloured and connected**. **Escape guillemet annotations
+     of this shows until a diagram is rendered — a broken one is a red error
+     box, a grey or orphaned one a silent defect. **Escape guillemet annotations
      as `&lt;&lt;name&gt;&gt;`** — a bare `<<my-unit>>` inside `<pre>` is eaten
      by the *browser*, not mermaid: any hyphenated tag is a valid custom-element
      name, so `<my-unit>` is parsed as an element and the diagram dies with a
-     syntax error. Best caught by actually rendering the file: a headless
-     `chrome --headless --dump-dom --virtual-time-budget=15000 file://…` and a
-     grep for `Syntax error in text` checks every figure in one shot, and also
-     catches the silent defects (an uncoloured or orphaned node) that a glance
-     misses.
+     syntax error. Catch all of it in the same throwaway harness the width check
+     uses: render the sources headless, grep the DOM for `Syntax error in
+     text`, and confirm each figure is coloured and connected. One pass covers
+     every figure, and it catches the silent defects a glance misses.
    - **Number every figure, and title it.** Figures are numbered `F1, F2, …`
      sequentially across the whole document — the same discipline as the
      question rows, so a number never changes meaning. Open each caption with
@@ -285,17 +307,18 @@ emit an empty or fabricated diagram.
    - **Steps and annotations must look different.** A node saying *what a thing
      is* is not a step in the process. Give it a distinct shape and a dashed
      border, and say so in the legend, or readers will count it as a stage.
-   - **Make every class in a diagram click through to its definition.** A
-     reader looking at a box wants the fields, and scrolling to find them
-     breaks the thread. Mermaid supports `click ClassName href "#anchor"`
-     (the skeleton already sets `securityLevel: 'loose'`, which it needs), so
-     give each type an anchored heading above its code block —
-     `<h5 id="t-Name" style="scroll-margin-top:68px">` — and emit one `click`
-     line per class. The `scroll-margin-top` matters: without it the sticky
-     TOC covers whatever you jump to. Two payoffs beyond navigation: it splits
-     a wall of types into one block per type, and it lets the **boxes stay
-     terse**, because the explanation now lives one click away instead of
-     being crammed into node labels.
+   - **Do not emit `click` directives — put the reference table under the
+     figure instead.** `click ClassName href "#anchor"` needs
+     `securityLevel: 'loose'` and the artifact host initialises with
+     `'strict'`, so the lines parse, render nothing clickable, and read in the
+     source as if navigation exists. A reader looking at a box wants the
+     fields without losing their place, and the reference table below the
+     figure is what answers that — which is why it is required rather than
+     optional — give each type an anchored heading above
+     its code block (`<h5 id="t-Name" style="scroll-margin-top:68px">`, the
+     `scroll-margin-top` so the sticky TOC does not cover the landing point)
+     and **link the table's name cell to it**. Same two payoffs: it splits a
+     wall of types into one block per type, and it lets the boxes stay terse.
    - **Use real UML member syntax, and state the notation in the legend.**
      Bare words in a class box are an undifferentiated blob — a reader cannot
      tell a field from a method. Write `+field Type` and `+method() Return`
@@ -405,16 +428,33 @@ emit an empty or fabricated diagram.
    - Keep `<nav.toc>` labels in sync with the `<h2>`s; delete guidance comments
      as you fill; every section either says something real or says why it's N/A.
 
-## 4. Open and hand over
+## 4. Publish and hand over
 
-`xdg-open` the file and print the `file://` path. Surface the **key decisions**
-in chat, but let the user read the artefact itself — do not only text-summarize
-(the map, type defs, and open questions don't survive a summary).
+Publish the page as an Artifact, passing the two stylesheets as supporting files
+so the published page can fetch them from its own origin. Give the user the link
+and surface the **key decisions** in chat, but let them read the artefact itself
+— do not only text-summarize (the map, type defs and open questions don't
+survive a summary).
 
-## 5. Iterate in place
+Check the published page once: the diagrams are rendered by the host, so this is
+the first point at which anyone has seen them. A diagram of black boxes means a
+mermaid runtime reached the page.
 
-On feedback, `Edit` the **same file**; the user refreshes. Stay
-authoring-into-scratch (no product-code writes) until the design is approved.
+## 5. Iterate on the same Artifact
+
+On feedback, `Edit` the local copy and **republish to the same URL** — never
+publish a second Artifact, or the comment threads and the link the user has stay
+on the old one. Comments arrive anchored to the section they were left on;
+answer in the thread, make the change, and resolve it. Two failure modes are
+worth naming because both look like progress:
+
+- **Replying without editing.** A reply that says what will change is not the
+  change. The user is reading the page, not the thread, so an answered comment
+  over an unchanged section reads as nothing having happened.
+- **Editing without republishing.** The local copy moves and the Artifact does
+  not, so every answer describes a page nobody can see.
+
+Stay in authoring mode — no product-code writes — until the design is approved.
 
 ## 6. Approval → hand-off
 
@@ -425,10 +465,13 @@ do not cross into implementation.
 
 ## Guardrails
 
-- **Never write product code.** The only writes are the scratch `.html` and a
-  `scratch/` gitignore line — no `.ts`/`.py`/config/source edits, in any phase.
-- **Never write outside repo-local `scratch/`** (or the out-dir a consuming
-  `CLAUDE.md` designates) — never `/tmp`, never a product source tree.
+- **Never write product code.** The only write is the local copy of the page
+  that gets published — no `.ts`/`.py`/config/source edits, in any phase.
+- **Never leave the page behind in the repo.** The deliverable is the published
+  Artifact; the local copy lives in a scratchpad or temp directory and needs no
+  `.gitignore` line, because it was never in a tracked tree to begin with.
+- **Never publish a second Artifact for the same spec** — republish to the
+  existing URL, so one link and one set of comment threads track the design.
 - **Never bake private context** into the spec or this skill — no private repo
   names, tracker database IDs, or absolute workspace paths; stay source-agnostic.
 - **Never re-author the frozen `<head>`, and never inline the stylesheets**

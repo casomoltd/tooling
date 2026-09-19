@@ -63,6 +63,26 @@ td.ok { background: var(--ok-bg); } td.amber { background: var(--amber-bg); } td
 pre { background: var(--code-bg); border-radius: var(--radius); padding: 16px 18px; overflow-x: auto; margin: 14px 0; font-size: 12.8px; line-height: 1.55; }
 pre code { font-family: var(--mono); color: #d7dde5; background: none; border: 0; padding: 0; }
 .mermaid { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; margin: 16px 0; text-align: center; overflow-x: auto; }
+
+/* Diagram labels. The page ships no mermaid runtime — the artifact host
+   renders the diagrams with its own, so its theme, not ours, decides label
+   colour, and a host whose default is a light face puts white text on our
+   light card. This stylesheet is the only lever left over that, so it is not
+   belt and braces: without it the labels are unreadable on some hosts.
+
+   The selectors deliberately carry NO ancestor. A host may lift the svg out
+   of its wrapper and rename it, and mermaid's own rules are scoped to the svg
+   id it generated, so anything anchored to `.mermaid` or to an id stops
+   matching the moment that happens. `!important` beats the svg's internal
+   style block, which is author-level and unflagged. */
+.cluster-label, .cluster-label div, .cluster-label span, .cluster text,
+.nodeLabel, .nodeLabel div, .nodeLabel span,
+.edgeLabel, .edgeLabel div, .edgeLabel span,
+.classGroup text, .classTitle {
+  color: var(--ink) !important; fill: var(--ink) !important;
+}
+.cluster rect { fill: var(--bg) !important; stroke: var(--line) !important; }
+.edgeLabel, .edgeLabel div { background: var(--card) !important; }
 .legend { font-size: 12.5px; color: var(--muted); margin-top: -6px; }
 ul.tight, ol.tight { margin: 8px 0; padding-left: 22px; } ul.tight li, ol.tight li { margin: 5px 0; }
 .kbd { font-family: var(--mono); background: var(--panel); border: 1px solid var(--line); padding: 1px 6px; border-radius: 4px; font-size: 12.5px; }

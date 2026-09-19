@@ -18,6 +18,7 @@ const ALLOWED_PREFIXES = [
   "jscpd/",
   "readability/",
   "report/",
+  "styles/",
 ];
 const ALLOWED_FILES = ["README.md", "package.json", "LICENSE", "LICENSE.md"];
 

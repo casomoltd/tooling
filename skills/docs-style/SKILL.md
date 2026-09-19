@@ -63,6 +63,10 @@ durability. **Defers**:
 - **Bold marks the load-bearing words** — decision outcomes, key domain terms on
   first use, and hard constraints (never/always). A skim of the bold should
   convey the state.
+- **Contract where a person speaking would** — "that's why", "what's missing",
+  "it isn't built yet", not "that is why". A doc is one engineer explaining
+  something to another, and the long form reads as a register the writer has
+  put on. The exception is quoted material, where contracting would misquote.
 
 ## State current truth, not history
 

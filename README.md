@@ -39,7 +39,7 @@ npm i -D @casomoltd/tooling
 ```
 
 ```json
-"@casomoltd/tooling": "^0.20.0"
+"@casomoltd/tooling": "^0.28.0"
 ```
 
 The package is public, so installs need no token or `.npmrc`. The `files`
@@ -97,6 +97,44 @@ repo needs (lint, typecheck, spell, etc.).
 **Note:** The tooling repo itself calls scripts by path in its
 hooks (e.g. `./bin/check-version.sh`) because it can't resolve
 its own bin commands via `node_modules/.bin`.
+
+### A repo whose toolchain is not npm
+
+A Python, Go or C++ repo still gets the commit rules. It carries a **dev-only
+npm layer** that exists to host the hook and nothing else:
+
+```json
+{
+  "name": "<repo>-hooks",
+  "private": true,
+  "description": "Dev-only npm layer: wires the shared commit-msg gate into this repo. Not the project toolchain.",
+  "scripts": { "prepare": "husky" },
+  "devDependencies": {
+    "@casomoltd/tooling": "^0.28.0",
+    "@commitlint/cli": "^20.0.0",
+    "husky": "^9.1.7"
+  }
+}
+```
+
+Plus `commitlint.config.cjs` re-exporting the rules, and `.husky/commit-msg`.
+No `version`, because the repo versions itself with its own tool. Live
+examples: `kallim`, `paperpi`.
+
+**Do not wire `pre-commit` or `pre-push` from this package in such a repo.**
+Both run `npm run check`, and `check-gates` reads `package.json` and requires
+eight named npm scripts — a gate a non-npm repo cannot satisfy and should not
+fake. Write a `.husky/pre-push` that calls the real toolchain instead:
+
+```sh
+uv run ruff check && uv run ruff format --check && uv run pyright && uv run pytest
+```
+
+**Why this is documented here.** Undocumented, each non-npm repo solves it
+alone and writes its own shell or Python copy of `no-ai-attribution`, and the
+copies drift — the length limits are what they lose first. One rule, one home.
+If a house gate will not run in your repo, wire the shared one or fix this
+package. Do not write a local equivalent.
 
 ## Markdown / skills lint
 
@@ -182,13 +220,13 @@ npx build-report report.typ --watch                # recompile on save
 npx build-report report.typ --open                 # open the PDF when done
 ```
 
-The compiled PDF is a build artefact, so it defaults to the same scratch
-resolution as the agent reports (see *Report output & `SCRATCH_DIR`*
-under Agents): `$SCRATCH_DIR/reports/<name>.pdf`, or
-`<repo-root>/scratch/reports/` when `SCRATCH_DIR` is unset — add
-`scratch/` to the consumer repo's `.gitignore` (this repo does). Pass
-`--out` only when the PDF is a deliverable the repo actually keeps
-(e.g. a site's `public/`).
+The compiled PDF is a build artefact and goes to
+`$SCRATCH_DIR/reports/<name>.pdf`, or `<repo-root>/scratch/reports/` when
+**`SCRATCH_DIR`** is unset — add `scratch/` to the consumer repo's
+`.gitignore` (this repo does). A PDF is a file to open rather than a page
+to publish, so it keeps a scratch location where the x-ray reports need
+none. Pass `--out` only when the PDF is a deliverable the repo actually
+keeps (e.g. a site's `public/`).
 
 A report imports the template and applies it as a show rule; everything
 after is the body. From a consumer repo the import goes through
@@ -323,7 +361,7 @@ decision table) that keeps these units composing without overlap.
 | `/casomoltd:typescript` | TypeScript data modelling and type design |
 | `/casomoltd:screenshot` | Capture and analyse a dev server page |
 | `/casomoltd:design-pass` | Map → review → refactor a package (drives `design-xray` + `code-review`) |
-| `/casomoltd:draft-design-spec` | Author a browser-reviewable HTML design spec from a brief and iterate on it before writing code (drives `design-xray`) |
+| `/casomoltd:draft-design-spec` | Author a reviewable HTML design spec from a brief, publish it as an Artifact, and iterate on it there before writing code (drives `design-xray`) |
 | `/casomoltd:page-design` | Structure a content/explainer page for trust — above-the-fold answer, disclosure, palette-only colour (rubric a page-design reviewer preloads) |
 | `/casomoltd:generate-report` | Scaffold a Typst client report from the house template, compile via `build-report`, verify the PDF |
 
@@ -409,14 +447,16 @@ where a justification would and otherwise survives an ordinary read-through. The
 `agents/*.md` changes to it. Not link validity (a markdown link linter), not the
 corpus reference graph (`docs-xray`), not prose voice (a content reviewer).
 
-**Report output & `SCRATCH_DIR`.** `design-xray` and `docs-xray` persist their
-report — the `.md` plus an `.html` rendered by `bin/render-report.mjs` — so it
-outlives the run and opens in a browser. Each writes to a gitignored
-`<repo-root>/scratch/<agent>/` by default. Set the optional **`SCRATCH_DIR`** env
-var to pool every report under one shared location instead (`$SCRATCH_DIR/<agent>/`)
-— e.g. a multi-repo workspace collecting reports in one place rather than scattering
-them per-repo. Publishing a report to a hosted claude.ai artifact is orchestrator-
-only and on explicit request; the agents never do it.
+**Report output.** `design-xray` and `docs-xray` write their report — the `.md`
+plus an `.html` rendered by `bin/render-report.mjs` — into a working directory
+and return both paths, and the caller publishes the `.html`. Each agent's
+*Persist the report* section is the spec for that hand-off.
+
+The rendered `.html` is built for that destination: `render-report.mjs` converts
+the markdown in node and ships **no mermaid runtime**, because the artifact host
+renders every `pre.mermaid` itself and a second runtime races it into black
+boxes. A page that builds its own body at load time has no diagram blocks in it
+when the host looks.
 
 ## Package distribution
 

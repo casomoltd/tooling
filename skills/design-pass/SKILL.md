@@ -19,6 +19,7 @@ allowed-tools:
   - Bash(git *)
   - Bash(cd *)
   - Bash(node *)
+  - Artifact
   - Read
   - Write
   - Glob
@@ -35,8 +36,8 @@ drive the change instead of a least-disruption bolt-on.
 
 Map → review → refactor, in that order. Each stage feeds the next. Follow the
 steps in order; do NOT skip or reorder. The pass makes **no change to the user's
-codebase until step 5** — the only earlier write is a disposable preview artifact
-(step 2) outside the repo, in the system temp dir.
+codebase until step 5** — the only earlier write is the x-ray report `design-xray`
+persists in step 1, which lands in a working directory outside the repo.
 
 Run this **before** committing to a design when extending a package, not after.
 Starting from the structural map is the point: it routinely shows the "new" thing
@@ -78,30 +79,27 @@ sections it returns: the doc-ready map (inventory + mermaid), the weight table,
 the design findings, the **handoff refactor-targets** table, and the pattern
 verdict. The handoff table is the contract that drives the rest of this pass.
 
-## 2. Open the FULL report + offer docs
+## 2. Publish the FULL report + offer docs
 
 The `design-xray` agent **already persists its own report** — it writes
-`<out-dir>/<target-slug>.md`, renders `<target-slug>.html` beside it, and returns
-**both paths as the last lines of its output** (out-dir per the README's *Report
-output & `SCRATCH_DIR`* note). Don't re-write the markdown or hand-roll HTML — it's
-done. The agent renders headless and the user only sees a "finished" notification,
-so your job is to **surface it**:
+`<work-dir>/<target-slug>.md`, renders `<target-slug>.html` beside it, and returns
+**both paths as the last lines of its output**. Don't re-write the markdown or
+hand-roll HTML — it's done. The agent has no artifact tool and the user only sees
+a "finished" notification, so **publishing is your step**:
 
-1. Open the render by re-running the harness on the reported `.md` **without
-   `--no-open`** (idempotent — re-renders identically and opens the `file://` URL):
-   ```bash
-   node "${CLAUDE_PLUGIN_ROOT}/bin/render-report.mjs" <out-dir>/<target-slug>.md
-   ```
-   If the opener mis-routes `text/html`, the printed URL still works, or run
-   `xdg-mime default firefox_firefox.desktop text/html`.
+1. **Publish the reported `.html` as an artifact and give the user the link.**
+   That is the deliverable: the working copy is not somewhere they will look, and
+   a summary hides the map, the weight table and the ranked handoff they need to
+   judge for themselves. Surface the key findings alongside the link, never
+   instead of it.
 2. If the agent reported HTML was skipped (renderer not found), surface the `.md`
-   path instead.
+   path instead and say the render was skipped.
 
 Do NOT chase in-editor mermaid (e.g. a VSCode extension) — `render-report.mjs` is
-the reliable renderer. THEN, and only on explicit confirmation, **offer** to persist
-the doc-ready block into a real `README`/`ARCHITECTURE` doc in the repo — writing
-only that block, nothing else. Uploading the rendered `.html` to a hosted claude.ai
-artifact is likewise user-request-only.
+the reliable renderer, and it ships no mermaid runtime precisely so the published
+page renders. THEN, and only on explicit confirmation, **offer** to persist the
+doc-ready block into a real `README`/`ARCHITECTURE` doc in the repo — writing only
+that block, nothing else.
 
 ## 3. Review the targets (read-only)
 

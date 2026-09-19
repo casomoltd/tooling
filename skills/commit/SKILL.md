@@ -48,14 +48,26 @@ guess. Every step below runs in this repo.
 
 Pick the command by toolchain, detected from the repo root:
 
-- **npm repo** (`package.json` present): `npm run check`
-- **Python/uv repo** (`pyproject.toml`, no `package.json`): there's no
-  `npm run check`; run the strict suite directly, e.g.
+- **npm repo** (`package.json` with a `check` script): `npm run check`
+- **Python/uv repo** (`pyproject.toml`): run the strict suite directly, e.g.
   `uv run ruff check && uv run ruff format --check && uv run pyright &&
   uv run pytest`
 
+**Detect on the `check` script, not on `package.json` existing.** A non-npm
+repo may carry a dev-only `package.json` whose sole purpose is hosting the
+husky commit gate — `private: true`, `prepare: husky`, no `version`, and
+deliberately **no `check`**. Seeing the file and running `npm run check` there
+fails with "missing script". `kallim` and `paperpi` are both this shape.
+
 If checks fail, fix the issues and re-run until they pass. Do NOT
 proceed until they pass.
+
+**If a house gate is missing from the repo, wire the shared one — do not write
+a local equivalent.** If the shared one cannot run there, that is a bug to fix
+in this package. Three separate hand-written copies of `no-ai-attribution` grew
+this way, two of them silently missing the length limits, because each author
+found no hook and wrote one. `check-hooks` reports whether a repo is gated, and
+tests it by behaviour rather than by the hook file existing.
 
 ## 2. Stage changed files
 
@@ -80,7 +92,7 @@ version bump or a config-only diff):
 - **Code** (`.ts` / `.tsx` / `.py`) → `casomoltd:code-review` — it
   applies the `typescript` standard to `.ts`/`.tsx` and the
   `python-style` standard to `.py` (it picks the rubric by extension, so
-  a Python-only repo like `ops` is reviewed just as fully) — plus the
+  a Python-only repo is reviewed just as fully) — plus the
   built-in `/code-review` for correctness bugs on any changed code.
 - **Skills and agent briefs** (`**/SKILL.md`, `agents/*.md`) →
   `casomoltd:skill-review` — it applies the `docs-style` standard and the

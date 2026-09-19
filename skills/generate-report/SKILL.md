@@ -92,8 +92,10 @@ change); publishing, hosting, or emailing the PDF.
 
    The PDF is a build artefact — the bin defaults it to the scratch pool
    (`$SCRATCH_DIR/reports/`, else a gitignored `<repo-root>/scratch/reports/`;
-   the README's *Report output & `SCRATCH_DIR`* rule). Pass `-o` only when the
-   repo deliberately keeps the PDF (e.g. a site's `public/`).
+   the README's *Client reports (Typst)* section). A PDF is a file to open
+   rather than a page to publish, which is why it keeps a scratch location.
+   Pass `-o` only when the repo deliberately keeps the PDF (e.g. a site's
+   `public/`).
 
 4. **Verify by reading the PDF** (Claude reads PDFs via the Read tool): the
    cover carries kicker/title, the contents resolve, body pages render, and

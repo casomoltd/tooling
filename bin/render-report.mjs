@@ -1,14 +1,24 @@
 #!/usr/bin/env node
 
 /**
- * Render a markdown + mermaid report to a self-contained HTML file and open it
- * in the browser — the reliable renderer for agent reports (docs-xray,
- * design-xray) whose mermaid diagrams render unreliably in editor previews.
+ * Render a markdown + mermaid report to a self-contained HTML page — the
+ * renderer for agent reports (docs-xray, design-xray), whose mermaid diagrams
+ * render unreliably in editor previews. The page is meant to be published as
+ * an artifact by the caller; the agents themselves cannot publish.
  *
- * The report `.md` is inlined into an HTML harness that loads `marked` and
- * `mermaid` from CDN, so the output is one portable file — no build step, no
- * editor extension. Write reports into a repo-local dir (e.g. `scratch/`), not
- * `/tmp`: sandboxed browsers (snap/flatpak) often can't read outside $HOME.
+ * Two properties the output depends on, both learned the hard way.
+ *
+ * The markdown is converted HERE, in node, not in the page. A page that builds
+ * its own body at load time has no `pre.mermaid` in it when the artifact host
+ * looks for diagrams to render, so the diagrams never appear — and its first
+ * still frame, which is what a thumbnail and a skimming reader get, says
+ * "Rendering…".
+ *
+ * The page ships NO mermaid runtime. The artifact host has its own and renders
+ * every `pre.mermaid` itself; a second runtime does not add a fallback, it
+ * races for the same elements, and because mermaid scopes a diagram's fills to
+ * the svg id it generated, the loser leaves those rules matching nothing and
+ * every shape falls back to the SVG default fill, which is black.
  *
  * Usage:
  *   node bin/render-report.mjs <report.md> [--no-open]
@@ -23,7 +33,9 @@
  *   1  Bad arguments or the input file is missing
  */
 import {existsSync, readFileSync, writeFileSync} from "node:fs";
-import {resolve} from "node:path";
+import {marked} from "marked";
+import {dirname, resolve} from "node:path";
+import {fileURLToPath} from "node:url";
 import {openPath} from "./utils.mjs";
 
 const args = process.argv.slice(2);
@@ -36,6 +48,20 @@ if (!mdPath || !existsSync(mdPath)) {
 }
 
 const htmlPath = mdPath.replace(/\.md$/, "") + ".html";
+
+/* The house stylesheets, read from `styles/` at render time and inlined.
+ *
+ * Inlining a GENERATED copy is not the thing `draft-design-spec` forbids. That
+ * rule is about authoring a second copy by hand, which drifts; here the single
+ * file on disk stays the only source, so a restyle is still one edit. What it
+ * buys is a report that is one self-contained page — nothing to publish
+ * alongside it, and nothing to resolve at the far end.
+ *
+ * Tokens first: the chrome sheet reads every colour and face from them. */
+const styleDir = resolve(dirname(fileURLToPath(import.meta.url)), "..", "styles");
+const css = ["casomo-tokens.css", "casomo-spec.css"]
+  .map((f) => readFileSync(resolve(styleDir, f), "utf8"))
+  .join("\n");
 
 // A mermaid classDiagram rejects union/bracket types in a member line
 // (`date|None`, `list[Item]`) — soften them inside class bodies so an imperfect
@@ -52,13 +78,15 @@ const softenClassDiagrams = (text) =>
       : block,
   );
 
-// Inline the markdown in a <script type="text/markdown"> so its backticks and
-// fences aren't parsed as HTML. The only hazard is a literal </script> in the
-// source, which we defuse.
-const md = softenClassDiagrams(readFileSync(mdPath, "utf8")).replaceAll(
-  "</script>",
-  "<\\/script>",
-);
+const body = marked
+  .parse(softenClassDiagrams(readFileSync(mdPath, "utf8")))
+  // `marked` emits a fenced mermaid block as <pre><code class="language-mermaid">.
+  // The artifact host looks for <pre class="mermaid">, so rewrite it at build
+  // time rather than in the page — see the header note on why that matters.
+  .replace(
+    /<pre><code class="language-mermaid">([\s\S]*?)<\/code><\/pre>/g,
+    (_, diagram) => `<pre class="mermaid">${diagram}</pre>`,
+  );
 
 const html = `<!doctype html>
 <html lang="en">
@@ -67,40 +95,13 @@ const html = `<!doctype html>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${mdPath}</title>
 <style>
-  body { max-width: 1200px; margin: 2rem auto; padding: 0 1.5rem;
-         font: 15px/1.6 system-ui, sans-serif; color: #1a1a1a; }
-  h1, h2, h3 { line-height: 1.25; }
-  h2 { border-bottom: 1px solid #eee; padding-bottom: .3rem; margin-top: 2.5rem; }
-  table { border-collapse: collapse; margin: 1rem 0; font-size: 14px; }
-  th, td { border: 1px solid #ddd; padding: 6px 10px; text-align: left; vertical-align: top; }
-  th { background: #f7f7f7; }
-  code { background: #f4f4f4; padding: 1px 5px; border-radius: 3px; font-size: .9em; }
-  pre { background: #f7f7f7; padding: 1rem; border-radius: 6px; overflow-x: auto; }
-  pre.mermaid { background: #fff; }
-  a { color: #0b66c3; }
+${css}
 </style>
 </head>
 <body>
-<div id="content">Rendering…</div>
-<script id="md" type="text/markdown">
-${md}
-</script>
-<script type="module">
-import { marked } from "https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js";
-import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
-mermaid.initialize({ startOnLoad: false, theme: "neutral" });
-const el = document.getElementById("content");
-el.innerHTML = marked.parse(document.getElementById("md").textContent);
-// marked emits mermaid fences as <code class="language-mermaid">; mermaid wants
-// <pre class="mermaid">.
-el.querySelectorAll("code.language-mermaid").forEach((c) => {
-  const pre = document.createElement("pre");
-  pre.className = "mermaid";
-  pre.textContent = c.textContent;
-  c.closest("pre").replaceWith(pre);
-});
-await mermaid.run({ querySelector: ".mermaid" });
-</script>
+<div class="wrap" style="padding-top:32px">
+${body}
+</div>
 </body>
 </html>
 `;

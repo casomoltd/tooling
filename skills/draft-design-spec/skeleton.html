@@ -1,12 +1,13 @@
 <!doctype html>
 <!--
   draft-design-spec skeleton — DO NOT re-author the <head> or the stylesheets.
-  Copy this file to <repo>/scratch/<slug>.html AND copy casomo-tokens.css +
-  casomo-spec.css beside it, then fill the 13 <section>s below.
+  Copy this file to your working directory with casomo-tokens.css and
+  casomo-spec.css beside it, fill the 13 <section>s below, then publish it as
+  an Artifact with both stylesheets as supporting files — SKILL.md steps 3-4.
   Rules: keep <nav.toc> labels in sync with each <h2>; delete guidance comments as
   you fill; every <section> that doesn't apply should say so (don't leave a stub).
-  Opens over file://, no build step — the two stylesheets are relative, which
-  loads from disk where a fetch would not. Swap {{PLACEHOLDERS}}.
+  The stylesheet links are relative, so they resolve against the published
+  page's own origin. Swap {{PLACEHOLDERS}}.
 -->
 <html lang="en">
 <head>
@@ -16,11 +17,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600;700&family=Share+Tech+Mono&display=swap">
-<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<!-- NO mermaid runtime here, deliberately: a second one races the host's own
+     and blacks out every fill. The host also sets `securityLevel: 'strict'`, so
+     `click` directives never fire. SKILL.md step 3 has the mechanism. -->
 <script>
-  mermaid.initialize({ startOnLoad: true, theme: 'neutral', securityLevel: 'loose', themeVariables: { fontSize: '15px', fontFamily: '"IBM Plex Sans", ui-sans-serif, system-ui, sans-serif' }, flowchart: { htmlLabels: true, useMaxWidth: false }, class: { useMaxWidth: false } });
   window.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('pre code').forEach(el => { try { hljs.highlightElement(el); } catch (e) {} });
   });
@@ -205,9 +207,10 @@ classDiagram
      by access pattern). Use a .grid2 for a genuine class-vs-functional option. -->
 <section id="types">
   <h2>4 · Type definitions</h2>
-  <!-- ONE anchored block per type, so the class diagrams can `click` through
-       to them. The id must match the diagram's href, and scroll-margin-top
-       stops the sticky TOC covering the landing point. -->
+  <!-- ONE anchored block per type, so the reference table's name cell can
+       link to it (href="#t-{{TypeName}}"). No `click` directive in the diagram
+       — the host blocks them. scroll-margin-top stops the sticky TOC covering
+       the landing point. -->
   <h3>4.1 · {{Core type}}</h3>
   <h5 id="t-{{TypeName}}" style="scroll-margin-top:68px;margin:20px 0 6px;font-size:13.5px;font-weight:600;color:#43286b"><code>{{TypeName}}</code></h5>
   <pre><code class="language-ts">{{full interface / class body}}</code></pre>

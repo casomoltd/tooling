@@ -16,6 +16,7 @@
     "jscpd/",
     "readability/",
     "report/",
+    "styles/",
     "README.md",
     "!**/*.test.mjs"
   ],
@@ -49,6 +50,7 @@
   "bin": {
     "build-report": "./bin/build-report.mjs",
     "check-gates": "./bin/check-gates.mjs",
+    "check-hooks": "./bin/check-hooks.sh",
     "check-linear": "./bin/check-linear.sh",
     "check-private-refs": "./bin/check-private-refs.mjs",
     "check-tags": "./bin/check-tags.sh",
@@ -63,6 +65,7 @@
     "access": "public"
   },
   "dependencies": {
+    "marked": "^18.0.13",
     "text-readability": "^1.1.1"
   },
   "peerDependencies": {

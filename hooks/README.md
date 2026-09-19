@@ -43,8 +43,8 @@ authoritative gate already owns:
 A Claude rule earns its place only when nothing authoritative already catches
 it, and a rule is removed from here only once its real home enforces it (no
 coverage gap). The two content rules that remain — `tsconfig` strict-weakening
-(tsc *passes* once weakened) and bare `# type: ignore` (until ops' ruff adds
-`PGH003`) — stay only because nothing else guards them yet.
+(tsc *passes* once weakened) and bare `# type: ignore` (until a consumer's
+ruff config adds `PGH003`) — stay only because nothing else guards them yet.
 
 (Drafted commit *messages* are deliberately not guarded here either: the
 `commit` skill drafts the message to a file, runs the repo's own `commit-msg`
