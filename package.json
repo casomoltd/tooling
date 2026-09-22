@@ -1,7 +1,7 @@
 {
   "name": "@casomoltd/tooling",
   "version": "0.28.0",
-  "description": "Casomo's shared dev config: ESLint, Prettier, commitlint, knip & jscpd presets and dev CLIs (git hooks, readability, screenshots)",
+  "description": "Casomo's shared dev config: ESLint, Prettier, commitlint, knip & jscpd presets and dev CLIs (git hooks, readability, screenshots, design specs)",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -59,7 +59,9 @@
     "pre-commit": "./bin/pre-commit.sh",
     "pre-push": "./bin/pre-push.sh",
     "readability": "./bin/readability.mjs",
-    "screenshot": "./bin/screenshot.mjs"
+    "render-figures": "./bin/render-figures.mjs",
+    "screenshot": "./bin/screenshot.mjs",
+    "spec-check": "./bin/spec-check.mjs"
   },
   "publishConfig": {
     "access": "public"

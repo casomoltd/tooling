@@ -8,9 +8,10 @@ description: >-
   redesign, a new feature or subsystem, a domain-model remodel, a package
   extension, or the target shape of a multi-file refactor that should be reviewed
   before any code is written. In planning mode it resolves the brief, grounds in
-  the current state via the design-xray agent, and authors a 13-section spec
-  (thesis, data reality, current + target class models with mermaid, full type
-  definitions, rationale, migration, phasing, open questions) the user reviews
+  the current state via the design-xray agent, and authors a sectioned
+  HTML spec (brief, data reality, current and target models, full type
+  definitions, edge cases, migration, phasing, checks, open questions,
+  decision history) the user reviews
   and comments on in the published Artifact. Writes NO product code. NOT for a small edit, a single-function
   change, a bug fix, or a quick question — those don't need a spec. NOT for
   reshaping code that already exists into an applied diff (that's design-pass) ·
@@ -124,7 +125,7 @@ emit an empty or fabricated diagram.
    cp "$CSS/casomo-tokens.css" "$CSS/casomo-spec.css" <work>/
    cp "$SRC/.htmlvalidate.json" <work>/
    ```
-   `.htmlvalidate.json` is the config for the structural check in step 4; it
+   `.htmlvalidate.json` is the config for **P5**; it
    sits beside the spec for the same reason the stylesheets do. It turns off
    the rules that judge a **shipped page** rather than a document — inline
    style, doctype style, title length, the WCAG heading rules — because a spec
@@ -148,100 +149,79 @@ emit an empty or fabricated diagram.
    selectors and will bleed.
    (If `CLAUDE_PLUGIN_ROOT` is unset — running from source — use the repo-relative
    `skills/draft-design-spec/skeleton.html`.)
-3. Fill the body sections (the nine numbered sections **plus the dependency-graph
-   appendix**) via `Edit`, following the skeleton's inline guidance comments (they
-   carry the per-section spine). Load-bearing craft:
-   - **Never add a mermaid runtime to the page.** The artifact host ships its own
-     and renders every `pre.mermaid` itself, so a second one does not add a
-     fallback — it starts a race for the same elements. Mermaid scopes a
-     diagram's fills to the svg id it generated, so whichever runtime loses
-     leaves those rules matching nothing and every shape falls back to the SVG
-     default fill, which is black. That is what it looks like when it goes
-     wrong: not a missing diagram, a diagram of black boxes. Two consequences
-     follow from the host's own settings, which are `securityLevel: 'strict'`
-     and `useMaxWidth: false`. Wide diagrams still render full size rather than
-     being shrunk to fit, which is what the width budget below assumes. And
-     **`click` directives do not work** — see the click-through note below.
-   - **Draw both dependency graphs by default** (the appendix) — a *component*
-     dependency graph and a *type* dependency graph. Draw a **dependency** view
-     (who imports/refers to whom), **not a containment tree**: reuse must be
-     visible as a node with many in-edges. Ground them in the `design-xray` map
-     plus a quick import-edge scan (grep the imports); fill the fan-in reuse
-     table, mark the units in the change's scope, and keep the skeleton's fixed
-     colour/shape key. This is the map the user judges reuse from — never skip it.
-   - **Validate the markup before you read the page — a browser will not tell
-     you.** Browsers silently recover from broken HTML, so a malformed table
-     renders as *something* and the defect shows up as a column that looks
-     empty rather than as an error. Run
-     `npx html-validate <slug>.html` and fix everything it reports. This is
-     cheap, deterministic, and it catches the class of damage a bulk edit does:
-     a row that lost its opening cell, an unclosed heading swallowing every
-     section beneath it, a stray end tag. **A rendered page is not evidence the
-     markup is sound.**
-   - **Author every diagram to FIT the page width — and measure it, don't eyeball
-     it.** The skeleton's content box is 1080px wide with 24px padding, and the
-     `.mermaid` card adds 20px padding plus a border, leaving **~990px** of usable
-     width. A diagram wider than that spills into a horizontal scrollbar, which
-     reads as broken however legible the text is. The page carries no mermaid
-     runtime, so opening it locally renders no diagrams and there is nothing to
-     measure there. Measure the **sources** instead: paste them into a throwaway
-     page that loads mermaid from a CDN, render it headless, and read each
-     SVG's `viewBox` width (`viewBox="0 0 W H"`), comparing every figure to the
-     budget in one pass. Levers, in the order they
-     actually pay off:
-     1. **`TD` over `LR`.** Far the biggest win: a left-to-right chain runs
-        several times the width of the same graph as `TD`, which is what puts
-        a figure past the budget. Vertical is also usually the better metaphor (a ledger is
-        stacked rows, a pipeline is stages).
-     2. **Short node labels**, with the detail in the `.legend` beneath.
-     3. **Never repeat in a node what an adjacent table already states** — e.g.
-        per-node fan-in counts when a fan-in table sits directly above. That is
-        the one-representation-per-fact rule, and it buys width for free.
-     4. **Collapse siblings that share a role into one node** — three consumers
-        of the same boundary, or two sibling data files, can be one box whose
-        members list them.
-     5. **Short subgraph titles** — a long title sets that subgraph's *minimum*
-        width, so a sentence-length title silently widens the whole figure. Put
-        the sentence in the legend.
-     6. **Short edge labels.**
-     Past a point, width is set by **how many nodes sit in the widest rank**, not
-     by label length — when trimming text stops helping, remove or merge nodes,
-     or split the figure in two. **Check `subgraph` wrappers before you trim
-     anything**: cluster padding, plus the way a cluster pins its members
-     together against the layout, costs far more width than long text. Removing
-     a wrapper buys more than trimming labels does, and the grouping it carried
-     is usually better served by node shape plus a line in the legend.
-   - **Keep every mermaid diagram legible, never shrunk-to-fit** — the skeleton
-     sets `useMaxWidth: false` so a wide graph renders at full size and scrolls
-     inside its `overflow-x` box rather than being squeezed to container width
-     (which shrinks the text to unreadable). Author diagrams to match: short node
-     labels (push descriptions to the `.legend` beneath, not into the node),
-     prefer a top-down (`TD`) layout, and keep each rank to a handful of nodes. A
-     diagram the reader scrolls is fine; one they must zoom into is a defect —
-     split it or trim the labels.
-   - **Mermaid `classDiagram` — traps that only surface on render.** Colour nodes
-     with **per-node `style X fill:#…,stroke:#…`** — `classDef`/`cssClass` *parse
-     but don't paint* in a classDiagram (every box comes out grey, so a colour
-     `.legend` lies), and `classDef` throws outright on a multi-property style
-     (single property only) or on `namespace`. Show library/group boundaries with
-     those per-node colours + a `.legend` key, **not `namespace` boxes**. Give
-     **every node ≥1 edge** — a floating orphan distracts the reader — and keep
-     ids unique **case-insensitively** (`Foo`/`foo` collide into one node). None
-     of this shows until a diagram is rendered — a broken one is a red error
-     box, a grey or orphaned one a silent defect. **Escape guillemet annotations
-     as `&lt;&lt;name&gt;&gt;`** — a bare `<<my-unit>>` inside `<pre>` is eaten
-     by the *browser*, not mermaid: any hyphenated tag is a valid custom-element
-     name, so `<my-unit>` is parsed as an element and the diagram dies with a
-     syntax error. Catch all of it in the same throwaway harness the width check
-     uses: render the sources headless, grep the DOM for `Syntax error in
-     text`, and confirm each figure is coloured and connected. One pass covers
-     every figure, and it catches the silent defects a glance misses.
-   - **Number every figure, and title it.** Figures are numbered `F1, F2, …`
+3. **Generate what can be generated, before writing a line of it.** The
+   current-state class hierarchy is `design-xray`'s output. The dependency
+   appendix is read off the imports — `npx depcruise <dir> --no-config
+   --include-only '^<dir>/' --exclude '\.test\.' --output-type mermaid` for
+   JavaScript and TypeScript, an AST walk for Python. Paste the result and
+   record the command beside the figure so the next reader can rebuild it. A
+   graph you drew is a claim; a graph you generated is evidence, and only one
+   of them survives the next refactor.
+4. Fill the body sections via `Edit`, following the skeleton's inline guidance
+   comments. **The spine is fixed. Every spec carries these sections, under
+   these names, in this order.** The numbers below are what the stylesheet
+   generates from document order &mdash; **do not type one into a heading, a
+   contents entry or a cross-reference.** Prose cites a section by name, so a
+   link is right wherever that section ends up; a typed number is a second
+   copy of the running order, and it is the copy that goes stale — a reader who has read one spec should be able
+   to find the same thing in the same place in the next:
+
+   | # | Section | Holds |
+   |---|---|---|
+   | 1 | **Overview &amp; goals** | The current state in a line, then what this round achieves. Then what is different at the end, what deliberately is not, and why now. It sits in the masthead card and **opens with the goal** — a reader meets it before anything else, so backstory there is the most expensive prose in the document. |
+   | 2 | **What exists today** | The ground truth the work must respect, measured. |
+   | 3 | **Requirements** | What must become true, separated from what this design commits to in order to get there. |
+   | 4 | **Data models &amp; contracts** | Field-level types, enums, required against optional, and the API surface a consumer sees. |
+   | 5 | **Features &amp; behaviours** | What the thing does, affirmatively, and the choices settled where sources disagreed. |
+   | 6 | **Edge cases &amp; boundaries** | The failures worth designing for, preferring unrepresentable over thrown. |
+   | 7 | **Execution plan** | Chronological, self-contained steps, each with its gate, and the file-by-file detail. |
+   | 8 | **Checks &amp; gates** | What proves it right, and what it costs when it cannot. |
+   | 9 | **Open questions** | Numbered and scoped. |
+   | 10 | **Decision history** | Reversals only, was / is / why. |
+   | 11 | **Out of scope** | What a reader might expect here and will not find. |
+   | &mdash; | **Appendix &middot; Dependency map** | Generated graphs and the fan-in table. |
+
+   A section with nothing to say still appears, and says why it is empty
+   (**E4**). Renaming one, or dropping it because this spec does not need it,
+   is what makes two specs unreadable side by side. Load-bearing craft:
+   - **P1.** **Generate a diagram wherever the thing exists.** A figure drawn by hand
+     is a claim about the code; one read off the code is evidence, and it
+     cannot go stale. The current-state class hierarchy comes from
+     `design-xray`, which emits a valid `classDiagram` and owns the rules for
+     making it so — paste its block, do not re-derive it. A dependency graph
+     comes from the imports: `dependency-cruiser` for JavaScript and
+     TypeScript, a short AST walk for Python. **Hand-author only the target
+     model and the process flows**, because those describe something that does
+     not exist yet and nothing can read them off anything.
+   - **P4.** **Every mermaid block follows the shared rubric.**
+     [`diagram-rubric.md`](../../docs/diagram-rubric.md) **M1&ndash;M12** holds
+     what is true of a diagram wherever it renders &mdash; parser safety, and
+     the composition rules that decide whether a reader can follow it. It is
+     cited, never restated. What stays below is this artefact's own context:
+     a fixed content box, a competing runtime, and a `classDiagram` renderer
+     that ignores `classDef`.
+   - **P5.** **Validate the markup before you read the page.** A browser
+     silently repairs broken HTML, so a malformed table renders as *something*
+     and the defect shows up as a column that looks empty rather than as an
+     error. `npx html-validate <slug>.html` catches the class of damage a bulk
+     edit does: a row that lost its opening cell, an unclosed heading
+     swallowing every section beneath it, a stray end tag. `spec-check` reads
+     the file as text and cannot see any of that.
+   - **P2.** **Let the checker hold the mechanical rules.** Width budgets, markup
+     validity, a runtime that must not be added, syntax that only fails on
+     render: these are measured, not remembered. Run
+     `node bin/spec-check.mjs <spec.html>` and `bin/render-figures.mjs`;
+     between them they check anchors, contents against headings, section and
+     figure numbering, captions, width against the budget, a mermaid runtime,
+     click directives the host blocks, and a stylesheet it will not load. Author for a diagram that fits and reads; run
+     the tools; fix what they name. What follows are the rules no tool can
+     apply, because they are about *what to draw*.
+   - **F1.** **Number every figure, and title it.** Figures are numbered `F1, F2, …`
      sequentially across the whole document — the same discipline as the
      question rows, so a number never changes meaning. Open each caption with
      **`Figure N — <short title>`**, and give the figure an anchor
      (`<div id="fig-N" style="scroll-margin-top:68px">` around the `<pre>`, the
-     `scroll-margin-top` so a sticky TOC doesn't cover the landing point). Then
+     `scroll-margin-top` so host chrome does not cover the landing point). Then
      **cross-reference figures by number** in prose, in the reference tables and
      in the open-questions rows — "see F3", never "the diagram in the target
      model section".
@@ -250,7 +230,7 @@ emit an empty or fabricated diagram.
      box they meant. That is a wasted round trip on the artefact whose entire
      purpose is to make review cheap — and it fails exactly when the spec is big
      enough to need reviewing.
-   - **Every figure carries a two-part caption — no exceptions.** A diagram with
+   - **F2.** **Every figure carries a two-part caption — no exceptions.** A diagram with
      no legend, or a legend whose chips don't match the colours actually in the
      picture, is the single most reliable way to lose a review round. Each
      `<pre class="mermaid">` is immediately followed by a `.legend` giving
@@ -259,25 +239,22 @@ emit an empty or fabricated diagram.
      and (b) **colour**, as swatches that are the same hex the diagram paints.
      If a figure has no foreign node, say so and say why; "no boundary is drawn
      here" is information, silence isn't.
-   - **A legend is a key, not an inventory — and caption bloat has exactly
-     three causes.** A legend maps symbol to meaning and then stops. It must
-     never list *which* nodes carry a symbol — "purple: the ledger, its years,
-     segments, the converter…" — because the reader can see that by looking at
-     the picture. When a caption grows past a few lines it is carrying
+   - **F3. Caption bloat has exactly three causes.** A legend is a key, not an
+     inventory (**M11**). When a caption grows past a few lines it is carrying
      something that belongs elsewhere, and it is always one of three things:
      an **enumeration** (delete it, the figure already shows it), **per-item
      detail** (move it to the reference table below), or **argument** (move it
      to prose *above* the figure, where it reads better anyway). A caption that
      survives all three is a fraction of its original length and loses nothing
      worth keeping.
-   - **One colour key for the whole document.** Fill the skeleton's
+   - **F4.** **One colour key for the whole document.** Fill the skeleton's
      `#diagram-key` card once and have every legend link back to it. Colour
      means **change status** (new / reshaped / unchanged / removed / another
      unit) in every figure; where a second axis is needed, carry it on **shape**,
      not on a second colour meaning. A reader holds one key, not four. A purely
      *logical* figure (an execution or calculation flow) is exempt — but it must
      say so in its legend and explain any highlight it does use.
-   - **A process or flow diagram is complete when a reader can answer all seven
+   - **F5.** **A process or flow diagram is complete when a reader can answer all seven
      of these from the picture alone.** The failure mode is a tidy spine of
      verbs that quietly omits everything around it — and it survives review
      because it *looks* finished. Walk the list:
@@ -298,28 +275,26 @@ emit an empty or fabricated diagram.
      6. **What comes out**, in the caller's terms.
      7. **What is a VIEW rather than part of the calculation** — drawn off to
         one side, so derived extras are never mistaken for pipeline stages.
-   - **One box, one operation — and be honest about the branching.** A node
+   - **F6.** **One box, one operation — and be honest about the branching.** A node
      captioned "label each year with its rule" is three decisions in a trench
      coat; expand until no box hides a choice. Then state where branching
      actually lives. "Every decision is in an up-front derivation and the loop
      below is uniform" is both stronger and more checkable than "there are no
      branches" — and unlike the latter, it survives someone reading the boxes.
-   - **Steps and annotations must look different.** A node saying *what a thing
+   - **F7.** **Steps and annotations must look different.** A node saying *what a thing
      is* is not a step in the process. Give it a distinct shape and a dashed
      border, and say so in the legend, or readers will count it as a stage.
-   - **Do not emit `click` directives — put the reference table under the
-     figure instead.** `click ClassName href "#anchor"` needs
-     `securityLevel: 'loose'` and the artifact host initialises with
-     `'strict'`, so the lines parse, render nothing clickable, and read in the
-     source as if navigation exists. A reader looking at a box wants the
-     fields without losing their place, and the reference table below the
-     figure is what answers that — which is why it is required rather than
-     optional — give each type an anchored heading above
-     its code block (`<h5 id="t-Name" style="scroll-margin-top:68px">`, the
-     `scroll-margin-top` so the sticky TOC does not cover the landing point)
-     and **link the table's name cell to it**. Same two payoffs: it splits a
-     wall of types into one block per type, and it lets the boxes stay terse.
-   - **Use real UML member syntax, and state the notation in the legend.**
+   - **F8.** **A `click` directive may only be an `href`.** `click X call fn()`
+     and the bare-callback form compile to inline JS, which the host's CSP
+     drops. `click X href "#anchor"` compiles to an ordinary `<a>` inside the
+     pre-rendered SVG, so it works: the figure is static long before the host
+     sees it and no mermaid runtime is involved. Give each type an anchored
+     heading above its code block (`scroll-margin-top:68px`, so host chrome
+     does not cover the landing point) and let a reader reach a definition
+     from its box without losing their place. `spec-check` refuses a `call`
+     directive and requires every `href` to be findable on that node in the
+     rendered output, which also catches one naming a node no longer drawn.
+   - **F9.** **Use real UML member syntax, and state the notation in the legend.**
      Bare words in a class box are an undifferentiated blob — a reader cannot
      tell a field from a method. Write `+field Type` and `+method() Return`
      (mermaid keys on the parentheses and draws the compartment divider
@@ -331,7 +306,7 @@ emit an empty or fabricated diagram.
      it depends on. Reviewers do ask "is this arrow the right way round?", and
      the answer belongs on the page. Typed members are usually *narrower* than
      prose ones, so this tends to buy width rather than cost it.
-   - **Pair a class diagram with a reference table — the diagram cannot say
+   - **F10.** **Pair a class diagram with a reference table — the diagram cannot say
      WHY.** A box shows a name and its fields and has no room for the reason
      the thing exists, which is the question a reviewer actually asks first.
      Put a table under the figure, one row per box: **name** (linked to its
@@ -341,7 +316,7 @@ emit an empty or fabricated diagram.
      terse because the prose now has a better home. Keep table and figure in
      exact correspondence — a row per box, no more and no fewer — since drift
      between them is the same staleness trap as drift between two diagrams.
-   - **Name the kind; "class" is usually wrong.** A diagram of boxes in a
+   - **F11.** **Name the kind; "class" is usually wrong.** A diagram of boxes in a
      TypeScript or Python codebase is rarely all classes — it is interfaces,
      discriminated unions, string-literal unions, function types, protocols,
      dataclasses, enums. Read each kind off its definition rather than
@@ -351,13 +326,13 @@ emit an empty or fabricated diagram.
      where a design's provenance or variance lives, and the function type is
      often what keeps a loop branchless — so mislabelling them hides the two
      most interesting things in the model.
-   - **Audit relationships across diagrams, not just within one.** Two figures
+   - **F12.** **Audit relationships across diagrams, not just within one.** Two figures
      describing the same model will drift: the same pair rendered `A *-- B` in
      one and `A --> B : has` in the other, or a dependency drawn in opposite
      directions in each. Before publishing, list every edge in every figure and
      reconcile them — divergence is a signal
      that one of them is stale, not a formatting nit.
-   - **Keep decision history OUT of the body — collect it in one section.** A
+   - **S5.** **Keep decision history OUT of the body — collect it in one section.** A
      spec that survives a few review rounds accumulates archaeology: "an earlier
      draft said X, which was wrong, it is gone." Each sentence was worth writing
      the moment it was written and is dead weight afterwards — it makes the body
@@ -372,7 +347,7 @@ emit an empty or fabricated diagram.
      do not leave a trail. Distinguish this from **rationale**, which stays: "two
      ledgers would need concatenating, so there is one" is timeless design
      reasoning; "an earlier draft had two ledgers" is archaeology.
-   - **Name a section for what it holds, and number the spine without gaps.** The
+   - **S2.** **Name a section for what it holds, and number the spine without gaps.** The
      boundary section is titled **`Out of scope`** — not "the line this spec stops
      at", not "what comes next". A reader scanning for what a spec refuses looks
      for those two words, and a coy title hides the section from the person who
@@ -383,11 +358,11 @@ emit an empty or fabricated diagram.
      the **trigger** that would pull it back in — a concrete event or threshold,
      never "when we have time" — so a later reader can tell whether one has been
      reached.
-   - **Number every open question, and scope it.** Rows are `Q1, Q2, …` across
+   - **S3.** **Number every open question, and scope it.** Rows are `Q1, Q2, …` across
      the whole table, open and settled alike, so a number never changes meaning.
      Each carries a **scope** cell saying whether this spec is entitled to
      answer it at all — see the Guardrail below.
-   - **State each decision exactly once.** A spec long enough to be useful is
+   - **S4.** **State each decision exactly once.** A spec long enough to be useful is
      long enough to say the same thing in two places, and the second copy is
      never re-read when the first is revised. Then the two disagree, and the
      build follows whichever section it happened to read — usually the
@@ -397,34 +372,105 @@ emit an empty or fabricated diagram.
      rather than restating. The same rule applies outward: if a decision is
      already recorded somewhere durable, link to that and do not re-derive it
      here, because re-derivation is how two records drift.
-   - **Cite a rule, or mark it as proposed.** Every "you should always" in a
+   - **E1.** **Cite a rule, or mark it as proposed.** Every "you should always" in a
      spec is either an external standard, a decision recorded elsewhere, or an
      invention of this document — and a reader cannot tell which from the
      prose. Give a rule's URL or doc path, or say plainly that it is proposed
      here and has no external source. A rule written in the register of
      received wisdom cannot be checked, and one that is *nearly* an external
      standard is the most expensive kind to get wrong.
-   - **Name the acceptance artefact, and say it outranks the prose.** Where a
+   - **E2.** **Every fact, figure and requirement is citable.** Not "sounds right" —
+     openable. A line count names the file it was counted in; a claim about
+     what a module does names the file and the line; a requirement names the
+     document, task or decision that states it. This is wider than *Cite a
+     rule, or mark it as proposed*, which governs rules: this governs
+     **numbers and needs**, the two things a reader is least able to check by
+     reading on. A figure with no source is either a measurement you should
+     show or an invention you should not have made, and the difference is
+     invisible to everyone but you.
+   - **E3.** **Never invent a requirement.** Not to fill a section, not to round one
+     out, not because the shape of the document expects one. A requirement is
+     something somebody needs; if nobody has said it, you are writing your own
+     preference in the voice of a stakeholder, and it will be implemented as
+     though they asked. Where the need is real but unrecorded, get it
+     recorded — a task, a decision, a note — and cite that.
+   - **E4.** **A section with no source says so, and asks.** The spine is exhaustive:
+     every section is expected, and one you cannot fill from evidence is a gap
+     in what you were given, not a section to skip or to invent your way
+     through. Say plainly that nothing sources it, name the two or three things
+     that would settle it, and **ask** — a requirements section written from
+     inference reads exactly like one written from a stakeholder, and a
+     reviewer cannot tell which they are correcting. Marking it costs a
+     callout; not marking it buys a decision nobody agreed.
+   - **S6.** **Give every phase a checkable gate.** A phasing table says what each step
+     builds; it is only runnable if it also says how that step is known to be
+     finished — an export that exists, a gate that passes, a file that is gone.
+     A step whose completion test restates the work is the commonest way a
+     plan reads as finished and cannot be worked from.
+   - **S7.** **The summary carries decisions, not score.** Every item in the TL;DR is
+     something a builder acts on or is constrained by. An item that tallies
+     the analysis — "only two of the eight X were real" — or grades the work —
+     "the prize is" — reads as substantial and decides nothing, and a reader
+     after the brief steps over it.
+   - **S8.** **Never forward-reference a set the reader has not met.** "The eight X"
+     before the document has introduced them is unreadable on a first pass and
+     redundant on a second, because by then the section that owns the set has
+     said it. Name the constraint, not the count.
+   - **E5.** **Say what this spec decides; do not route it to a citation.** Citing a
+     source binds a rule that applies whether or not this spec exists, and is
+     right. Handing that source the decision this document was written to make
+     is not: "see X for the rules" where X does not know about this work leaves
+     the reader holding two documents and no answer.
+   - **S1.** **Open with the brief, not with what the document is.** The first thing
+     a reader meets is what this round achieves, what is different at the end
+     of it, and what is deliberately *not* different. They know they are
+     holding a spec, and they wrote the ask — telling them either back is a
+     paragraph they step over to reach the work. The not-different half is the
+     one people skip and the one that gets read: it is the blast radius,
+     stated, and it is where a reviewer looks to see whether you understood
+     what you were about to touch.
+   - **S9.** **Say how it fails, not only how it works.** The failures worth designing
+     for are the quiet ones — a wrong answer that *looks* right. For each, say
+     what happens today and what is required, and prefer making the mistake
+     unrepresentable in the types over making it throw. A wrong answer that is
+     obviously wrong earns no row, because the next reader catches it. A unit
+     with genuinely no failure mode says so rather than leaving the section
+     out.
+   - **S10.** **Where the work crosses a privacy or visibility boundary, say so in the
+     spec.** Which repository is public, which data may not travel, what a
+     fixture may contain. A boundary that lives only in a reviewer's head is
+     one an implementer crosses in good faith.
+   - **S11.** **Every paragraph belongs to a section.** The masthead carries the
+     eyebrow, the title, the contents, the **Overview & goals** card and the
+     status pills, and nothing else. A standfirst summarising the document
+     above that card is a second summary with no section to belong to: the
+     reader meets the same point twice before reaching the spine, and the
+     copy outside the spine is the one nobody updates.
+   - **E6.** **Name the acceptance artefact, and say it outranks the prose.** Where a
      wireframe, mockup or reference implementation exists, say so at the top
-     and state that it wins on any disagreement. Prose describing a layout is
+     and state that it wins on any disagreement. **Only where one exists** —
+     this means a visual or behavioural reference, never a rules document or a
+     standard the spec cites, which are inputs rather than authorities. A spec
+     with none says nothing, because opening by deferring your own authority
+     is worse than opening without the line. Prose describing a layout is
      ambiguous in ways its author cannot see: one sentence describing "cards"
      will be read as one card or as N cards depending on which paragraph the
      builder weights, and both readings feel principled from inside. A picture
      settles it, but only if the spec has said which one to trust.
-   - **Lead with the type/interface definitions over duplication** — extract a
+   - **P6.** **Lead with the type/interface definitions over duplication** — extract a
      shared generic core validated by **≥2 real callers** rather than bolting on
      an (N+1)th variant.
-   - **Python targets carry an ABC-weighted class hierarchy** — name which
-     `collections.abc` each domain collection is (`Mapping` / `Set` / `Sequence`
-     / `Collection`), chosen by the **access pattern actually used**, not storage.
-   - **Apply the house design rubric** ([`../../docs/design-rubric.md`](../../docs/design-rubric.md))
+   - **P3.** **Apply the house design rubric** ([`../../docs/design-rubric.md`](../../docs/design-rubric.md))
      — run its **review lens up front** (does the library already give me this?
      one producer per value? the smallest thing across the boundary? a concern per
      layer — computation in the domain, presentation in the rendering layer, config
      in the shared store, identity in the library?), so the spec is *authored to*
      the standards, not corrected into them over review rounds. The rubric's
      rule-level specifics live in the language standard (`typescript` /
-     `python-style`).
+     `python-style`) and are cited from there, never restated here — a Python
+     spec's collection types are [`python-style`](../python-style/SKILL.md)'s
+     *Model collections on `collections.abc`*, and a TypeScript spec's identifiers are
+     [`typescript`](../typescript/SKILL.md)'s own rule.
    - Keep `<nav.toc>` labels in sync with the `<h2>`s; delete guidance comments
      as you fill; every section either says something real or says why it's N/A.
 

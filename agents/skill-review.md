@@ -71,19 +71,30 @@ than growing a second Method on top.
 **3. One fact, one home.** A unit that restates a rule another skill owns has
 made a second copy to drift. It should link the owner. Name which unit owns it.
 
-**4. The description does its job.** For a procedural skill it routes — what it
+**4. A cited rule set is indexed.** Where an agent cites a skill's rules, the
+skill numbers them and the agent cites the number. The worked example is in
+this repository: [`draft-design-spec`](../skills/draft-design-spec/SKILL.md)
+groups its rules `P1`&ndash;`P6`, `F1`&ndash;`F12`, `S1`&ndash;`S11`,
+`E1`&ndash;`E6`, and [`spec-review`](spec-review.md) cites them by identifier
+rather than restating them. The alternative is an agent that must quote a rule
+in full to refer to it, which is a second copy of every rule it checks.
+Flag a skill whose rules an agent quotes rather than cites, an index with gaps
+or duplicate identifiers, and any renumbering: once a check cites `S9`, `S9` is
+a promise, so a new rule appends to its group and never displaces one.
+
+**5. The description does its job.** For a procedural skill it routes — what it
 does plus the contexts that should reach it, and the near-misses that should
 not. For an agent it is capability plus when-to-use. A description that only
 describes, with no trigger surface, will not be found.
 
-**5. Cross-references are markdown links, not backticked paths**, where the
+**6. Cross-references are markdown links, not backticked paths**, where the
 target is reachable by a relative path in the same repo. A backticked path is
 invisible to the link graph and rots silently.
 
-**6. Durable method, not point-in-time data.** Counts, versions, live figures
+**7. Durable method, not point-in-time data.** Counts, versions, live figures
 and "currently" belong in a dated output, not a standing unit.
 
-**7. The shape rules apply to this prose too**, against
+**8. The shape rules apply to this prose too**, against
 [`docs-style`](../skills/docs-style/SKILL.md)'s *the shape of a doc*. A skill is read under time pressure by something deciding
 whether to act on it, so a buried lead costs more here than in a doc: check
 where the substance starts, whether the unit is one subject, whether a section

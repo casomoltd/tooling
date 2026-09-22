@@ -74,16 +74,11 @@ type aliases used as ports (function-type aliases). List each type's notable
 methods/fields concisely.
 
 The block must be **valid, renderable mermaid on the first pass** — the caller
-must never have to sanitize it. Rules the classDiagram parser enforces:
-- Stereotypes as literal `<<abstract>>` / `<<enumeration>>` / `<<type alias>>` —
-  never HTML-escape them (`&lt;&lt;…&gt;&gt;` renders as text, not a stereotype).
-- **No `|`, `[`, `]`, `,`, or `~` inside a member/field line** — these break the
-  parser. Write types in words: `date or None` not `date|None`, `list of Item`
-  not `list[Item]`, `Callable str to str` not `Callable[[str], str]`. Describe a
-  type alias's shape in prose inside the class body, not the literal bracketed
-  type.
-- No stray characters, no prose outside class bodies, no parentheses in a
-  relationship label. Mentally validate the block parses before returning it.
+must never have to sanitize it. Follow [`diagram-rubric.md`](../docs/diagram-rubric.md)
+**M1–M8**, plus one rule this context owns:
+- Stereotypes as literal `<<abstract>>` / `<<enumeration>>` / `<<type alias>>`,
+  **never** HTML-escaped. This renders in a markdown fence, where
+  `&lt;&lt;…&gt;&gt;` shows as text rather than a stereotype.
 
 ### 2. Weight table
 A table: module · lines · #distinct concerns · heavy / balanced / thin ·

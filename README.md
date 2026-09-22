@@ -28,6 +28,8 @@ Shared linting, formatting, commit config, and CLI tools for Casomo Ltd's repos.
 | `readability` | Measure reading difficulty of page content |
 | `screenshot` | Capture a dev server page via Playwright — an agent's visual feedback loop |
 | `build-report` | Compile a Typst client report to PDF with the house template |
+| `render-figures` | Pre-render a design spec's mermaid figures to static SVG |
+| `spec-check` | Check a design spec's anchors, contents, figures and numbering |
 
 ## Install
 
@@ -52,10 +54,10 @@ declared here — see [External prerequisites](#external-prerequisites).
 
 ## External prerequisites
 
-Two bins need something npm cannot sensibly deliver: `screenshot` needs
-a Chromium build, `build-report` needs the `typst` CLI and the IBM Plex
-fonts. **Neither is declared — not as a dependency, and not as an
-optional peer.** Both load their prerequisite lazily and fail with an
+Three bins need something npm cannot sensibly deliver: `screenshot` and
+`render-figures` need a Chromium build through Playwright, and
+`build-report` needs the `typst` CLI and the IBM Plex fonts. **None is
+declared — not as a dependency, and not as an optional peer.** Each loads its prerequisite lazily and fails with an
 install instruction when it is missing, so a consumer that never runs
 those bins carries nothing for them.
 
@@ -205,6 +207,21 @@ Add these scripts to your `package.json`:
 
 Screenshots are saved to `.claude/screenshots/`. Set
 `SCREENSHOT_URL` to override the default `http://localhost:3000`.
+
+## Design specs
+
+`spec-check` reads one HTML design spec and reports its mechanical
+faults: an anchor resolving to nothing, a contents entry disagreeing
+with its heading, a figure without a number, an anchor or a caption, a
+figure wider than the card it sits in, a section number typed where the
+stylesheet generates one, and markup the artifact host refuses.
+
+`render-figures` rewrites a spec's mermaid figures as static SVG, so the
+page carries no runtime. Each figure keeps its source in an HTML comment
+above it, and a run reads those back, renders them and freezes the
+computed paint inline. It resolves Playwright from the working directory;
+set `RENDER_FIGURES_RESOLVE_FROM` to a project that has it when running
+from somewhere else.
 
 ## Client reports (Typst)
 

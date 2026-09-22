@@ -76,12 +76,9 @@ cycles), so the diagram earns its keep: one node per doc, one edge per link betw
 docs. Orphans appear as unconnected nodes; a hub doc's high in-degree is visible at
 a glance. It must be **valid, renderable on the first pass** — the caller never
 sanitizes:
-- Short alphanumeric node ids, human label quoted: `readme["README.md"]`.
-- **No `|`, `(`, `)`, `[`, `]`, or `,` inside a label** except the quoted text —
-  put relationships on the edge, not in the label.
-- Edge labels (optional) in quotes: `a -->|"catalogued in"| b`.
-- No prose outside node/edge lines. Mentally validate the block parses before
-  returning it.
+Follow [`diagram-rubric.md`](../docs/diagram-rubric.md) **M1–M8**. One addition
+this graph needs:
+- Edge labels, where used, in quotes: `a -->|"catalogued in"| b`.
 
 **Viewing** — markdown + mermaid renders unreliably in editors, so the *Persist
 the report* step below renders a browser-ready `.html` next to the `.md` via the
