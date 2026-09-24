@@ -27,6 +27,10 @@
   --radius: 2px;
   --shadow: none;
   --measure: 62rem;
+  /* Everything read as prose shares one measure; content that needs the
+     width -- tables, code, figures -- takes the whole column. One value, so
+     a callout and the paragraph above it end at the same edge. */
+  --reading: 44rem;   /* clears the floated contents card in the masthead */
 }
 
 html { -webkit-text-size-adjust: 100%; }
@@ -89,20 +93,31 @@ h2::before { content: none; }
 h3 { font-size: 17px; font-weight: 600; margin: 24px 0 8px; }
 h4 { font-size: 15px; font-weight: 600; margin: 18px 0 6px; }
 h5 { font-size: 14px; font-weight: 600; margin: 14px 0 4px; }
-p { margin: 0 0 12px; max-width: 46rem; }
+p { margin: 0 0 12px; max-width: var(--reading); }
+/* Justified with hyphenation, so a justified line does not open rivers.
+   Code, tables and figures keep their own alignment. */
+p, li, .callout, .legend { text-align: justify; hyphens: auto; }
+/* A box's padding and border sit inside the measure, so its outer edge
+   lines up with the paragraphs beside it. */
+.callout, .card { box-sizing: border-box; }
+ul, ol { max-width: var(--reading); }
 a { color: var(--accent); }
 a:visited { color: #795cb2; }
+/* An unbreakable path in a justified line stretches every gap before it,
+   so inline code may wrap; a split path reads better than a river. */
 code:not(pre code) {
+  overflow-wrap: anywhere;
   font: 13px var(--mono); background: var(--panel);
   border: 1px solid var(--hair); border-radius: 2px; padding: 0 3px; }
 
 /* ---- boxes: a thin rule, never a shadow ---- */
 .card {
   border: 1px solid var(--line); background: var(--card);
-  padding: 14px 16px; margin: 14px 0; }
+  padding: 14px 16px; margin: 14px 0; max-width: var(--reading); }
 .callout {
   border: 1px solid var(--hair); border-left: 3px solid var(--dim);
-  background: var(--panel); padding: 10px 14px; margin: 14px 0; }
+  background: var(--panel); padding: 10px 14px; margin: 14px 0;
+  max-width: var(--reading); }
 .callout .lbl {
   display: block; font-weight: 600; font-size: 13px; margin-bottom: 4px; }
 .c-info   { border-left-color: var(--info); }
@@ -159,7 +174,7 @@ pre code { font: 13px/1.55 var(--mono); }
   padding: 16px; margin: 14px 0; text-align: center; overflow-x: auto; }
 .legend {
   font-size: 13px; color: var(--muted); margin: -4px 0 16px;
-  max-width: 46rem; }
+  max-width: var(--reading); }
 
 /* ---- lists and odds ---- */
 ul.tight, ol.tight { margin: 8px 0; padding-left: 20px; }
@@ -188,7 +203,7 @@ footer {
    read as broken. */
 @page { size: A4; margin: 14mm 12mm; }
 @media print {
-  :root { --measure: 100%; }
+  :root { --measure: 100%; --reading: 100%; }
   body { font-size: 10.5pt; }
   .wrap { padding: 0; }
   nav.toc { float: none; width: auto; margin: 0 0 18px; }
