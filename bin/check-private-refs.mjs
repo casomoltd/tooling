@@ -21,21 +21,24 @@
  * a public package, so it cannot itself name anybody's private repos,
  * boards or hosts — that would be the disclosure it exists to prevent.
  * The defaults cover hosted trackers that are private by default; a
- * consuming repo adds its own names in `check-private-refs.config.mjs`:
+ * consuming repo adds its own names under `privateRefs` in its
+ * `casomo.config.mjs`:
  *
  *   export default {
- *     visibility: 'public',        // optional; skips the gh lookup
- *     forbidden: [                 // strings or RegExp
- *       {pattern: /internal\.example\.net/, why: 'internal hostname'},
- *     ],
- *     allow: [/CHANGELOG\.md$/],   // paths exempted, with care
+ *     privateRefs: {
+ *       visibility: 'public',        // optional; skips the gh lookup
+ *       forbidden: [                 // strings or RegExp
+ *         {pattern: /internal\.example\.net/, why: 'internal hostname'},
+ *       ],
+ *       allow: [/CHANGELOG\.md$/],   // paths exempted, with care
+ *     },
  *   };
  */
 
 import {execFileSync} from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import {loadConfig} from "./utils.mjs";
+import {CASOMO_CONFIG_KEYS, loadCasomoConfig} from "./utils.mjs";
 
 /**
  * Hosted trackers whose links are private by default.
@@ -95,11 +98,7 @@ function toMatchers(entries) {
 }
 
 async function main() {
-  const mod = await loadConfig("check-private-refs.config.mjs");
-  // `loadConfig` returns the MODULE, so the config is its default
-  // export. Reading the module object itself silently found no
-  // patterns and reported a clean repo.
-  const config = mod?.default ?? {};
+  const config = await loadCasomoConfig(CASOMO_CONFIG_KEYS.privateRefs);
   const visibility = repoVisibility(config.visibility);
 
   if (visibility === null) {
@@ -109,7 +108,7 @@ async function main() {
     console.warn(
       "check-private-refs: SKIPPED — could not determine repo "
       + "visibility (is `gh` installed and authenticated?). Set "
-      + "`visibility` in check-private-refs.config.mjs to be explicit.",
+      + "`privateRefs.visibility` in casomo.config.mjs to be explicit.",
     );
     return;
   }

@@ -16,16 +16,18 @@
  *
  * Deliberately configurable, because this file ships in a public package and
  * cannot name anybody's domains or reference formats. A consuming repo adds
- * its own in `check-personal-data.config.mjs`:
+ * its own under `personalData` in its `casomo.config.mjs`:
  *
  *   export default {
- *     allowEmail: [/@example-org\.com$/i],   // addresses that are not people
- *     rules: [                               // repo-specific identifiers
- *       {name: "case reference", re: /\bCASE-\d{4,}\b/g,
- *        allow: (m) => m === "CASE-0000"},
- *     ],
- *     denylist: ".personal-data-denylist",   // the default; gitignore it
- *     allow: [/\.test\.mjs$/],               // paths exempted, with care
+ *     personalData: {
+ *       allowEmail: [/@example-org\.com$/i], // addresses that are not people
+ *       rules: [                             // repo-specific identifiers
+ *         {name: "case reference", re: /\bCASE-\d{4,}\b/g,
+ *          allow: (m) => m === "CASE-0000"},
+ *       ],
+ *       denylist: ".personal-data-denylist", // the default; gitignore it
+ *       allow: [/\.test\.mjs$/],             // paths exempted, with care
+ *     },
  *   };
  *
  * Usage:
@@ -35,7 +37,7 @@
 import {execFileSync} from "node:child_process";
 import {existsSync, readFileSync, realpathSync, statSync} from "node:fs";
 import {pathToFileURL} from "node:url";
-import {loadConfig} from "./utils.mjs";
+import {CASOMO_CONFIG_KEYS, loadCasomoConfig} from "./utils.mjs";
 
 /** Addresses in every repo's own tooling that name no person. */
 const ALLOWED_EMAIL = [
@@ -217,9 +219,7 @@ export function scan(fileList, read, rules, names) {
 }
 
 async function main() {
-  const mod = await loadConfig("check-personal-data.config.mjs");
-  // `loadConfig` returns the module, so the config is its default export.
-  const config = mod?.default ?? {};
+  const config = await loadCasomoConfig(CASOMO_CONFIG_KEYS.personalData);
   const denylist = config.denylist ?? ".personal-data-denylist";
   const rules = [...identityRules(config.allowEmail), ...(config.rules ?? [])];
   const names = denied(denylist);
