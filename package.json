@@ -21,13 +21,14 @@
     "!**/*.test.mjs"
   ],
   "scripts": {
-    "check": "node bin/check-gates.mjs && node bin/verify-pack.mjs && npm run check:private-refs && npm run typecheck && npm run test && npm run lint:md",
+    "check": "node bin/check-gates.mjs && node bin/verify-pack.mjs && npm run check:private-refs && npm run check:personal-data && npm run typecheck && npm run test && npm run lint:md",
     "typecheck": "tsc --noEmit -p hooks/tsconfig.json",
-    "test": "node hooks/test.mts && node bin/check-gates.test.mjs && node commitlint/index.test.mjs",
+    "test": "node hooks/test.mts && node bin/check-gates.test.mjs && node bin/check-personal-data.test.mjs && node commitlint/index.test.mjs",
     "lint:md": "remark --frail --quiet --no-stdout --rc-path bin/skills-lint.config.mjs skills agents docs",
     "build": "echo 'no-op: source-only repo, nothing to build'",
     "prepare": "husky || true",
-    "check:private-refs": "node bin/check-private-refs.mjs"
+    "check:private-refs": "node bin/check-private-refs.mjs",
+    "check:personal-data": "node bin/check-personal-data.mjs"
   },
   "casomo": {
     "gates": {
@@ -52,6 +53,7 @@
     "check-gates": "./bin/check-gates.mjs",
     "check-hooks": "./bin/check-hooks.sh",
     "check-linear": "./bin/check-linear.sh",
+    "check-personal-data": "./bin/check-personal-data.mjs",
     "check-private-refs": "./bin/check-private-refs.mjs",
     "check-tags": "./bin/check-tags.sh",
     "check-version": "./bin/check-version.sh",

@@ -30,6 +30,8 @@ Shared linting, formatting, commit config, and CLI tools for Casomo Ltd's repos.
 | `build-report` | Compile a Typst client report to PDF with the house template |
 | `render-figures` | Pre-render a design spec's mermaid figures to static SVG |
 | `spec-check` | Check a design spec's anchors, contents, figures and numbering |
+| `check-private-refs` | In a public repo, refuse a private tracker link or a name listed in `check-private-refs.config.mjs` |
+| `check-personal-data` | Refuse an email, National Insurance number, UK mobile number, date of birth or locally denylisted name; per-repo allowances in `check-personal-data.config.mjs` |
 
 ## Install
 

@@ -4,3 +4,6 @@ node_modules
 # report/agent output fallback when SCRATCH_DIR is unset (README
 # "Report output & SCRATCH_DIR") — build artefacts, never committed
 scratch/
+
+# Names check-personal-data refuses; listing them here would be the leak.
+.personal-data-denylist
