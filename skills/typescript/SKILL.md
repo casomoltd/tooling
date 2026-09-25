@@ -526,6 +526,56 @@ dir. Neither catches "this *should* have been polymorphic" — that stays a
 design-review call (the `code-review` / `design-xray` agents apply this
 rubric).
 
+## Lay Out a Module Top-Down
+
+Below the imports, order every module the same way, so a reader
+meets its surface before its workings:
+
+1. Types, interfaces and classes.
+2. Constants, exported ones first.
+3. Functions, exported ones first, then the private helpers.
+
+TypeScript has no separate declarations to put first, and needs
+none: a consumer reads the generated `.d.ts` and the package's
+barrel, and a `function` declaration is hoisted, so an exported
+function can call a helper defined below it. Constants and classes
+are not hoisted: a module-level `const` whose initialiser reads
+another `const` defined below it throws at import (the temporal dead
+zone). That is why types and constants come before functions, and
+why a constant another constant reads comes first whatever its
+visibility, the one exception to exported-first.
+
+Keep a private constant in the constants block even when one
+function alone reads it: a reader scanning for a module's constants
+finds it there without reading every function. A type derived from
+a constant (`(typeof X)[keyof typeof X]`) sits beside that constant
+rather than in the types block, so the two read as one definition,
+as [Typed Identifiers](#typed-identifiers) shows.
+
+```ts
+// Good
+export const DEFAULT_LIMIT = 50;
+const RETRY_DELAY_MS = 200;
+
+export function fetchPage(cursor: Cursor): Page {
+  return withRetry(() => request(cursor, DEFAULT_LIMIT));
+}
+
+function withRetry<T>(call: () => T): T { /* ... */ }
+
+// Bad: the helper sits above the function that reads it, and a
+// private constant between two exported functions
+function withRetry<T>(call: () => T): T { /* ... */ }
+
+export function fetchPage(cursor: Cursor): Page {
+  return withRetry(() => request(cursor, DEFAULT_LIMIT));
+}
+
+const RETRY_DELAY_MS = 200;
+
+export function fetchAll(): Page[] { /* ... */ }
+```
+
 ## Separate Static from Varying
 
 Metadata that doesn't change per variant (labels, slugs,

@@ -159,6 +159,11 @@ enough surrounding code (definitions, call sites) to judge design intent.
   test needs a comment, or the reader's own working-out, to say what case it is —
   an early return under a comment, a compound condition written inline. Flag it:
   the condition belongs in a `const` named for the case, and the branch reads it.
+- **Lay out a module top-down** (`typescript` and `python-style` standards): a
+  module's types, then constants, then functions, exported before private in
+  each. Flag a constant between functions, or a private helper above the
+  exported function that uses it; a constant another constant reads may come
+  first.
 - **Crawlable navigation** (`typescript` standard): primary navigation — and any
   hub→spoke or page-to-page link — must render a real `<a href>`/`<Link>`, never
   a JS-only `onClick`/`router.push`/`<select>` that emits no anchor and so is

@@ -343,11 +343,14 @@ def load_records(path: Path) -> list[Record]:
 
 ## Ordering — public before private
 
-- **At module scope, all public names come before private (`_`-prefixed)
-  ones.** Lead with the public API (constants, classes, functions);
-  private helpers and private constants go below. Forward references
-  resolve at call time, so a public function may call a private helper
-  defined further down — that's fine and expected.
+- **At module scope, classes and constants come before functions, and
+  public names before private (`_`-prefixed) ones in each.** Lead with
+  the public API; private helpers and private constants go below.
+  Forward references in a function body resolve at call time, so a
+  public function may call a private helper defined further down —
+  that's fine and expected. A module-level constant is evaluated at
+  import, so a class it instantiates or a constant it reads comes first,
+  whatever its visibility.
 - **Within a class, public methods before private (`_`) methods.**
 - One exception to "definitions first": a private type referenced in
   another definition's *annotation* must appear before that use
