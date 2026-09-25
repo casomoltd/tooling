@@ -27,12 +27,6 @@ not a JS-only handler). **Defers** mechanical rules to `eslint` (max-len, import
 order, `@typescript-eslint`, sonarjs), and anchor *phrasing/flow* to the prose
 reviewer — this rubric owns the element, not the wording.
 
-Apply these principles when creating or restructuring types,
-constants, domain data, or component variants in TypeScript /
-TSX. (Scope: data, type, and component-API design — general
-formatting such as line length and file naming is out of this
-skill's scope.)
-
 ## Typed Identifiers
 
 Use an `as const` object for domain keys, then derive the
@@ -66,17 +60,51 @@ iteration.
 
 ## No Magic Literals
 
-Repeated literals — route/page paths, storage keys, query
-params, event names — belong in one exported constant,
-imported at every call site. Never hardcode the same
-literal across multiple files.
+A literal needs a name when its meaning is not visible where it is
+used. That covers a literal that repeats — route and page paths,
+storage keys, query params, event names — and equally one used once
+that stands for something defined elsewhere: a rule's threshold, a
+code from another system's document, a position in another structure.
+Where a library owns the value, import its constant (see
+[Reuse the Library's Types and Values](#reuse-the-librarys-types-and-values));
+otherwise give it a named constant, exported where it is shared, and use
+it at every site. Keep the literal as the value, so a reader can still
+check it against its source; where it is transcribed from a published
+source, cite it per
+[Pin Transcribed Reference Data](#pin-transcribed-reference-data-to-a-cited-fixture).
 
 ```ts
-// Good: one source of truth, imported everywhere
+// Good: the name carries the meaning, the value stays checkable
 export const ROUTES = { DASHBOARD: '/dashboard' } as const;
+export const RETIREMENT_AGE = 60;
 // pathname.startsWith(ROUTES.DASHBOARD)
+// if (age >= RETIREMENT_AGE)
 
-// Bad: '/dashboard' copied across pages, nav, helpers
+// Bad: '/dashboard' copied across files; a bare 60 the reader must
+// look up to follow the line
+```
+
+## Name the Condition, Not the Branch
+
+When a reader needs a comment to know what a branch tests, bind the
+condition to a `const` whose name states the case, and branch on that.
+The name sits at the test, so it cannot drift from it the way a comment
+above it can. TypeScript narrows through a `const` condition as it does
+through the expression, provided the value it narrows is itself a
+`const`, a readonly property or an unreassigned parameter. Keep a
+comment only for *why* the branch exists.
+
+```ts
+// Good: the name states the case, and `order.coupon` still narrows
+const firstOrderDiscount =
+  order.coupon !== undefined && customer.orderCount === 0;
+if (firstOrderDiscount) return applyCoupon(order.coupon);
+
+// Bad: the comment says what the condition should have said
+// A new customer's first order, with a coupon
+if (order.coupon !== undefined && customer.orderCount === 0) {
+  return applyCoupon(order.coupon);
+}
 ```
 
 ## Pass Value Objects, Not Loose Fields
@@ -970,7 +998,7 @@ publishing cycle is a real-world state, a drift of two is a gap in your
 own data. An assertion that names the legitimate range turns a silent
 wrong number into a build failure with an explanation.
 
-Why this is not covered by "avoid magic constants": the constant here
+Why this is not covered by [No Magic Literals](#no-magic-literals): the constant here
 is fine, correctly named for one of its two uses, and has a single
 obvious home. The defect is that two questions were asked of it, and
 neither the name nor the type records which one a given caller meant.

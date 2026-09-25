@@ -103,6 +103,13 @@ carries more words than it needs. [`doc-review`](doc-review.md) owns this for a 
 stops at the `SKILL.md` boundary; past that boundary it is yours, and without
 this item the rule has no enforcer in a skill or agent file at all.
 
+**9. The rule is stated at the level it applies**, `docs-style`'s rule of
+that name. In a skill the origin shows in the wording, the example and the
+heading, which name the table, the file or the domain that went wrong. Ask what
+the rule is an instance of, flag one a reader would not recognise as applying
+to a sibling case, and name the sibling. Such a rule is current, correct and
+well placed, so it passes every other check here.
+
 ## Ignore — owned elsewhere (never re-flag)
 
 - **Broken links, anchors, and code fences missing a language tag** — the

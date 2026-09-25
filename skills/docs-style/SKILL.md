@@ -152,6 +152,11 @@ substance late, and a doc carrying three subjects under one name.
 - **Explain WHY, not WHAT.** A note earns its place by giving the rationale a
   reader can't infer from the thing itself; it never just restates the mechanic
   in prose.
+- **State a rule at the level it applies.** A rule is usually written the day
+  one case prompted it, and it tends to describe that case. State the principle
+  the case is an instance of, and let the case be one example among others: a
+  rule worded around its origin is a second rule waiting to be written for the
+  next sibling case, and a reader of that sibling will not find it.
 
 ## Where a repo's own docs live
 

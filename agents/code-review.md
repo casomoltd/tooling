@@ -144,6 +144,7 @@ enough surrounding code (definitions, call sites) to judge design intent.
   it: an omitted selector then returns a plausible-but-wrong answer with no error,
   and every call site can forget it the same way. The selector must be required (a
   missing one is a compile error) or fail loud (throw) — never defaulted.
+
   **Apply the same reading to a defaulted RESULT**, not only a defaulted
   parameter: an empty array, a `?? 0`, or a silently skipped element standing in
   for data the caller expected. The justification is identical — no error, no
@@ -153,6 +154,11 @@ enough surrounding code (definitions, call sites) to judge design intent.
   because the code cannot tell a deliberate absence from a lost row.
   Distinguish a benign *tuning* default (page size, precision) that changes only
   *how* a result is computed, not *which* result you get.
+
+- **Name the condition, not the branch** (`typescript` standard): a branch whose
+  test needs a comment, or the reader's own working-out, to say what case it is —
+  an early return under a comment, a compound condition written inline. Flag it:
+  the condition belongs in a `const` named for the case, and the branch reads it.
 - **Crawlable navigation** (`typescript` standard): primary navigation — and any
   hub→spoke or page-to-page link — must render a real `<a href>`/`<Link>`, never
   a JS-only `onClick`/`router.push`/`<select>` that emits no anchor and so is
