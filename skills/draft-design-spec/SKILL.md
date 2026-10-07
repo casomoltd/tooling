@@ -151,10 +151,13 @@ emit an empty or fabricated diagram.
    `skills/draft-design-spec/skeleton.html`.)
 3. **Generate what can be generated, before writing a line of it.** The
    current-state class hierarchy is `design-xray`'s output. The dependency
-   appendix is read off the imports — `npx depcruise <dir> --no-config
-   --include-only '^<dir>/' --exclude '\.test\.' --output-type mermaid` for
-   JavaScript and TypeScript, an AST walk for Python. Paste the result and
-   record the command beside the figure so the next reader can rebuild it. A
+   appendix is read off the imports — `npx -p dependency-cruiser depcruise
+   <dir> --no-config --include-only '^<dir>/' --exclude '\.test\.'
+   --output-type mermaid` for JavaScript and TypeScript, an AST walk for
+   Python. Name the package: `depcruise` is only the binary, and on the npm
+   registry that name is a placeholder held against dependency confusion,
+   so a bare `npx depcruise` fetches it instead of the tool. Paste the result
+   and record the command beside the figure so the next reader can rebuild it. A
    graph you drew is a claim; a graph you generated is evidence, and only one
    of them survives the next refactor.
 4. Fill the body sections via `Edit`, following the skeleton's inline guidance
