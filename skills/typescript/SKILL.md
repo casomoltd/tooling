@@ -2,7 +2,8 @@
 name: typescript
 description: >-
   TypeScript data, type, and component-variant design — typed
-  identifiers, clean domain data, variants over mode flags
+  identifiers, clean domain data, variants over mode flags, and the
+  environment resolved once into a closed set
 user-invocable: false
 ---
 
@@ -11,7 +12,8 @@ user-invocable: false
 ## Intent
 
 Govern TypeScript data, type, and component-variant design — typed identifiers,
-clean domain data, variants over mode flags.
+clean domain data, variants over mode flags, and where the program is running
+resolved once into a closed set of shapes.
 
 ## Applies-to
 
@@ -762,13 +764,74 @@ endpoint, a snapshot path resolved against the package root instead
 of the temp build. Split the two concerns — the **address of the
 thing** comes from the data, the **environment** comes from the
 harness — and keep the site's canonical constant for *comparison*
-only, never for fetching.
+only, never for fetching. The program-side half of that split, resolving
+where the code itself is running, is
+[Resolve the Environment Once](#resolve-the-environment-once).
 
 **How you catch it without a rule: distrust a result that is too
 tidy.** A retargeted check reports the state of the untouched
 artefact, so it will happily tell you that nothing you just changed
 has changed. If a verification disagrees with an edit you know you
 made, suspect the target before the edit.
+
+## Resolve the Environment Once
+
+Where the program is running is state it is given, not something each
+module infers. A module that reads an ambient signal — `NODE_ENV`, a
+hosting platform's variable, a CI flag — to decide where it is, then
+branches on the answer, is guessing. Two such modules guess
+differently, and a context nobody listed (a local production build, CI,
+a scheduled job's checkout) falls between them. `NODE_ENV ===
+'production'` is the usual culprit: a framework sets it for every
+optimised build, so a check meant to ask "is this a real deployment?"
+fires on a developer's machine.
+
+Name the shapes the environment can take, resolve the raw variables
+into one of them in a single owner module, and throw on any combination
+that fits none (the same fail-loud reading as
+[No Silent Default for a Domain-Selecting Input](#no-silent-default-for-a-domain-selecting-input)).
+Every other module consumes the resolved value.
+
+```ts
+// Bad: each module infers its own answer from an ambient signal
+if (process.env.NODE_ENV === 'production') requireAnalytics();
+
+// Good: one owner resolves a closed set; the rest ask it
+export const ENVIRONMENTS = {
+  Dev: 'dev', Test: 'test', LocalBuild: 'local-build',
+  Preview: 'preview', Production: 'production',
+} as const;
+export type EnvironmentKind =
+  (typeof ENVIRONMENTS)[keyof typeof ENVIRONMENTS];
+
+// Called once with the raw variables — at startup, or at build time
+// for a browser bundle. The table of valid combinations lives here;
+// anything else throws.
+export function resolveEnvironment(
+  raw: Record<string, string | undefined>,
+): EnvironmentKind { /* … */ }
+
+export function isDeployed(kind: EnvironmentKind): boolean {
+  return kind === ENVIRONMENTS.Preview || kind === ENVIRONMENTS.Production;
+}
+
+const kind = resolveEnvironment(process.env);  // the one read
+if (isDeployed(kind)) requireAnalytics();
+```
+
+- **Make the resolver pure** — a function of the variables it is given —
+  so a test covers every row of the table and every invalid combination.
+- **Let a shape carry what it requires.** A deployed shape that must have
+  a setting holds it, so resolving one proves the setting was present and
+  a missing one fails at resolution, not at first use.
+- **Resolve where the inputs are readable.** A browser bundle cannot read
+  server-side variables; resolve at build time and inline the resolved
+  name, rather than letting client code guess from what it can see.
+- **How it runs is a shape too.** The dev server and the test runner are
+  the `Dev` and `Test` members above, resolved from the same variables, so
+  no module reads `NODE_ENV` to ask either.
+- **Enforce the boundary.** A lint rule that bans raw environment reads
+  outside the owner module keeps the next module from inferring again.
 
 ## Don't Pin a Computation to Its Own Output
 

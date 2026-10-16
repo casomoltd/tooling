@@ -155,6 +155,11 @@ enough surrounding code (definitions, call sites) to judge design intent.
   Distinguish a benign *tuning* default (page size, precision) that changes only
   *how* a result is computed, not *which* result you get.
 
+- **Environment resolved once** (`typescript` standard, § Resolve the
+  Environment Once): a module outside the environment's owner that reads
+  `NODE_ENV`, a platform variable or another ambient signal to decide where it
+  is running, and branches on it; and a resolver that falls through to a
+  default shape instead of throwing. Flag either, and point at the owner.
 - **Name the condition, not the branch** (`typescript` standard): a branch whose
   test needs a comment, or the reader's own working-out, to say what case it is —
   an early return under a comment, a compound condition written inline. Flag it:
