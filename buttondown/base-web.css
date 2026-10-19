@@ -1,0 +1,135 @@
+/* The rules every site's blog skin shares, inserted ahead of the site's own
+   rules by composeWebSkin. They restyle Buttondown's markup by role and set
+   no value of their own: each comes from a variable the site's TOKENS block
+   defines, Buttondown's theme variables where the theme has the role and
+   --bd-* where it has not:
+
+     --bd-font-heading   headings and the archive entry's title
+     --bd-heading        their colour
+     --bd-action-bg      the one action's ground
+     --bd-action-ink     its label
+     --bd-action-weight  its label's weight
+     --bd-dialog-bg      a dialog's ground
+     --bd-focus          the focus ring
+     --bd-leading        an archive entry's line height */
+
+body,
+.subscribe,
+.manage-subscription {
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-family-sans);
+}
+
+/* Square and flat everywhere, whatever class Buttondown gives an element,
+   its dialogs and their buttons included. A tag switch keeps its round
+   track. Removing every shadow removes any focus ring drawn as one, so
+   focus is an outline below. */
+*:not(.checkbox-field),
+*::before,
+*::after {
+  border-radius: var(--radius) !important;
+  box-shadow: none !important;
+}
+
+/* Important, so a theme utility that removes outlines cannot leave a
+   control with no focus indicator. */
+:focus-visible {
+  outline: 2px solid var(--bd-focus) !important;
+  outline-offset: 2px;
+}
+
+h1, h2, h3,
+.newsletter-name,
+.section-title,
+.modal-title,
+.login-modal-title {
+  font-family: var(--bd-font-heading);
+  color: var(--bd-heading);
+  letter-spacing: -0.01em;
+}
+
+/* The one action. `.archive__button` is every action button on the
+   archive, the subscribe form's and a signed-in reader's "Manage
+   subscription" alike; the theme sets it pill-shaped, white and upper
+   case with `!important`, so these name the element too to outrank it. */
+a.archive__button,
+button.archive__button,
+button.button.tinted,
+.portal-btn--primary,
+.subscription-success-button {
+  background-color: var(--bd-action-bg) !important;
+  color: var(--bd-action-ink) !important;
+  font-family: var(--font-family-sans) !important;
+  font-weight: var(--bd-action-weight) !important;
+  text-transform: none !important;
+  border-radius: var(--radius) !important;
+}
+
+/* 16px, because iOS zooms a focused field below it and the page jumps.
+   Buttondown's own rule is `input[type=email].input-field`, so the
+   portal's field is named with its type to outrank it. */
+.archive__subscribe-form-input,
+#subscribe-form input[type="email"],
+.subscribe-modal-content input[type="email"],
+.login-modal-content .magic-link-input,
+.manage-subscription input[type="email"].input-field,
+.manage-subscription input[type="text"].input-field {
+  font-family: var(--font-family-sans);
+  font-size: 16px;
+}
+
+.modal-content,
+.buttondown-dialog-root .bg-background {
+  background: var(--bd-dialog-bg) !important;
+}
+
+/* The log-in dialog renders outside the page body, so it does not
+   inherit the page's type. */
+.login-modal-content,
+.login-modal-content * {
+  font-family: var(--font-family-sans);
+}
+
+/* The line after a log-in request: body text, not Buttondown's green. */
+.magic-link-success-message {
+  color: var(--color-foreground) !important;
+}
+
+/* The theme centres the description, and lines of centred body text are
+   harder to read, since each starts in a different place. */
+.newsletter-description,
+.newsletter-description p {
+  text-align: left;
+}
+
+/* An archive entry, set as an article is: a large left-aligned title and
+   justified, hyphenated prose. */
+.email-body .subject {
+  font-family: var(--bd-font-heading);
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--bd-heading);
+  text-align: left;
+}
+
+.email-body .description {
+  text-align: left;
+}
+
+.email-body-content {
+  margin-top: 1.5rem;
+}
+
+.email-body-content p,
+.email-body-content li {
+  font-size: 16px;
+  line-height: var(--bd-leading);
+}
+
+.email-body-content p {
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+}

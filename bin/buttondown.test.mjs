@@ -65,6 +65,7 @@ function repo(files = {}, config = {}) {
     ...files,
   };
   for (const [name, text] of Object.entries(all)) {
+    if (text === undefined) continue;
     mkdirSync(join(dir, name, ".."), {recursive: true});
     writeFileSync(join(dir, name), text);
   }
@@ -384,8 +385,113 @@ const run = (...args) => {
 assert.equal(run("apply"), 1);
 assert.equal(run("draft", "a.md", "b.md"), 2);
 
+// The skins a site composes: the web base after its opening comments and
+// imports and ahead of its rules; the email base with literal values and
+// a hide for each piece of Buttondown's email chrome.
+const {composeWebSkin, emailBaseCss} =
+  await import("../buttondown/skins.mjs");
+// A font request's URL holds semicolons, which must not end the @import.
+const fontImport = "@import url('https://f.example/css?family=A:wght@400;700"
+  + "&display=swap');";
+const composed = composeWebSkin(
+  `/* site */\n${fontImport}\n:root { --x: 1; }\n.site { a: b; }\n`);
+assert.ok(composed.startsWith(`/* site */\n${fontImport}`));
+assert.ok(composed.indexOf(".login-modal-content") < composed.indexOf(":root"));
+const theme = {fonts: {body: "Sans", heading: "Serif"},
+  colours: {page: "#ffffff", ink: "#222222", heading: "#123456"},
+  leading: {body: "1.5", prose: "1.6"}};
+const emailBase = emailBaseCss(theme);
+assert.match(emailBase, /p, li \{ font-family: Sans !important; color: #222222/);
+assert.ok(Object.keys(EMAIL_CHROME_HIDES).every((h) =>
+  emailBase.includes(`${h} { display: none !important; }`)));
+assert.throws(() => emailBaseCss({fonts: {body: "Sans"}}),
+  /emailBaseCss needs theme.fonts.heading/);
+
+// The composer reads past @charset and @layer, an upper-case @import, and
+// a quoted bracket in a URL, as well as comments.
+const prelude = '@charset "utf-8";\n@layer a, b;\n@IMPORT url("a).css");\n';
+assert.ok(composeWebSkin(`${prelude}.site { a: b; }`)
+  .startsWith(`${prelude}\n${"/* The rules every site"}`));
+
+// A field composed from the base is what the check reads, and `tokens`
+// rewrites the block in the file `webSkin` names.
+const skins = new URL("../buttondown/skins.mjs", import.meta.url).href;
+const composedFiles = {
+  "buttondown/fields/web_css.css": undefined,
+  "buttondown/skins/web.css": `${root}\n.a { color: #222; }\n`,
+  "buttondown/fields/web_css.mjs": "import {readFileSync} from 'node:fs';\n"
+    + `import {composeWebSkin} from '${skins}';\n`
+    + "export default composeWebSkin(readFileSync(new URL("
+    + "'../skins/web.css', import.meta.url), 'utf8'));\n",
+};
+// The roles the shared base reads, each mapped by the site.
+const roles = ["font-heading", "heading", "action-bg", "action-ink",
+  "action-weight", "dialog-bg", "focus", "leading"]
+  .map((role) => [`--bd-${role}`, "inherit"]);
+const composedConfig = {webSkin: "buttondown/skins/web.css",
+  extra: [["--radius", "0"], ...roles]};
+const composedRepo = repo({...composedFiles, "buttondown/skins/web.css":
+  `${root.replace("#123456", "#222222")}\n.a { color: #222; }\n`},
+composedConfig);
+await writeTokens(await loadSettings(composedRepo));
+assert.deepEqual(await runCheck(await loadSettings(composedRepo)), []);
+// Without the roles, the shared base's declarations would be dropped.
+await fails(composedFiles, /reads --bd-focus, which nothing declares/,
+  {webSkin: "buttondown/skins/web.css"});
+await fails(web("@import url('late.css');"), /@import that is not a complete/);
+await fails(web("@IMPORT url('late.css');"), /@import that is not a complete/);
+// The cut-short URL a naive composer leaves: no rule precedes it, but it
+// is not a whole statement, so the gate refuses it.
+await fails({"buttondown/fields/web_css.css":
+  "@import url('https://f.example/css?a=1;\n.x { a: b; }\n2');\n" + root},
+  /@import that is not a complete/);
+// "@import" inside a string is not an import.
+assert.ok(!(await problems(web('.d::after { content: "@import"; }')))
+  .some((p) => /@import/.test(p)));
+
+// Every --bd-* role the skin reads must be declared.
+await fails(web(".f { color: var(--bd-missing); }"),
+  /reads --bd-missing, which nothing declares/);
+
+// A payload with no skin to check is refused rather than passed.
+await assert.rejects(problems({"buttondown/fields/css.css": undefined}),
+  /the payload has no css field to check/);
+
+// The email blocks: every option stated, the button keyed on its class,
+// and a footer that must be told whether there is a subscription.
+const {createEmailBlocks} = await import("../buttondown/email-blocks.mjs");
+const blockOptions = {
+  theme,
+  colours: {titleGround: "#eee", action: "#123456", actionInk: "#000",
+    footerGround: "#000", footerRule: "#333"},
+  rhythm: {cardPadding: "32px 24px",
+    buttonCell: "16px 0 32px 0", buttonSize: "16px",
+    buttonPadding: "14px 20px", footerRuleWidth: "1px",
+    footerCells: ["24px 24px 0 24px", "12px 24px 24px 24px"]},
+  small: "font-size:13px;", buttonClass: "action",
+  smallLink: (href, text) => `<a href="${href}">${text}</a>`,
+  colophon: "Registered.", copyright: "&copy; Example",
+  sentenceBreak: "<br>", signoff: "A. Writer",
+};
+const blocks = createEmailBlocks(blockOptions);
+assert.match(blocks.button("https://example.com/", "Go"), /<a class="action"/);
+assert.match(blocks.footer({subscription: true}),
+  /Registered\.<br>You can <a href="\{\{ unsubscribe_url \}\}">/);
+assert.ok(!blocks.footer({subscription: false}).includes("unsubscribe_url"));
+assert.throws(() => blocks.footer(), /needs subscription: true or false/);
+assert.match(blocks.signoff(), /A\. Writer/);
+assert.throws(() => createEmailBlocks({...blockOptions, colophon: undefined}),
+  /createEmailBlocks needs colophon/);
+assert.throws(() => createEmailBlocks({...blockOptions,
+  rhythm: {...blockOptions.rhythm, footerCells: ["1px"]}}),
+/createEmailBlocks needs rhythm.footerCells.1/);
+assert.throws(() => createEmailBlocks({...blockOptions, theme: {}}),
+  /createEmailBlocks needs theme.fonts.body/);
+assert.throws(() => createEmailBlocks(), /createEmailBlocks needs/);
+
 // The public entry exports exactly what index.d.mts declares.
 assert.deepEqual(Object.keys(await import("../buttondown/index.mjs")).sort(),
-  ["EMAIL_CHROME_HIDES", "buildPayload", "loadSettings", "tokenReader"]);
+  ["EMAIL_CHROME_HIDES", "TABLE", "buildPayload", "composeWebSkin",
+    "createEmailBlocks", "emailBaseCss", "loadSettings", "tokenReader"]);
 
 console.log("buttondown tests OK");

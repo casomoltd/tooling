@@ -15,7 +15,7 @@ Shared linting, formatting, commit config, and CLI tools for Casomo Ltd's repos.
 | `@casomoltd/tooling/knip` | Knip config for unused exports/dependencies |
 | `@casomoltd/tooling/jscpd` | Copy-paste detection config |
 | `@casomoltd/tooling/readability` | `scoreText()` — readability scoring for page content |
-| `@casomoltd/tooling/buttondown` | For a repo using the `buttondown` command: `tokenReader()` for its email templates, `loadSettings()` and `buildPayload()` for its tests, `EMAIL_CHROME_HIDES` for its config, and the `Check` type for its own gates |
+| `@casomoltd/tooling/buttondown` | For a repo using the `buttondown` command: the shared email blocks and skins (`createEmailBlocks`, `emailBaseCss`, `composeWebSkin`), `tokenReader()`, `loadSettings()` and `buildPayload()`, and `EMAIL_CHROME_HIDES` ([docs/buttondown.md](docs/buttondown.md)) |
 
 ### Bin commands
 
@@ -33,7 +33,7 @@ Shared linting, formatting, commit config, and CLI tools for Casomo Ltd's repos.
 | `spec-check` | Check a design spec's anchors, contents, figures and numbering |
 | `check-private-refs` | In a public repo, refuse a private tracker link or a name listed under `privateRefs` in `casomo.config.mjs` |
 | `check-personal-data` | Refuse an email, National Insurance number, UK mobile number, date of birth or locally denylisted name; per-repo allowances under `personalData` in `casomo.config.mjs` |
-| `buttondown` | Keep a Buttondown newsletter as code: `diff` and `apply` its fields (settings, skins and email templates) and tags, `check` the skins, sync their tokens, and create drafts. Settings under `buttondown` in `casomo.config.mjs`; the API key from the file `BUTTONDOWN_KEY_FILE` names |
+| `buttondown` | Keep a Buttondown newsletter as code: `diff` and `apply` its fields (settings, skins and email templates) and tags, `check` the skins, sync their tokens, and create drafts ([docs/buttondown.md](docs/buttondown.md)) |
 
 ## Install
 

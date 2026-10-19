@@ -5,3 +5,5 @@
 export {
   buildPayload, EMAIL_CHROME_HIDES, loadSettings, tokenReader,
 } from "./engine.mjs";
+export {createEmailBlocks, TABLE} from "./email-blocks.mjs";
+export {composeWebSkin, emailBaseCss} from "./skins.mjs";

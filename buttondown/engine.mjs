@@ -64,8 +64,8 @@ const DRAFT = "draft";
 
 const FRONT_MATTER = /^---\n([\s\S]*?)\n---\n/;
 
-/** The two skins, by the Buttondown field each file fills. */
-const SKIN = {web: "web_css.css", email: "css.css"};
+/** The Buttondown fields holding the two skins. */
+const SKIN = {web: "web_css", email: "css"};
 
 /** Fields Buttondown stores behind its image proxy. */
 const IMAGE_FIELDS = new Set(["icon", "image"]);
@@ -101,10 +101,11 @@ export async function loadSettings(root = process.cwd()) {
       + "stylesheet the site's design tokens are declared in");
   }
   const at = (p) => path.resolve(root, p);
+  const dir = at(config.dir ?? "buttondown");
   return {
     root,
     newsletter: config.newsletter,
-    dir: at(config.dir ?? "buttondown"),
+    dir,
     globals: at(config.globals),
     tokens: config.tokens ?? [],
     extra: config.extra ?? [],
@@ -112,6 +113,10 @@ export async function loadSettings(root = process.cwd()) {
     allowedHides: config.allowedHides ?? {},
     linkClasses: Object.values(config.linkClasses ?? {}),
     ownLinks: [...BUTTONDOWN_LINKS, ...(config.ownLinks ?? [])],
+    // The file holding the web skin's TOKENS block, which `tokens`
+    // rewrites: the field file itself unless the field is composed.
+    webSkin: config.webSkin
+      ? at(config.webSkin) : path.join(dir, "fields", "web_css.css"),
     paletteFiles: (config.paletteFiles ?? []).map(at),
     checks: (config.checks ?? []).map(at),
   };
@@ -206,7 +211,7 @@ export function tokensBlock(settings, css) {
 /** Rewrites the web skin's TOKENS block from the site's tokens. */
 export async function writeTokens(settings) {
   const css = await readFile(settings.globals, "utf8");
-  const file = skinPath(settings, "web");
+  const file = settings.webSkin;
   const web = await readFile(file, "utf8");
   const {s, e} = markers(web);
   await writeFile(
@@ -217,10 +222,41 @@ export async function writeTokens(settings) {
 /** Every problem with the repo's skins and settings; empty when clean. */
 export async function runCheck(settings) {
   const css = await readFile(settings.globals, "utf8");
-  const web = await readIf(skinPath(settings, "web"));
-  const email = await readIf(skinPath(settings, "email"));
   const payload = await buildPayload(settings);
+  // The skins as sent, base rules and site rules together, so what is
+  // checked is what Buttondown receives. Absent, there is nothing to
+  // check, which is refused rather than passed.
+  for (const field of Object.values(SKIN)) {
+    if (typeof payload[field] !== "string") {
+      throw new Error(`the payload has no ${field} field to check`);
+    }
+  }
+  const web = payload[SKIN.web];
+  const email = payload[SKIN.email];
   const problems = [];
+
+  // An @import must be a whole statement before any rule: a browser
+  // ignores one after a rule, and one whose URL was cut short swallows
+  // what follows it. Read past the leading statements as the composer
+  // does; any @import left over, outside a string, is one of those.
+  const rest = stripComments(web.slice(preludeEnd(web)))
+    .replace(/"[^"]*"|'[^']*'/g, '""');
+  if (/@import/i.test(rest)) {
+    problems.push("the web skin has an @import that is not a complete "
+      + "statement before its first rule, which a browser ignores");
+  }
+
+  // Every --bd-* role the shared rules read must be declared, or the
+  // declaration reading it is dropped without an error.
+  const declared = new Set([...stripComments(web)
+    .matchAll(/(--bd-[\w-]+)\s*:/g)].map((m) => m[1]));
+  for (const role of new Set([...stripComments(web)
+    .matchAll(/var\((--bd-[\w-]+)/g)].map((m) => m[1]))) {
+    if (!declared.has(role)) {
+      problems.push(`the web skin reads ${role}, which nothing declares: `
+        + "map it in the TOKENS block");
+    }
+  }
 
   if (settings.tokens.length || settings.extra.length) {
     const {s, e} = markers(web);
@@ -574,6 +610,29 @@ export async function emit(settings, dir) {
   return written;
 }
 
+/**
+ * Where a stylesheet's leading statements end: its opening comments and its
+ * `@charset`, `@import` and `@layer` statements, which must come before any
+ * rule. An @import's URL may hold semicolons (a font request's weights), so
+ * it is read whole before its closing `;`; one that isn't a whole statement
+ * ends the leading statements there.
+ */
+export function preludeEnd(css) {
+  let at = 0;
+  for (;;) {
+    // A URL never holds a newline or a brace, so one that does is an
+    // import cut short, and ends the leading statements there.
+    const url = "(?:\"[^\"\\n{}]*\"|'[^'\\n{}]*')";
+    const lead = css.slice(at).match(new RegExp(
+      "^\\s*(\\/\\*[\\s\\S]*?\\*\\/|@charset\\s+\"[^\"]*\";"
+      + `|@import\\s+(?:url\\((?:${url}|[^)"'\\n{}]*)\\)|${url})[^;{]*;`
+      + "|@layer\\s+[^;{]*;)", "i",
+    ));
+    if (!lead) return at;
+    at += lead[0].length;
+  }
+}
+
 /** Comments removed by index rather than a lazy regex, which backtracks
  *  between its two literals. */
 export function stripComments(text) {
@@ -591,16 +650,13 @@ export function stripComments(text) {
 
 /** Why a call failed: Buttondown's `detail`, else its whole body, which
  *  names the fields it refused, else the status. */
-const detail = (res) =>
-  JSON.stringify(res.data?.detail ?? res.data ?? res.status);
+function detail(res) {
+  return JSON.stringify(res.data?.detail ?? res.data ?? res.status);
+}
 
-const newsletterPath = (newsletter) => `/newsletters/${newsletter.id}`;
-
-const skinPath = (settings, kind) =>
-  path.join(settings.dir, "fields", SKIN[kind]);
-
-const readIf = async (file) =>
-  existsSync(file) ? readFile(file, "utf8") : "";
+function newsletterPath(newsletter) {
+  return `/newsletters/${newsletter.id}`;
+}
 
 /** Whether `index` sits directly in a top-level `:root` or `@theme` block:
  *  `:root.dark`, `:root[data-theme]` and a `:root` nested in an at-rule are
@@ -675,12 +731,14 @@ function declarations(text) {
 
 /** Declaration values only, so a selector such as `a:not(#cafe)` is not
  *  read as a colour. */
-const cssValues = (text) =>
-  declarations(text).map(([, value]) => value).join(" ");
+function cssValues(text) {
+  return declarations(text).map(([, value]) => value).join(" ");
+}
 
 /** An SVG's attribute values. */
-const attributeValues = (text) =>
-  [...text.matchAll(/="([^"]*)"/g)].map((m) => m[1]).join(" ");
+function attributeValues(text) {
+  return [...text.matchAll(/="([^"]*)"/g)].map((m) => m[1]).join(" ");
+}
 
 function offPalette(values, palette) {
   return [...new Set(
