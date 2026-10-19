@@ -32,7 +32,7 @@ Under `buttondown` in the repo's `casomo.config.mjs`:
 
 | Key | What it is |
 |---|---|
-| `newsletter` | `{id, publicId, username}`: the one newsletter the repo may write to. Required. |
+| `newsletter` | `{id, username}`, and `publicId` where an endpoint returns the prefixed form: the one newsletter the repo may write to. Required. |
 | `globals` | The stylesheet the site's design tokens are declared in. Required. |
 | `dir` | Where `newsletter.json` and `fields/` are; `buttondown` by default. |
 | `tokens` | `[target, source]` pairs: each line of the web skin's TOKENS block, the variable it sets and the site token it copies. |
@@ -41,9 +41,9 @@ Under `buttondown` in the repo's `casomo.config.mjs`:
 | `webSkin` | The file holding the TOKENS block, when the web skin is composed; `<dir>/fields/web_css.css` by default. |
 | `allowedHides` | Each selector the skins may hide, with its reason. |
 | `linkClasses` | The classes the email skin keys an `a.<class>` rule on. |
-| `ownLinks` | Href fragments the web skin keys on that aren't `socials` URLs. |
+| `ownLinks` | Href fragments the web skin keys on that aren't `socials` URLs, beside Buttondown's own. |
 | `paletteFiles` | Other files (an icon, an SVG) whose colours must be the site's. |
-| `checks` | Paths to the repo's own gates. |
+| `checks` | Paths to the repo's own [gates](#what-check-refuses). |
 
 A token is read from a top-level `:root` or `@theme` block of `globals`; a variant
 such as `.dark` or a `:root` inside `@media` is not the token.
@@ -78,9 +78,10 @@ npm run buttondown -- api <METHOD> <path> [json]
 The key is read from the file `BUTTONDOWN_KEY_FILE` names, never from the command
 line, where it would sit in the shell history and in `ps`. It reaches every
 newsletter on the account, so every request carries `Buttondown-Context` with the
-configured id, and the newsletter read before a write and the one a write returns
-are both checked against the configured id (or `publicId`) and username. Either
-mismatch stops the run.
+configured id. `apply` also checks the newsletter it reads before writing, and the
+one each write returns, against the configured id (or `publicId`) and username;
+either mismatch stops the run. `api` refuses a write to another newsletter's
+settings instead; reads, and writes outside `/newsletters`, are unrestricted.
 
 ## What `check` refuses
 
@@ -88,9 +89,10 @@ mismatch stops the run.
 newsletter with no `web_css` or `css` field is refused, since there would be
 nothing to check. It fails when:
 
-- the web skin's TOKENS block is stale against the tokens, or an `asserts` token
-  has moved;
-- a skin, or a `paletteFiles` file, uses a hex colour the tokens don't declare;
+- the web skin's TOKENS block is stale against the tokens (when `tokens` or
+  `extra` is set), or an `asserts` token has moved;
+- a skin, or a `paletteFiles` file, uses a hex colour the `globals` stylesheet
+  doesn't contain; only hex is checked, so an `rgb()` or named colour passes;
 - a skin hides anything (`display: none`, `font-size: 0`) that `allowedHides`
   doesn't list;
 - a skin injects text with `content:`;
@@ -98,8 +100,8 @@ nothing to check. It fails when:
 - an email link class has no `a.<class>` rule;
 - the web skin has an `@import` that isn't a whole statement before its first
   rule: one after a rule, which browsers ignore, or one whose URL was cut short;
-- the web skin reads a `--bd-*` role nothing declares, which would drop the
-  declaration reading it;
+- the web skin reads a variable nothing declares: a `--bd-*` role, or one the
+  shared web rules read; the declaration reading it would be dropped;
 - one of the repo's own gates reports a problem.
 
 A gate is a module whose default export takes `{root, payload, css, web, email,
@@ -116,21 +118,23 @@ the shared parts from `@casomoltd/tooling/buttondown` and keeps only its own:
   {body, prose}}`. Either function names any missing part of it rather than
   rendering `undefined`.
 - **`createEmailBlocks(options)`** returns the bands an email is built from: the
-  title card, white air, paragraphs, the one action, the sign-off and the small
-  print. Beside the theme, the site supplies its title, action and footer colours,
-  spacing, small-print style, button class, colophon and copyright line, and draws
-  its own mark band. `footer()` must be told whether there is a subscription to
-  leave.
+  title card, white air, paragraphs, body links, the one action, the sign-off and
+  the small print. Beside the theme, the site supplies the rest of its look and
+  its small print, every part required (`EmailBlockOptions` in
+  `index.d.mts`), and draws its own mark band. `footer()` must be told whether
+  there is a subscription to leave.
 - **`emailBaseCss(theme)`** writes the rules every site's emails share, with
   literal values, since a mail client can't resolve a custom property: the page,
-  prose, headings, links, rules, the container resets, and a hide for each piece
+  prose (justified), headings, links, rules, square corners on everything, the
+  container resets, and a hide for each piece
   of Buttondown's email chrome (`EMAIL_CHROME_HIDES`, which the site spreads into
   `allowedHides`). A site's `fields/css.mjs` appends its own stylesheet.
 - **`composeWebSkin(site)`** inserts the shared web rules after the site
   stylesheet's leading comments and `@charset`, `@import` and `@layer`
-  statements and ahead of its own rules, so the site's win a tie. The shared rules read their values from variables the site's
-  TOKENS block defines: Buttondown's theme variables, and these roles the theme
-  lacks:
+  statements and ahead of its own rules, so the site's win a tie. The shared
+  rules read their values from variables the site's TOKENS block declares:
+  Buttondown's `--color-background`, `--color-foreground`, `--font-family-sans`
+  and `--radius`, and these roles the theme lacks:
 
   | Variable | Role |
   |---|---|

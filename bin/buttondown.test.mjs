@@ -428,8 +428,11 @@ const composedFiles = {
 const roles = ["font-heading", "heading", "action-bg", "action-ink",
   "action-weight", "dialog-bg", "focus", "leading"]
   .map((role) => [`--bd-${role}`, "inherit"]);
+// And Buttondown's theme variables they read.
+const themeVars = ["--color-background", "--color-foreground",
+  "--font-family-sans"].map((name) => [name, "inherit"]);
 const composedConfig = {webSkin: "buttondown/skins/web.css",
-  extra: [["--radius", "0"], ...roles]};
+  extra: [["--radius", "0"], ...roles, ...themeVars]};
 const composedRepo = repo({...composedFiles, "buttondown/skins/web.css":
   `${root.replace("#123456", "#222222")}\n.a { color: #222; }\n`},
 composedConfig);
@@ -438,6 +441,9 @@ assert.deepEqual(await runCheck(await loadSettings(composedRepo)), []);
 // Without the roles, the shared base's declarations would be dropped.
 await fails(composedFiles, /reads --bd-focus, which nothing declares/,
   {webSkin: "buttondown/skins/web.css"});
+// So would its theme variables: the base reads --font-family-sans too.
+await fails(composedFiles, /reads --font-family-sans, which nothing declares/,
+  {webSkin: "buttondown/skins/web.css", extra: [["--radius", "0"], ...roles]});
 await fails(web("@import url('late.css');"), /@import that is not a complete/);
 await fails(web("@IMPORT url('late.css');"), /@import that is not a complete/);
 // The cut-short URL a naive composer leaves: no rule precedes it, but it

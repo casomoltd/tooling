@@ -1,9 +1,8 @@
 # Buttondown: how the platform behaves
 
-What Buttondown does that its documentation doesn't make obvious, learned from
-running newsletters with the [`buttondown` command](buttondown.md). Each entry is
-a behaviour of the platform, not of any one newsletter, and was found against the
-live API, a delivered email or the hosted pages.
+What Buttondown does that its documentation doesn't make obvious, for newsletters
+kept with the [`buttondown` command](buttondown.md). Each entry is a behaviour of
+the platform, not of any one newsletter.
 
 ## The API
 
@@ -12,8 +11,7 @@ live API, a delivered email or the hosted pages.
   it, the request goes to the account's default newsletter, and an unknown id is
   refused rather than falling back
   ([authentication](https://docs.buttondown.com/api-authentication)). The command
-  sends the header on every call and checks the newsletter before and after each
-  write.
+  sends the header on every call.
 - **A newsletter has two ids.** Most endpoints return its UUID; some return a
   prefixed form (`news_…`) for the same newsletter.
 - **A plan-gated field fails the whole PATCH**, naming a feature rather than the
@@ -65,7 +63,8 @@ live API, a delivered email or the hosted pages.
   and it sends the reminder body, so that template is read by somebody who has
   just submitted the form twice. The same template is what the automatic 24-hour
   reminder sends if it's switched on. The API returns `200` for a `regular`
-  subscriber too; whether it sends is unverified, so don't rely on it not to.
+  subscriber too, so treat it as sending one: never call it for a confirmed
+  subscriber.
 - **Creating a subscriber as `unactivated` sends the real confirmation email**,
   which makes `buttondown api POST /subscribers` a complete stand-in for the form
   when testing what arrives.

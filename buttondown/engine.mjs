@@ -29,7 +29,7 @@
  * stylesheet is read verbatim, and an `.mjs` file's default export is the
  * field's value.
  */
-import {existsSync} from "node:fs";
+import {existsSync, readFileSync} from "node:fs";
 import {mkdir, readdir, readFile, writeFile} from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -76,6 +76,14 @@ const IDENTITY = ["id", "publicId", "username"];
 
 /** Hrefs Buttondown draws itself, which no socials entry names. */
 const BUTTONDOWN_LINKS = ["buttondown.com"];
+
+/** The shared web rules' opening line, which marks a composed skin, and
+ *  the variables those rules read, which such a skin must declare. */
+const BASE_WEB = readFileSync(new URL("./base-web.css", import.meta.url), "utf8");
+const BASE_MARK = BASE_WEB.slice(0, BASE_WEB.indexOf("\n"));
+const BASE_VARS = [...new Set(
+  [...BASE_WEB.matchAll(/var\((--[\w-]+)/g)].map((m) => m[1]),
+)];
 
 /** Values of `content:` that remove text rather than inject it. */
 const NO_CONTENT = new Set(["none", "normal", '""', "''"]);
@@ -246,14 +254,20 @@ export async function runCheck(settings) {
       + "statement before its first rule, which a browser ignores");
   }
 
-  // Every --bd-* role the shared rules read must be declared, or the
-  // declaration reading it is dropped without an error.
-  const declared = new Set([...stripComments(web)
-    .matchAll(/(--bd-[\w-]+)\s*:/g)].map((m) => m[1]));
-  for (const role of new Set([...stripComments(web)
-    .matchAll(/var\((--bd-[\w-]+)/g)].map((m) => m[1]))) {
-    if (!declared.has(role)) {
-      problems.push(`the web skin reads ${role}, which nothing declares: `
+  // Every variable the shared rules read, and every --bd-* role read
+  // anywhere, must be declared, or the declaration reading it is dropped
+  // without an error.
+  const plain = stripComments(web);
+  const declared = new Set(
+    [...plain.matchAll(/(--[\w-]+)\s*:/g)].map((m) => m[1]),
+  );
+  const read = new Set([
+    ...web.includes(BASE_MARK) ? BASE_VARS : [],
+    ...[...plain.matchAll(/var\((--bd-[\w-]+)/g)].map((m) => m[1]),
+  ]);
+  for (const name of read) {
+    if (!declared.has(name)) {
+      problems.push(`the web skin reads ${name}, which nothing declares: `
         + "map it in the TOKENS block");
     }
   }
