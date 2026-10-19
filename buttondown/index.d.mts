@@ -123,3 +123,29 @@ export function composeWebSkin(site: string): string;
 
 /** The shared email rules, in the site's theme, with literal values. */
 export function emailBaseCss(theme: EmailTheme): string;
+
+/** The register that proves a colophon line, by its number. */
+export interface Register {
+  readonly number: string;
+  readonly url: string;
+}
+
+/** One colophon line, its text without the closing full stop: then the
+ *  register that proves it, or the http(s) source where a line without
+ *  one is explained or published. */
+export type ColophonLine =
+  | {readonly text: string; readonly register: Register; readonly source?: never}
+  | {readonly text: string; readonly source: string; readonly register?: never};
+
+/** A labelled Buttondown `socials` entry. */
+export interface ColophonLink {
+  type: "generic";
+  url: string;
+  label: string;
+}
+
+/** A colophon as `socials` links, each URL marked with a `colophon`
+ *  query (`<line>-start|run<n>|num`) for a skin to key on. */
+export function colophonLinks(
+  colophon: readonly ColophonLine[],
+): ColophonLink[];

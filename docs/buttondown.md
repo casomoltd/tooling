@@ -161,6 +161,13 @@ the shared parts from `@casomoltd/tooling/buttondown` and keeps only its own:
 
   A site's `fields/web_css.mjs` composes its `skins/web.css`, and `webSkin` names
   that file so `tokens` rewrites its block.
+- **`colophonLinks(colophon)`** turns a site's colophon into `socials` links for
+  the archive footer. Each line is `{text, register: {number, url}}` or `{text,
+  source}`, its text written without the closing full stop. The text is split
+  into runs of at most 32 characters (the label limit), the full stop goes on the
+  register's number, or on the text where there's none, and every URL is marked
+  with a `colophon=<line>-start|run<n>|num` query for the skin to key on (see
+  *Line breaks in the footer* below).
 
 ## Writing a skin
 

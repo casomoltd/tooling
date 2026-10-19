@@ -495,9 +495,45 @@ assert.throws(() => createEmailBlocks({...blockOptions, theme: {}}),
   /createEmailBlocks needs theme.fonts.body/);
 assert.throws(() => createEmailBlocks(), /createEmailBlocks needs/);
 
+// The colophon as socials links: runs fit a label, the number carries
+// its full stop, each URL is marked, and a fragment survives the mark.
+{
+  const {colophonLinks} = await import("../buttondown/index.mjs");
+  const {labelRuns, SOCIALS_LABEL_MAX} = await import(
+    "../buttondown/colophon.mjs");
+  const runs = labelRuns(
+    "Registered office: 1 Example Street, Exampletown, Exampleshire, AB1 2CD.");
+  assert.ok(runs.every((r) => r.length <= SOCIALS_LABEL_MAX));
+  assert.equal(runs.join(" "),
+    "Registered office: 1 Example Street, Exampletown, Exampleshire, AB1 2CD.");
+  assert.throws(() => labelRuns("x".repeat(SOCIALS_LABEL_MAX + 1)),
+    /no socials label fits/);
+
+  const links = colophonLinks([
+    {text: "Not authorised", source: "https://example.com/terms#advice"},
+    {text: "Registered in England and Wales, company",
+      register: {number: "123", url: "https://example.com/company/123"}},
+  ]);
+  assert.deepEqual(links.map((l) => l.label), [
+    "Not authorised.", "Registered in England and Wales,", "company", "123.",
+  ]);
+  assert.equal(links[0].url,
+    "https://example.com/terms?colophon=0-start#advice");
+  assert.equal(links[3].url,
+    "https://example.com/company/123?colophon=1-num");
+  assert.throws(() => colophonLinks([{text: "nowhere"}]), /links nowhere/);
+  assert.throws(() => colophonLinks([{text: "Stop.", source: "https://example.com"}]),
+    /leave off the full stop/);
+  assert.throws(() => colophonLinks([
+    {text: "No number", register: {url: "https://example.com"}}]), /needs url and number/);
+  assert.throws(() => colophonLinks([{text: "Mail", source: "mailto:a@example.com"}]),
+    /isn't http/);
+}
+
 // The public entry exports exactly what index.d.mts declares.
 assert.deepEqual(Object.keys(await import("../buttondown/index.mjs")).sort(),
-  ["EMAIL_CHROME_HIDES", "TABLE", "buildPayload", "composeWebSkin",
+  ["EMAIL_CHROME_HIDES", "TABLE", "buildPayload", "colophonLinks",
+    "composeWebSkin",
     "createEmailBlocks", "emailBaseCss", "loadSettings", "tokenReader"]);
 
 console.log("buttondown tests OK");
