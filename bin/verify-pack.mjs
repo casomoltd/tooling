@@ -19,6 +19,7 @@ const ALLOWED_PREFIXES = [
   "readability/",
   "report/",
   "styles/",
+  "buttondown/",
 ];
 const ALLOWED_FILES = ["README.md", "package.json", "LICENSE", "LICENSE.md"];
 

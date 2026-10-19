@@ -52,6 +52,7 @@ export async function loadConfig(filename, dir = process.cwd()) {
 
 /** The keys a repo's `casomo.config.mjs` may hold, one per gate. */
 export const CASOMO_CONFIG_KEYS = {
+  buttondown: "buttondown",
   personalData: "personalData",
   privateRefs: "privateRefs",
 };
