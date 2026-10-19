@@ -59,7 +59,8 @@ not to delete the paragraph.
 **A date is not automatically provenance.** Inside a worked example the date is
 the lesson — a filename that must sort, a register entry quoted verbatim, an
 input/output pair. Flagging those is the false positive that gets this review
-ignored, so check what the date is *doing* before you call it.
+ignored, so check what the date is *doing* before you call it. Whether the
+value is also a real external fact is item 7's question.
 
 **2. The unit matches its profile.** The schema's three profiles want different
 sections. An agent is called as a function and needs **Inputs** reading as a
@@ -91,8 +92,13 @@ describes, with no trigger surface, will not be found.
 target is reachable by a relative path in the same repo. A backticked path is
 invisible to the link graph and rots silently.
 
-**7. Durable method, not point-in-time data.** Counts, versions, live figures
-and "currently" belong in a dated output, not a standing unit.
+**7. Durable method; no copied facts.** Counts, versions, live figures and
+"currently" belong in a dated output, not a standing unit. The same holds
+inside an example: any real external figure, rate, rule or name in a worked
+example is item 3's second copy of a fact, and a reader lifts it as fact because
+it sits in a rubric. Where the lesson would survive invented values in a neutral
+domain, flag it and name the neutral substitute. A date or value is legitimate
+only where it is itself the lesson.
 
 **8. The shape rules apply to this prose too**, against
 [`docs-style`](../skills/docs-style/SKILL.md)'s *the shape of a doc*. A skill is read under time pressure by something deciding
