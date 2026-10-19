@@ -63,12 +63,17 @@ npm run buttondown -- upload <img> # upload an image, print its URL
 npm run buttondown -- api <METHOD> <path> [json]
 ```
 
+Edit the files, never the dashboard: a dashboard edit is drift, and `npm run
+buttondown` reports it. A few settings are dashboard-only and can't be kept as
+files ([The API](buttondown-platform.md#the-api)).
+
 - **`apply`** patches only what differs, and exits 1 if Buttondown refused any
   field or tag, so a script can gate on it.
 - **`draft`** takes a markdown file whose first line, after any front matter, is
-  `# Subject`. The new draft's id is written back into the front matter, so a
-  re-run replaces that draft; `slug` and `description` pass through. A draft
-  already sent is refused rather than rewritten.
+  `# Subject`. Keep the file outside the repo: once sent, an email is final and
+  Buttondown holds the record of it. The new draft's id is written back into the
+  front matter, so a re-run replaces that draft; `slug` and `description` pass
+  through. A draft already sent is refused rather than rewritten.
 - **`api`** exists for setting a manual test up and tearing it down. It writes
   newsletter settings only to the configured newsletter, judged on the path the
   server routes.
@@ -76,12 +81,21 @@ npm run buttondown -- api <METHOD> <path> [json]
 ## The key and the newsletter
 
 The key is read from the file `BUTTONDOWN_KEY_FILE` names, never from the command
-line, where it would sit in the shell history and in `ps`. It reaches every
-newsletter on the account, so every request carries `Buttondown-Context` with the
-configured id. `apply` also checks the newsletter it reads before writing, and the
-one each write returns, against the configured id (or `publicId`) and username;
-either mismatch stops the run. `api` refuses a write to another newsletter's
-settings instead; reads, and writes outside `/newsletters`, are unrestricted.
+line, where it would sit in the shell history and in `ps`. Create the file
+readable by you alone:
+
+```sh
+umask 077
+cat > "$BUTTONDOWN_KEY_FILE"    # paste the key, then Ctrl-D
+chmod 600 "$BUTTONDOWN_KEY_FILE"
+```
+
+The key reaches every newsletter on the account, so every request carries
+`Buttondown-Context` with the configured id. `apply` also checks the newsletter it
+reads before writing, and the one each write returns, against the configured id
+(or `publicId`) and username; either mismatch stops the run. `api` refuses a write
+to another newsletter's settings instead; reads, and writes outside
+`/newsletters`, are unrestricted.
 
 ## What `check` refuses
 
@@ -147,3 +161,49 @@ the shared parts from `@casomoltd/tooling/buttondown` and keeps only its own:
 
   A site's `fields/web_css.mjs` composes its `skins/web.css`, and `webSkin` names
   that file so `tokens` rewrites its block.
+
+## Writing a skin
+
+A skin restyles Buttondown's markup; it never rebuilds it. A rule written
+against someone else's markup stops applying **without failing** when that
+markup changes, so the page quietly reverts and nobody notices until a reader
+does. The rules that follow from that:
+
+- **Restyle, don't rebuild:** colour, face, size, weight and spacing. Where the
+  thing to change is the newsletter's own data (its name, icon or description),
+  change the field rather than styling over its rendering.
+- **Hide only with a reason** listed under `allowedHides`, and add no text:
+  `check` refuses `content:` and an unlisted hide.
+- **Order your own blocks, not theirs.** Buttondown renders the name, then the
+  `description`, then the form. Give the description's blocks classes of your own,
+  flatten `.newsletter-description` with `display: contents`, and give those blocks
+  an `order` around the name and the form. If the rule stops applying, they fall
+  back to the order written rather than reshuffling the page.
+- **Paint, don't inject.** A wordmark or an icon is a background image on a link
+  whose own text stays in the markup for screen readers, with the text set to
+  `font-size: 0` (a hide, so listed).
+- **Key on your data.** A footer entry is found by the URL it points at, which is
+  the newsletter's own `socials` data, not by its position or Buttondown's class.
+
+Techniques that have held up:
+
+- **Outranking the theme.** Several of its rules carry `!important` or an id's
+  specificity (`:is(#subscribe-form, …)`), so a matching rule names the element or
+  the id too; the address field's rule is `input[type=email].input-field`, which
+  only a selector naming the type outranks.
+- **A switch for a checkbox:** `appearance: none` on the input, a
+  `radial-gradient` knob slid by `background-position`, since a pseudo-element
+  knob would need `content:`.
+- **A full-width band behind several siblings:** each draws its own slice with an
+  outset `border-image` (`linear-gradient(c, c) fill 0 // 1px 100vmax`), reaching
+  1px into its neighbours so no seam shows; the shared base flattens every
+  `box-shadow`, so a spread shadow won't do it.
+- **Line breaks in the footer:** `socials` render as one flex row, which can't
+  break before a given link, so lay the list out as floats and give the first
+  link of each line `clear: left`.
+- **`:has()` can't nest:** write a sibling chain that ends at the element you key
+  on, such as `h2:has(+ p + div > a[href*="/rss"])`.
+
+What Buttondown renders in each state (signed in, just signed up, the
+preferences page) and the classes to key on are in
+[The hosted pages](buttondown-platform.md#the-hosted-pages).

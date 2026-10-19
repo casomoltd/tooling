@@ -29,7 +29,9 @@ the platform, not of any one newsletter.
   | `honeypot_field_name` | the hidden bot-trap input on the form |
 
   Header navigation links are a paid add-on with no API field at all, and so is
-  the subscription-reminder toggle (Settings → Subscribing).
+  the subscription-reminder toggle (Settings → Subscribing). To read a
+  dashboard-only value, fetch a hosted page with a browser `User-Agent` and take
+  it from the newsletter JSON embedded in the page; a plain fetch gets a 403.
 - **Images must be uploaded, not linked.** `icon` and `image` take a URL, but
   Buttondown serves them through its own proxy, which refuses some origins. Upload
   with `buttondown upload`: PNG, JPG, GIF and WebP only, so an SVG is rasterised
@@ -56,8 +58,9 @@ the platform, not of any one newsletter.
   fires when the form is submitted, before the address is confirmed: it throws
   the reader off the "check your email" state and makes a failed submission look
   like success. `subscription_confirmation_redirect_url` fires after the reader
-  clicks the confirmation link, and hides nothing. It is global to the account, so
-  it should name no list.
+  clicks the confirmation link, and hides nothing. It is one value per
+  newsletter, whichever form or tag a reader signed up with, so the page it names
+  should describe no one list.
 - **The reminder template is the resend.** `POST
   /v1/subscribers/{id_or_email}/send-reminder` is the only resend the API offers,
   and it sends the reminder body, so that template is read by somebody who has
@@ -117,6 +120,31 @@ the platform, not of any one newsletter.
   matches nothing.
 - **The brand link and its icon always point at the newsletter's own home**, so
   neither can link elsewhere.
+- **The form's place holds what has happened**, rendered by Buttondown's script:
+  - a reader who has just signed up gets a `div.confirmation-email-message`
+    ("We just sent you an email…") and an `a.sniper-link-button` to their mail
+    provider ("Take me to Gmail"), which no setting turns off;
+  - a signed-in reader gets a `span.confirmation-email-message` ("You're already
+    subscribed…") and an `a.archive__button` to manage the subscription; the
+    form's own action is a `<button>`, so `a.archive__button` there is only that
+    link;
+  - a recognised reader asked to log in gets `.magic-link-success-message`, which
+    the shared base sets in body ink.
+- **The form takes no address from the URL**, so a "resend" link can only bring
+  the reader back to the form; submitting the same address again sends the
+  reminder ([Sign-up and tags](#sign-up-and-tags)). The `debug_status` query
+  parameter doesn't render these states for an anonymous visitor.
+- **The preferences page** is `.manage-subscription`, server-rendered:
+  - the email section holds Save and Unsubscribe in one row;
+  - with `tags` enabled, a preferences section follows with a switch per
+    `subscriber_editable` tag and an Update button;
+  - the RSS section ("Data & feeds") comes last, as four siblings: an
+    `hr.section-divider`, an `h2.section-title`, a `.section-subtitle` and a
+    `.field-group--buttons` holding the feed link. No setting removes it, and the
+    feed stays at `/rss` whether it shows or not.
+- **A reader's Buttondown session spans every newsletter on the platform**, so
+  test what a stranger sees in a private window. Opened with no session, a bare
+  `/management/subscribers/<id>/` address asks the reader to sign in by email.
 
 ## Email rendering
 
@@ -163,3 +191,12 @@ the platform, not of any one newsletter.
 - **`/emails/{id}/renders` returns the body before templates run**, so it can't
   show a `{% if %}` or `{% now %}` outcome; a delivered test can.
 - **Drafts are never public**, so a test draft doesn't reach the archive.
+- **Check what actually arrived, not the preview.** The preview and the render
+  endpoint show only the body; the masthead, the containing table and the footer
+  are added at send time. Send the draft to a mailbox you can read, fetch the
+  message raw, and parse it with a MIME library rather than by hand: it is
+  `multipart/alternative` and quoted-printable, and slicing at the first boundary
+  returns a truncated document that looks like a real answer. Strip the `<style>`
+  blocks before searching the body, or a class name matches your own CSS. Links
+  are rewritten through Buttondown's click tracker, so a URL won't be found as
+  written.
