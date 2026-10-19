@@ -613,7 +613,8 @@ function isBaseBlock(css, index) {
   return depth === 1 && (head === ":root" || /^@theme(\s|$)/.test(head));
 }
 
-/** The head of the block enclosing `index`, or "" at the top level. */
+/** The head of the block enclosing `index`, or "" at the top level. A
+ *  comment before the head is not part of it, even one holding a `;`. */
 function enclosing(css, index) {
   let depth = 0;
   for (let i = index; i >= 0; i -= 1) {
@@ -621,8 +622,9 @@ function enclosing(css, index) {
     if (css[i] === "{") {
       if (depth === 0) {
         const head = css.slice(0, i);
-        return head.slice(Math.max(head.lastIndexOf("}"),
-          head.lastIndexOf(";"), head.lastIndexOf("{")) + 1).trim();
+        const tail = head.slice(Math.max(head.lastIndexOf("}"),
+          head.lastIndexOf(";"), head.lastIndexOf("{")) + 1);
+        return stripComments(tail).replace(/^[\s\S]*\*\//, "").trim();
       }
       depth -= 1;
     }

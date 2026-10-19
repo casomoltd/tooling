@@ -106,6 +106,11 @@ for (const variant of [".dark", ":root.dark", ":root[data-theme=dark]",
     + ":root {\n  --x: #fff;\n}", "--x"), "#fff", variant);
 }
 assert.equal(readToken("@theme inline {\n  --x: #fff;\n}", "--x"), "#fff");
+// A comment before the block is not its head, even one holding a `;`.
+for (const comment of ["/* tokens */", "/* tokens; kept in sync */"]) {
+  assert.equal(readToken(`@import "a";\n${comment}\n@theme {\n  --x: #fff;\n}`,
+    "--x"), "#fff", comment);
+}
 assert.throws(() => readToken(".dark {\n  --x: #000;\n}", "--x"),
   /not found in a :root or @theme block/);
 
