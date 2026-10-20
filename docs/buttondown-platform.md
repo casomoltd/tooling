@@ -32,11 +32,15 @@ the platform, not of any one newsletter.
   the subscription-reminder toggle (Settings → Subscribing). To read a
   dashboard-only value, fetch a hosted page with a browser `User-Agent` and take
   it from the newsletter JSON embedded in the page; a plain fetch gets a 403.
-- **Images must be uploaded, not linked.** `icon` and `image` take a URL, but
-  Buttondown serves them through its own proxy, which refuses some origins. Upload
-  with `buttondown upload`: PNG, JPG, GIF and WebP only, so an SVG is rasterised
-  first. The stored value is the proxy's URL, which `diff` decodes back to the
-  upload's.
+- **Images are uploaded, except the share image.** `icon` and `image` take a URL,
+  but Buttondown serves them through its own proxy, which refuses some origins.
+  Upload with `buttondown upload`: PNG, JPG, GIF and WebP only, so an SVG is
+  rasterised first. The stored value is the proxy's URL, which `diff` decodes back
+  to the upload's. The hosted pages' `og:image` prints `image`'s URL as given, so
+  a share image can live on the site's own domain; Buttondown's asset host
+  answers automated requests with a Cloudflare 403 on some paths, and a link
+  preview that can't fetch the image shows none (unverified for any one
+  crawler).
 - **`socials` labels are at most 32 characters, and URLs must be http(s)**, so a
   `mailto:` is refused. `linkedin` and `github` entries render as Buttondown's own
   brand images; `generic` entries render their label.
