@@ -15,7 +15,7 @@ Shared linting, formatting, commit config, and CLI tools for Casomo Ltd's repos.
 | `@casomoltd/tooling/knip` | Knip config for unused exports/dependencies |
 | `@casomoltd/tooling/jscpd` | Copy-paste detection config |
 | `@casomoltd/tooling/readability` | `scoreText()` — readability scoring for page content |
-| `@casomoltd/tooling/buttondown` | For a repo using the `buttondown` command: the shared email blocks and skins (`createEmailBlocks`, `emailBaseCss`, `composeWebSkin`), `tokenReader()`, `loadSettings()` and `buildPayload()`, and `EMAIL_CHROME_HIDES` ([docs/buttondown.md](docs/buttondown.md)) |
+| `@casomoltd/tooling/buttondown` | For a repo using the `buttondown` command: the shared email blocks and skins (`createEmailBlocks`, `emailBaseCss`, `composeWebSkin`), `tokenReader()`, `loadSettings()` and `buildPayload()`, and `EMAIL_CHROME_HIDES` and `WEB_CHROME_HIDES` ([docs/buttondown.md](docs/buttondown.md)) |
 
 ### Bin commands
 

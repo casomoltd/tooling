@@ -13,6 +13,7 @@ import {fileURLToPath} from "node:url";
 import {
   apply, assertApiPath, buildPayload, client, draft, drift, emit, END,
   EMAIL_CHROME_HIDES, loadSettings, readKey, readToken, runCheck, same,
+  WEB_CHROME_HIDES,
   START, writeTokens,
 } from "../buttondown/engine.mjs";
 
@@ -47,7 +48,7 @@ function repo(files = {}, config = {}) {
       tokens: [["--accent", "--color-brand-accent"]],
       extra: [["--radius", "0"]],
       asserts: {"--radius-lg": "0"},
-      allowedHides: EMAIL_CHROME_HIDES,
+      allowedHides: {...EMAIL_CHROME_HIDES, ...WEB_CHROME_HIDES},
       linkClasses: {onDark: "on-dark"},
       ...config,
     })}};`,
@@ -397,6 +398,11 @@ const composed = composeWebSkin(
   `/* site */\n${fontImport}\n:root { --x: 1; }\n.site { a: b; }\n`);
 assert.ok(composed.startsWith(`/* site */\n${fontImport}`));
 assert.ok(composed.indexOf(".login-modal-content") < composed.indexOf(":root"));
+for (const h of Object.keys(WEB_CHROME_HIDES)) {
+  const at = composed.indexOf(`${h} { display: none !important; }`);
+  assert.ok(at > composed.indexOf(".login-modal-content"), `${h} after the base`);
+  assert.ok(at < composed.indexOf(":root"), `${h} ahead of the site's rules`);
+}
 const theme = {fonts: {body: "Sans", heading: "Serif"},
   colours: {page: "#ffffff", ink: "#222222", heading: "#123456"},
   leading: {body: "1.5", prose: "1.6"}};
@@ -532,8 +538,8 @@ assert.throws(() => createEmailBlocks(), /createEmailBlocks needs/);
 
 // The public entry exports exactly what index.d.mts declares.
 assert.deepEqual(Object.keys(await import("../buttondown/index.mjs")).sort(),
-  ["EMAIL_CHROME_HIDES", "TABLE", "buildPayload", "colophonLinks",
-    "composeWebSkin",
+  ["EMAIL_CHROME_HIDES", "TABLE", "WEB_CHROME_HIDES", "buildPayload",
+    "colophonLinks", "composeWebSkin",
     "createEmailBlocks", "emailBaseCss", "loadSettings", "tokenReader"]);
 
 console.log("buttondown tests OK");

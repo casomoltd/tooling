@@ -137,7 +137,7 @@ the platform, not of any one newsletter.
   - a reader who has just signed up gets a `div.confirmation-email-message`
     ("We just sent you an email…") and an `a.sniper-link-button` to their mail
     provider ("Take me to Gmail"), which no setting turns off, so only a CSS
-    hide removes it. The same link shows in the modal dialog that opens after
+    hide removes it (`WEB_CHROME_HIDES`, which `composeWebSkin` applies). The same link shows in the modal dialog that opens after
     a sign-up and for a signed-in reader who hasn't confirmed, and it carries
     `archive__button` (see the theme's rules, above);
   - a signed-in reader gets a `span.confirmation-email-message` ("You're already
@@ -145,7 +145,8 @@ the platform, not of any one newsletter.
     form's own action is a `<button>`, so `a.archive__button` there is only that
     link. It points at buttondown.com, which a session on a custom domain
     doesn't reach, so the reader is asked to sign in again; the header's
-    Account link opens the same settings on the custom domain;
+    Account link opens the same settings on the custom domain.
+    `WEB_CHROME_HIDES` hides it;
   - a recognised reader asked to log in gets `.magic-link-success-message`, which
     the shared base sets in body ink.
 - **The form takes no address from the URL**, so a "resend" link can only bring

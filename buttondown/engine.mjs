@@ -6,7 +6,8 @@
  *
  * A repo configures it under `buttondown` in its `casomo.config.mjs`:
  *
- *   import {EMAIL_CHROME_HIDES} from "@casomoltd/tooling/buttondown";
+ *   import {EMAIL_CHROME_HIDES, WEB_CHROME_HIDES}
+ *     from "@casomoltd/tooling/buttondown";
  *
  *   export default {
  *     buttondown: {
@@ -16,7 +17,9 @@
  *       tokens: [["--color-accent", "--color-brand-accent"]], // target, source
  *       extra: [["--radius", "0"]],           // uncommented lines after them
  *       asserts: {"--radius-lg": "0"},        // tokens the skins depend on
- *       allowedHides: {...EMAIL_CHROME_HIDES, ".selector": "why"},
+ *       allowedHides: {...EMAIL_CHROME_HIDES, ...WEB_CHROME_HIDES, // the
+ *         second for a repo that composes its web skin
+ *         ".selector": "why"},
  *       linkClasses: {onDark: "on-dark"},     // each needs an `a.<class>` rule
  *       ownLinks: ["/rss"],                   // hrefs that are not socials
  *       paletteFiles: ["buttondown/assets/icon.svg"],
@@ -54,6 +57,25 @@ export const EMAIL_CHROME_HIDES = {
   ".colophon": "the sender-and-date line under the hidden masthead",
   ".email-actions--unsubscribe": "duplicated by the repo's own footer",
   ".powered-by-icon": "the logo tile above the kept attribution line",
+};
+
+/**
+ * Buttondown's controls on the hosted pages that send a reader somewhere
+ * worse than the site does. `composeWebSkin` hides them, so a repo that
+ * composes its web skin spreads this into `allowedHides`, as it does
+ * EMAIL_CHROME_HIDES. The manage-link hide assumes the archive is on a
+ * custom domain, where that link's buttondown.com address asks a signed-in
+ * reader to sign in again; on buttondown.com it is their only manage link.
+ */
+export const WEB_CHROME_HIDES = {
+  "a.sniper-link-button":
+    "a button to the reader's mail provider, in the form's place and in the"
+    + " sign-up dialog; their inbox is theirs to go to",
+  [".subscribe:has(span.confirmation-email-message)"
+    + " #subscribe-form a.archive__button"]:
+    "a signed-in reader's manage link, which goes to buttondown.com and asks"
+    + " them to sign in again; the header's Account link opens the same"
+    + " settings on the site's domain",
 };
 
 const API = "https://api.buttondown.com/v1";

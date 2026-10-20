@@ -59,6 +59,10 @@ export type Check = (context: CheckContext) => Promise<string[]>;
  *  bands: spread into `allowedHides` to allow hiding it. */
 export const EMAIL_CHROME_HIDES: Readonly<Record<string, string>>;
 
+/** Hosted-page controls the composed web skin hides; spread into
+ *  `allowedHides` by a repo that uses `composeWebSkin`. */
+export const WEB_CHROME_HIDES: Readonly<Record<string, string>>;
+
 export function loadSettings(root?: string): Promise<Settings>;
 
 export function buildPayload(settings: Settings): Promise<Payload>;

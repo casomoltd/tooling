@@ -4,6 +4,7 @@
  */
 export {
   buildPayload, EMAIL_CHROME_HIDES, loadSettings, tokenReader,
+  WEB_CHROME_HIDES,
 } from "./engine.mjs";
 export {colophonLinks} from "./colophon.mjs";
 export {createEmailBlocks, TABLE} from "./email-blocks.mjs";

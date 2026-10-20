@@ -145,8 +145,14 @@ the shared parts from `@casomoltd/tooling/buttondown` and keeps only its own:
   `allowedHides`). A site's `fields/css.mjs` appends its own stylesheet.
 - **`composeWebSkin(site)`** inserts the shared web rules after the site
   stylesheet's leading comments and `@charset`, `@import` and `@layer`
-  statements and ahead of its own rules, so the site's win a tie. The shared
-  rules read their values from variables the site's TOKENS block declares:
+  statements and ahead of its own rules, so the site's win a tie. It also hides
+  the hosted-page controls in `WEB_CHROME_HIDES` (the mail-provider button, and
+  a signed-in reader's manage link to buttondown.com), with `!important`, so a
+  site's rules can't show them unless they are `!important` too; the site
+  spreads that list into `allowedHides`. The manage-link hide assumes the
+  archive is on a custom domain, where that link asks the reader to sign in
+  again. The
+  shared rules read their values from variables the site's TOKENS block declares:
   Buttondown's `--color-background`, `--color-foreground`, `--font-family-sans`
   and `--radius`, and these roles the theme lacks:
 

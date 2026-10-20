@@ -6,13 +6,19 @@ import {readFileSync} from "node:fs";
 import {
   BODY_SIZE, PARAGRAPH_MARGIN, requireTheme,
 } from "./email-blocks.mjs";
-import {EMAIL_CHROME_HIDES, preludeEnd} from "./engine.mjs";
+import {EMAIL_CHROME_HIDES, preludeEnd, WEB_CHROME_HIDES} from "./engine.mjs";
 
 /** The shared web rules: base-web.css, which reads every value from the
  *  variables the site's TOKENS block defines. */
 const WEB_BASE = readFileSync(
   new URL("./base-web.css", import.meta.url), "utf8",
 );
+
+/** WEB_CHROME_HIDES as rules. Important, so a site's own rules for the
+ *  same elements can't show them unless those are important too. */
+const WEB_HIDES = Object.keys(WEB_CHROME_HIDES)
+  .map((selector) => `${selector} { display: none !important; }`)
+  .join("\n");
 
 /**
  * The web skin: the site's stylesheet with the shared rules inserted after
@@ -22,7 +28,8 @@ const WEB_BASE = readFileSync(
 export function composeWebSkin(site) {
   const at = preludeEnd(site);
   const head = site.slice(0, at);
-  return `${head}${head ? "\n\n" : ""}${WEB_BASE}\n${site.slice(at)}`;
+  return `${head}${head ? "\n\n" : ""}${WEB_BASE}\n${WEB_HIDES}\n`
+    + site.slice(at);
 }
 
 /**
