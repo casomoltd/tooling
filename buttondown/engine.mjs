@@ -47,6 +47,8 @@ export const END = "/* END TOKENS */";
 export const EMAIL_CHROME_HIDES = {
   ".social-links": "the web footer's links, duplicated in an email",
   ".newsletter-masthead": "replaced by the repo's own header band",
+  ".transactional-email-header":
+    "the icon, subject and name above a transactional email's own bands",
   ".newsletter-icon": "the icon slot above the repo's own mark",
   ".email-preamble": "the forwarding prompt between title and prose",
   ".colophon": "the sender-and-date line under the hidden masthead",

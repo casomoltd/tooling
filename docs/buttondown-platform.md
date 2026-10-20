@@ -77,6 +77,15 @@ the platform, not of any one newsletter.
   a sign-up by the IP address it arrives from; a sign-up posted by a server is
   judged on the server's address unless the subscriber's `ip_address` is sent.
   Settings → Firewall has an exemption list.
+- **`firewall_reasons` doesn't say whether an email went.** A sign-up that
+  comes back with reasons may still be sent its confirmation, or may be held
+  and sent nothing, and the hosted form says "We just sent you an email"
+  ([The hosted pages](#the-hosted-pages)) either way: only the inbox shows
+  which. A flag (`email_address_previous_evaluation`) follows the address to
+  the account's other newsletters, and with the firewall on, submitting it
+  again can be refused outright ("This email address cannot be subscribed."),
+  so resubmitting can't always resend. With the firewall `disabled`, reasons
+  are still recorded and nothing is held.
 - **The success state is a query string.** `/?state=confirmed_subscription` shows
   the dialog a reader sees after confirming, which is how to test its styling.
 
@@ -123,11 +132,16 @@ the platform, not of any one newsletter.
 - **The form's place holds what has happened**, rendered by Buttondown's script:
   - a reader who has just signed up gets a `div.confirmation-email-message`
     ("We just sent you an email…") and an `a.sniper-link-button` to their mail
-    provider ("Take me to Gmail"), which no setting turns off;
+    provider ("Take me to Gmail"), which no setting turns off, so only a CSS
+    hide removes it. The same link shows in the modal dialog that opens after
+    a sign-up and for a signed-in reader who hasn't confirmed, and it carries
+    `archive__button` (see the theme's rules, above);
   - a signed-in reader gets a `span.confirmation-email-message` ("You're already
     subscribed…") and an `a.archive__button` to manage the subscription; the
     form's own action is a `<button>`, so `a.archive__button` there is only that
-    link;
+    link. It points at buttondown.com, which a session on a custom domain
+    doesn't reach, so the reader is asked to sign in again; the header's
+    Account link opens the same settings on the custom domain;
   - a recognised reader asked to log in gets `.magic-link-success-message`, which
     the shared base sets in body ink.
 - **The form takes no address from the URL**, so a "resend" link can only bring
@@ -142,6 +156,10 @@ the platform, not of any one newsletter.
     `hr.section-divider`, an `h2.section-title`, a `.section-subtitle` and a
     `.field-group--buttons` holding the feed link. No setting removes it, and the
     feed stays at `/rss` whether it shows or not.
+- **The description can't link to a reader's settings.** It is drawn without
+  the signed-in reader (no `subscriber` in its template context, though the
+  header's Account link has one), and a `<script>` in it is stripped on save
+  and would be blocked by the page's content security policy.
 - **A reader's Buttondown session spans every newsletter on the platform**, so
   test what a stranger sees in a private window. Opened with no session, a bare
   `/management/subscribers/<id>/` address asks the reader to sign in by email.
@@ -159,6 +177,11 @@ the platform, not of any one newsletter.
   Buttondown's title: hide `.newsletter-masthead` and draw the title in `header`.
 - **`header` and `footer` don't reach transactional email**: the confirmation,
   reminder and welcome emails carry their own copy of every band.
+- **A transactional email has a masthead of its own**, above the body:
+  `table.transactional-email-header` holds the newsletter's `icon` (alt text
+  "Buttondown", which shows where images are blocked), the subject and the
+  newsletter's `name`. It isn't `.newsletter-masthead`, so hiding that one
+  leaves it; the shared email base (`emailBaseCss`) hides both.
 - **`css` does reach transactional email**, inlined into the confirmation,
   reminder and welcome as well as newsletter issues, so a broad rule lands on
   Buttondown's own transactional footer too. That wrapper uses different classes
