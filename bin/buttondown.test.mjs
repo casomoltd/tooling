@@ -363,6 +363,39 @@ await assert.rejects(draft(settings, api(), join(draftDir, "bad.md"), quiet),
 await assert.rejects(draft(settings, api(), join(draftDir, "empty.md"), quiet),
   /empty `id:`/);
 
+// A draft takes the newsletter's share image unless its front matter names one.
+const shareDir = repo({
+  "buttondown/newsletter.json": JSON.stringify({image: "https://x.test/og.png"}),
+  "a.md": "---\nid: em_share\n---\n# A\n",
+  "b.md": "---\nid: em_share\nimage: https://x.test/own.png\n---\n# B\n",
+});
+const shareSettings = await loadSettings(shareDir);
+const shareEmails = {em_share: {id: "em_share", status: "draft"}};
+stub(current(), {emails: shareEmails});
+const shareApi = client(shareSettings, "k");
+await draft(shareSettings, shareApi, join(shareDir, "a.md"), quiet);
+assert.equal(shareEmails.em_share.image, "https://x.test/og.png");
+await draft(shareSettings, shareApi, join(shareDir, "b.md"), quiet);
+assert.equal(shareEmails.em_share.image, "https://x.test/own.png");
+// An empty or relative `image:` is refused, and so is a relative default.
+writeFileSync(join(shareDir, "c.md"), "---\nid: em_share\nimage:\n---\n# C\n");
+writeFileSync(join(shareDir, "d.md"), "---\nid: em_share\nimage: og.png\n---\n# D\n");
+await assert.rejects(draft(shareSettings, shareApi, join(shareDir, "c.md"), quiet),
+  /empty `image:`/);
+await assert.rejects(draft(shareSettings, shareApi, join(shareDir, "d.md"), quiet),
+  /image must be an absolute URL/);
+writeFileSync(join(shareDir, "buttondown/newsletter.json"),
+  JSON.stringify({image: "og.png"}));
+await assert.rejects(draft(shareSettings, shareApi, join(shareDir, "a.md"), quiet),
+  /image must be an absolute URL/);
+// With no share image anywhere, the draft is sent without one.
+writeFileSync(join(shareDir, "buttondown/newsletter.json"), JSON.stringify({}));
+writeFileSync(join(shareDir, "e.md"), "---\nid: em_none\n---\n# E\n");
+shareEmails.em_none = {id: "em_none", status: "draft"};
+await draft(shareSettings, shareApi, join(shareDir, "e.md"), quiet);
+assert.equal(shareEmails.em_none.subject, "E");
+assert.equal("image" in shareEmails.em_none, false);
+
 // The command fails when anything was refused, so a script can gate on it.
 // Run as a process, with fetch stubbed by a preloaded module.
 const cli = repo({

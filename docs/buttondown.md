@@ -73,7 +73,9 @@ files ([The API](buttondown-platform.md#the-api)).
   `# Subject`. Keep the file outside the repo: once sent, an email is final and
   Buttondown holds the record of it. The new draft's id is written back into the
   front matter, so a re-run replaces that draft; `slug` and `description` pass
-  through. A draft already sent is refused rather than rewritten.
+  through, and `image` sets the post's share image, defaulting to the
+  newsletter's own (Buttondown otherwise takes the post's first picture). A
+  draft already sent is refused rather than rewritten.
 - **`api`** exists for setting a manual test up and tearing it down. It writes
   newsletter settings only to the configured newsletter, judged on the path the
   server routes.

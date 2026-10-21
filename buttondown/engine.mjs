@@ -27,7 +27,8 @@
  *     },
  *   };
  *
- * `newsletter.json` holds the newsletter's short fields, `tags.json` its
+ * `newsletter.json` holds the newsletter's short fields (its `image` is
+ * also every draft's default share image), `tags.json` its
  * tags, and each file in `fields/` is the field it is named after: a
  * stylesheet is read verbatim, and an `.mjs` file's default export is the
  * field's value.
@@ -180,15 +181,7 @@ export async function tokenReader(file) {
 
 /** Every field the newsletter is set to: newsletter.json, then fields/. */
 export async function buildPayload(settings) {
-  const payload = JSON.parse(
-    await readFile(path.join(settings.dir, "newsletter.json"), "utf8"),
-  );
-  for (const field of IMAGE_FIELDS) {
-    if (payload[field] && !URL.canParse(payload[field])) {
-      throw new Error(`${field} must be an absolute URL, got `
-        + JSON.stringify(payload[field]));
-    }
-  }
+  const payload = await readNewsletter(settings);
   const identity = IDENTITY.filter((key) => key in payload);
   if (identity.length) {
     throw new Error(
@@ -570,7 +563,8 @@ export async function apply(settings, api, log = console.log) {
  * A draft from a markdown file whose first line, after any front matter,
  * is `# Subject`. Front matter carries the email's id once it exists, so a
  * re-run replaces that draft rather than creating a second; `slug` and
- * `description` are passed through. An email already sent is refused:
+ * `description` are passed through, and `image` (the share image) defaults
+ * to the newsletter's own. An email already sent is refused:
  * replacing it would rewrite the published archive.
  */
 export async function draft(settings, api, file, log = console.log) {
@@ -591,6 +585,10 @@ export async function draft(settings, api, file, log = console.log) {
     throw new Error("front matter has an empty `id:`; delete the line to "
       + "create a draft");
   }
+  if ("image" in fm && !fm.image) {
+    throw new Error("front matter has an empty `image:`; delete the line "
+      + "to use the newsletter's share image");
+  }
   // The marker says the body is markdown (Buttondown's `plaintext` mode).
   // Without it Buttondown guesses, and a draft once stored as rich text
   // takes the next PATCH as rich text too.
@@ -601,6 +599,15 @@ export async function draft(settings, api, file, log = console.log) {
     ...Object.fromEntries(["slug", "description"]
       .filter((k) => k in fm).map((k) => [k, fm[k]])),
   };
+  // Left unset, Buttondown takes the post's first picture as its share
+  // image, so every post would preview differently; the newsletter's own
+  // share image is the default, and `image:` in the front matter wins.
+  const image = "image" in fm
+    ? fm.image : (await readNewsletter(settings)).image;
+  if (image) {
+    assertAbsoluteUrl("image", image);
+    body.image = image;
+  }
   if (fm.id) {
     const current = await api.call("GET", `/emails/${fm.id}`);
     if (!current.ok) throw new Error(`GET email: ${detail(current)}`);
@@ -684,6 +691,30 @@ export function stripComments(text) {
     if (close === -1) return out;
     at = close + 2;
   }
+}
+
+/** Throws unless an image field holds an absolute URL, since Buttondown
+ *  stores a relative one as given and the image then never loads. */
+function assertAbsoluteUrl(field, value) {
+  if (!URL.canParse(value)) {
+    throw new Error(`${field} must be an absolute URL, got `
+      + JSON.stringify(value));
+  }
+}
+
+/** newsletter.json, parsed and with its image fields checked. */
+async function readNewsletter(settings) {
+  const file = path.join(settings.dir, "newsletter.json");
+  let payload;
+  try {
+    payload = JSON.parse(await readFile(file, "utf8"));
+  } catch (error) {
+    throw new Error(`${file}: ${error.message}`, {cause: error});
+  }
+  for (const field of IMAGE_FIELDS) {
+    if (payload[field]) assertAbsoluteUrl(field, payload[field]);
+  }
+  return payload;
 }
 
 /** Why a call failed: Buttondown's `detail`, else its whole body, which

@@ -211,6 +211,12 @@ the platform, not of any one newsletter.
   honours padding on a cell.
 - **A transactional email's `text/plain` part is the raw HTML of its body**, so a
   mailbox reader that returns the plain-text part shows markup.
+- **Markdown inside an HTML block is left as text.** A `<div>` wrapping a
+  Markdown list sends its asterisks, dashes and link syntax literally, in the
+  email and on the archive. Write the block's contents as HTML.
+- **The archive theme has generic classes of its own**, `.card` among them, so a
+  skin rule on a generic name also matches Buttondown's markup and inherits its
+  styles. Prefix your own classes.
 
 ## Testing a send
 
