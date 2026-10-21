@@ -7,6 +7,7 @@
  */
 
 import rs from "text-readability";
+import ts from "typescript";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -15,6 +16,34 @@ export const DEFAULT_MAX_GRADE = 12;
 export const DEFAULT_WORD_SUBS = {
   calculators: "tools",
   calculator: "tool",
+};
+
+const IMPORT_RE = /import\s+(?:type\s+)?(?:[\w*{},\s]+from\s+)?["']([^"']+)["']/g;
+
+/** Elements that sit inside a sentence rather than starting one: their
+ *  text joins the block around them. Everything else is a block, whose
+ *  text is a sentence or more of its own. Matched on the tag's own text,
+ *  so a member tag (`<Foo.Link>`) counts as a block. */
+const INLINE_TAGS = new Set([
+  "a", "Link", "strong", "em", "b", "i", "u", "span", "code", "abbr",
+  "sup", "sub", "small", "mark", "time", "br", "wbr",
+]);
+
+/** What an interpolated value reads as inside a sentence: a figure. */
+const FIGURE = "1";
+
+/** The shortest string literal read as prose: shorter ones are labels. */
+const MIN_PROSE_CHARS = 20;
+
+/** A run of at least two letters: the least that reads as a word. */
+const HAS_WORD = /[A-Za-z]{2,}/;
+
+/** Typographic entities, read as the characters they stand for. */
+const ENTITIES = {
+  "&nbsp;": " ", "&amp;": "&", "&lt;": "<", "&gt;": ">",
+  "&rsquo;": "\u2019", "&lsquo;": "\u2018", "&rdquo;": "\u201d",
+  "&ldquo;": "\u201c", "&ndash;": "\u2013", "&mdash;": "\u2014",
+  "&hellip;": "\u2026", "&#39;": "'", "&quot;": "\"",
 };
 
 // -------------------------------------------------------------------
@@ -72,37 +101,121 @@ function srcDirOf(filePath) {
   return i === -1 ? null : filePath.slice(0, i + marker.length - 1);
 }
 
-const IMPORT_RE = /import\s+(?:type\s+)?(?:[\w*{},\s]+from\s+)?["']([^"']+)["']/g;
+/**
+ * Prose lifted from ONE file's JSX, without following its imports.
+ *
+ * Parsed, because a JSX file is mostly code and code is full of `<` and
+ * `>` (generics, arrow functions, comparisons): only a parser can tell
+ * JSX text from it. What comes back is each block's text, with its links
+ * and emphasis folded into the sentence they sit in and each
+ * interpolated value read as a figure, plus string literals that read as
+ * prose. Those include attribute values, because a component's
+ * `description="…"` is copy on the page, and they also include strings a
+ * reader never sees (a metadata title, an error message): an
+ * approximation of what the page shows, close enough to grade it.
+ */
+function extractOwnText(source, fileName) {
+  const sf = ts.createSourceFile(
+    fileName, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX,
+  );
+  const out = [];
 
-/** Prose lifted from ONE file's JSX, without following its imports. */
-function extractOwnText(source) {
-  const jsxText = [];
+  const tagOf = (el) => {
+    const opening = ts.isJsxElement(el) ? el.openingElement : el;
+    return opening.tagName.getText(sf);
+  };
+  const isInline = (el) =>
+    (ts.isJsxElement(el) || ts.isJsxSelfClosingElement(el))
+    && INLINE_TAGS.has(tagOf(el));
 
-  // Tag content. `{` is ALLOWED inside the match and the expressions
-  // are stripped further down. Excluding it dropped the whole sentence
-  // rather than the interpolation, so any served line carrying a
-  // figure — most of the prose on a pay page — was invisible here.
-  const tagContentRe = /&gt;([^&lt;&gt;]+)&lt;/g;
-  let match;
-  while ((match = tagContentRe.exec(source)) !== null) {
-    const text = match[1].replace(/\{[^}]*\}/g, " ").trim();
-    if (text) jsxText.push(text);
-  }
+  // The text a block reads as: its own text, its inline children's,
+  // and a figure for each interpolation. Block children are left out:
+  // the walk below scores each as its own block.
+  const inlineText = (children) => children.map((child) => {
+    if (ts.isJsxText(child)) return child.text;
+    if (ts.isJsxExpression(child)) {
+      return child.expression ? expressionText(child.expression) : "";
+    }
+    if (isInline(child)) {
+      return ts.isJsxElement(child) ? inlineText(child.children) : " ";
+    }
+    return "";
+  }).join("");
 
-  // String literals that look like readable prose. "Look like" is
-  // doing real work: an SVG `d` attribute begins with a capital M and
-  // runs for thousands of characters, and counting one as a sentence
-  // put a whole article three grades above its true score.
-  const stringRe = /['"`]([A-Z][^'"`]{20,})['"`]/g;
-  while ((match = stringRe.exec(source)) !== null) {
-    const candidate = match[1].trim();
-    if (isProse(candidate)) jsxText.push(candidate);
-  }
-  // NOT filtered as a whole: tag content is legitimately fragmentary,
-  // because a formatter wraps one served sentence across several
-  // lines. Only string literals need the prose test, and only they can
-  // contain an SVG path.
-  return jsxText;
+  // What an interpolation reads as. A string is its text; a conditional
+  // reads as its first branch, the one a reader sees by default; inline
+  // JSX joins the sentence; block JSX is scored on its own by the walk
+  // below; anything else is a value, read as a figure.
+  const expressionText = (e) => {
+    if (ts.isParenthesizedExpression(e)) return expressionText(e.expression);
+    if (ts.isStringLiteral(e) || ts.isNoSubstitutionTemplateLiteral(e)) {
+      return e.text;
+    }
+    if (ts.isConditionalExpression(e)) return expressionText(e.whenTrue);
+    if (ts.isBinaryExpression(e)
+      && e.operatorToken.kind === ts.SyntaxKind.AmpersandAmpersandToken) {
+      return expressionText(e.right);
+    }
+    if (isInline(e)) {
+      return ts.isJsxElement(e) ? inlineText(e.children) : " ";
+    }
+    return containsJsx(e) ? "" : ` ${FIGURE} `;
+  };
+
+  const containsJsx = (node) => {
+    let found = false;
+    const look = (n) => {
+      if (found) return;
+      if (ts.isJsxElement(n) || ts.isJsxSelfClosingElement(n)
+        || ts.isJsxFragment(n)) {
+        found = true;
+        return;
+      }
+      ts.forEachChild(n, look);
+    };
+    look(node);
+    return found;
+  };
+
+  // A run of strings joined with `+`, read as the one sentence it is.
+  const stringOf = (node) => {
+    if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
+      return node.text;
+    }
+    if (ts.isTemplateExpression(node)) {
+      return node.head.text + node.templateSpans
+        .map((span) => ` ${FIGURE} ${span.literal.text}`).join("");
+    }
+    if (ts.isParenthesizedExpression(node)) return stringOf(node.expression);
+    if (ts.isBinaryExpression(node)
+      && node.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+      const left = stringOf(node.left);
+      const right = stringOf(node.right);
+      return left === null || right === null ? null : left + right;
+    }
+    return null;
+  };
+
+  const visit = (node) => {
+    const isBlock = (ts.isJsxElement(node) && !isInline(node))
+      || ts.isJsxFragment(node);
+    if (isBlock) {
+      const text = inlineText(node.children).replace(/\s+/g, " ").trim();
+      if (HAS_WORD.test(text)) out.push(text);
+    } else {
+      const text = stringOf(node);
+      if (text !== null) {
+        const prose = text.replace(/\s+/g, " ").trim();
+        const readsAsProse = /^[A-Z]/.test(prose)
+          && prose.length > MIN_PROSE_CHARS && isProse(prose);
+        if (readsAsProse) out.push(prose);
+        return;
+      }
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(sf);
+  return out;
 }
 
 /**
@@ -119,7 +232,7 @@ function isProse(text) {
   if (compact.length === 0) return false;
   const letters = (compact.match(/[A-Za-z]/g) ?? []).length;
   if (letters / compact.length < 0.6) return false;
-  const words = text.split(/\s+/).filter((w) => /[A-Za-z]{2,}/.test(w));
+  const words = text.split(/\s+/).filter((w) => HAS_WORD.test(w));
   return words.length >= 3;
 }
 
@@ -127,11 +240,8 @@ function isProse(text) {
  * Prose a reader actually sees on a page, following the components it
  * imports.
  *
- * Import-following is the point. Until 3 Sep 2026 this read one file
- * and stopped, so every shared prose component was unmeasured — a
- * notice component scoring grade 12.6 while all five pages rendering
- * it reported PASS. A page's score has to cover what it renders, not
- * what happens to be written in its own file.
+ * Import-following is the point: a page's score has to cover the
+ * components it renders, not only what is written in its own file.
  *
  * Depth-limited and cycle-safe. Only project-local imports are
  * followed; a package's prose is not this site's prose.
@@ -144,9 +254,16 @@ export function extractText(filePath, {maxDepth = 3} = {}) {
   const walk = (file, depth) => {
     const resolved = path.resolve(file);
     if (seen.has(resolved) || depth > maxDepth) return;
+    // Components only. A `.ts` module's strings are mostly data (role
+    // lists, labels, the company statement) that the page shows only in
+    // part or elsewhere, and scoring them graded every page on the same
+    // shared lists. The cost: prose a page renders from a `.ts` module
+    // goes unread.
+    const importedNonComponent = depth > 0 && !resolved.endsWith(".tsx");
+    if (importedNonComponent) return;
     seen.add(resolved);
     const source = fs.readFileSync(resolved, "utf-8");
-    collected.push(...extractOwnText(source));
+    collected.push(...extractOwnText(source, resolved));
     if (depth === maxDepth) return;
     for (const m of source.matchAll(IMPORT_RE)) {
       const target = resolveLocalImport(m[1], resolved, srcDir);
@@ -162,12 +279,7 @@ export function extractText(filePath, {maxDepth = 3} = {}) {
   );
 
   let text = terminated.join(" ");
-  text = text.replace(/\{[^}]*\}/g, " ");
-  text = text.replace(/&amp;nbsp;/g, " ");
-  text = text.replace(/&amp;amp;/g, "&amp;");
-  text = text.replace(/&amp;lt;/g, "&lt;");
-  text = text.replace(/&amp;gt;/g, "&gt;");
-  text = text.replace(/&amp;[a-z]+;/g, " ");
+  text = text.replace(/&#?\w+;/g, (entity) => ENTITIES[entity] ?? " ");
   text = text.replace(/\s+/g, " ").trim();
 
   return text;
@@ -195,10 +307,8 @@ function applyWordSubs(text, wordSubs) {
 /**
  * The floor below which the formulas are not meaningful.
  *
- * A page under it is UNSCORED, not passing. The two used to be
- * indistinguishable — the CLI read a null grade as a pass — so eight
- * of forty-five pages were reported green on the strength of no
- * measurement at all.
+ * A page under it is UNSCORED, not passing: a score that measured
+ * nothing is not evidence the page reads well.
  */
 export const MIN_SCORABLE_WORDS = 100;
 
