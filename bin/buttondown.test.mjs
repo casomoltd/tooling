@@ -11,7 +11,7 @@ import {tmpdir} from "node:os";
 import {dirname, join} from "node:path";
 import {fileURLToPath} from "node:url";
 import {
-  apply, assertApiPath, buildPayload, client, draft, drift, emit, END,
+  apply, assertApiPath, assertNotSending, buildPayload, client, draft, drift, emit, END,
   EMAIL_CHROME_HIDES, loadSettings, readKey, readToken, runCheck, same,
   WEB_CHROME_HIDES,
   START, writeTokens,
@@ -396,6 +396,41 @@ await draft(shareSettings, shareApi, join(shareDir, "e.md"), quiet);
 assert.equal(shareEmails.em_none.subject, "E");
 assert.equal("image" in shareEmails.em_none, false);
 
+// A call that could send an email is refused: a write to the emails that is
+// not plainly a draft, and any action on an email or a subscriber.
+for (const [method, url, body] of [
+  ["POST", "/emails", {subject: "S"}],
+  ["POST", "/emails/", {subject: "S", status: " draft"}],
+  ["PATCH", "/emails/e1", {status: " about_to_send"}],
+  ["PUT", "/emails/e1", {status: "imported"}],
+  ["POST", "/subscribers/s1/emails/e1", undefined],
+  ["POST", "/emails/e1/some-new-action", undefined],
+  ["PATCH", "/emails/e1", {status: "about_to_send"}],
+  ["PATCH", "/emails/e1", {status: "scheduled", publish_date: "2030-01-01"}],
+  ["POST", "/emails", {subject: "S", status: "about_to_send"}],
+  ["POST", "/emails/e1/publish", undefined],
+  ["POST", "/emails/e1/send-draft", {}],
+  ["POST", "/emails/e1/publish/", undefined],
+  ["POST", "/emails/e1/%70ublish", undefined],
+  ["POST", "//emails/e1/publish", undefined],
+  ["POST", "/emails//e1/publish", undefined],
+  ["post", "/Emails/e1/Publish", undefined],
+  ["patch", "/emails/e1", {status: "ABOUT_TO_SEND"}],
+  ["POST", "/subscribers/s1/send-reminder", undefined],
+]) {
+  assert.throws(() => assertNotSending(method, url, body),
+    /refuses a call that could send an email/);
+}
+for (const [method, url, body] of [
+  ["GET", "/emails/e1", undefined],
+  ["DELETE", "/emails/e1", undefined],
+  ["PATCH", "/emails/e1", {publish_date: "2026-04-14T09:00:00Z"}],
+  ["POST", "/emails", {subject: "S", status: "draft"}],
+  ["PATCH", "/emails/e1", {filters: {filters: [], groups: [], predicate: "and"}}],
+  ["POST", "/subscribers", {email_address: "t@example.com", type: "unactivated"}],
+  ["PATCH", "/subscribers/s1", {tags: ["t1"]}],
+]) assertNotSending(method, url, body);
+
 // The command fails when anything was refused, so a script can gate on it.
 // Run as a process, with fetch stubbed by a preloaded module.
 const cli = repo({
@@ -406,18 +441,35 @@ const cli = repo({
     {status: init.method === "PATCH" ? 400 : 200});`,
 });
 const bin = join(dirname(fileURLToPath(import.meta.url)), "buttondown.mjs");
-const run = (...args) => {
+const runIn = (dir) => (...args) => {
   try {
     execFileSync(process.execPath, ["--import", "./stub.mjs", bin, ...args],
-      {cwd: cli, stdio: "pipe", env: {...process.env,
-        BUTTONDOWN_KEY_FILE: join(cli, "key")}});
+      {cwd: dir, stdio: "pipe", env: {...process.env,
+        BUTTONDOWN_KEY_FILE: join(dir, "key")}});
     return 0;
   } catch (e) {
     return e.status;
   }
 };
+const run = runIn(cli);
 assert.equal(run("apply"), 1);
 assert.equal(run("draft", "a.md", "b.md"), 2);
+assert.equal(run("apply", "--send"), 2);
+
+// A sending call without --send fails before any request leaves.
+const sendCli = repo({
+  key: "k",
+  "stub.mjs": `import {writeFileSync} from "node:fs";
+globalThis.fetch = async () => {
+  writeFileSync("fetched", "");
+  return new Response("{}");
+};`,
+});
+const sendRun = runIn(sendCli);
+assert.equal(sendRun("api", "POST", "/emails/e1/publish"), 1);
+assert.equal(existsSync(join(sendCli, "fetched")), false);
+assert.equal(sendRun("api", "POST", "/emails/e1/publish", "--send"), 0);
+assert.equal(existsSync(join(sendCli, "fetched")), true);
 
 // The skins a site composes: the web base after its opening comments and
 // imports and ahead of its rules; the email base with literal values and

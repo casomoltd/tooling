@@ -87,6 +87,19 @@ const API_PATH = new URL(API).pathname;
 /** The status of an email not yet sent. */
 const DRAFT = "draft";
 
+/**
+ * The api routes that can mail someone, judged on a `requestPath`. A write
+ * to the emails collection or to one email may carry a status that sends
+ * it, so it passes only as a draft; any action on an email (publish,
+ * send-draft and whatever Buttondown adds) or on a subscriber (a reminder,
+ * an email to one reader) is refused outright, so a new route fails closed.
+ * Creating an unactivated subscriber also mails a confirmation, and stays
+ * allowed: it is how a manual test stands in for a reader signing up, to an
+ * address the tester owns.
+ */
+const EMAIL_WRITE = new RegExp(`^${API_PATH}/emails(/[^/]+)?/?$`);
+const SENDING_ACTION = new RegExp(`^${API_PATH}/(emails|subscribers)/[^/]+/.`);
+
 const FRONT_MATTER = /^---\n([\s\S]*?)\n---\n/;
 
 /** The Buttondown fields holding the two skins. */
@@ -387,7 +400,7 @@ export async function readKey(env = process.env) {
 export function client(settings, key) {
   const {newsletter} = settings;
   async function call(method, url, body, {form} = {}) {
-    const res = await fetch(new URL(API + url), {
+    const res = await fetch(requestUrl(url), {
       method,
       headers: {
         Authorization: `Token ${key}`,
@@ -445,22 +458,34 @@ export function client(settings, key) {
 
 /**
  * Refuses an `api` call that writes newsletter settings anywhere but this
- * newsletter. Judged on the path the server routes: percent-decoded, then
- * normalised, so `/%6eewsletters/<other>`, `/./newsletters/<other>` and
- * `<own>/../<other>` are seen for what they are. A path still encoded after
- * one decoding is refused outright rather than guessed at.
+ * newsletter, judged on the path the server routes (`requestPath`).
  */
 export function assertApiPath(settings, method, url) {
   if (method.toUpperCase() === "GET") return;
-  const decoded = decodeURIComponent(new URL(API + url).pathname);
-  if (decoded.includes("%")) {
-    throw new Error(`api refuses an encoded path: ${url}`);
-  }
-  const {pathname} = new URL(decoded, API);
-  const own = API_PATH + newsletterPath(settings.newsletter);
+  const pathname = requestPath(url);
+  const own = (API_PATH + newsletterPath(settings.newsletter)).toLowerCase();
   if (pathname.startsWith(`${API_PATH}/newsletters`)
     && pathname !== own && !pathname.startsWith(`${own}/`)) {
     throw new Error(`api writes under /newsletters only to ${own}`);
+  }
+}
+
+/**
+ * Throws if an api call could send or schedule an email (`EMAIL_WRITE`,
+ * `SENDING_ACTION`). Sending reaches real inboxes and cannot be recalled, so
+ * the caller lets a call through only on a person's explicit say-so.
+ */
+export function assertNotSending(method, url, body) {
+  const cannotSend = ["GET", "DELETE"].includes(method.toUpperCase());
+  if (cannotSend) return;
+  const pathname = requestPath(url);
+  const status = body && typeof body === "object" ? body.status : undefined;
+  const creates = pathname.replace(/\/$/, "") === `${API_PATH}/emails`;
+  const draftOnly = status === DRAFT || (status === undefined && !creates);
+  if (SENDING_ACTION.test(pathname)
+    || (EMAIL_WRITE.test(pathname) && !draftOnly)) {
+    throw new Error(`api refuses a call that could send an email: `
+      + `${method.toUpperCase()} ${url}`);
   }
 }
 
@@ -691,6 +716,26 @@ export function stripComments(text) {
     if (close === -1) return out;
     at = close + 2;
   }
+}
+
+/** The URL `call` fetches for an api path, and the one the guards judge. */
+function requestUrl(url) {
+  return new URL(API + url);
+}
+
+/**
+ * The path the server routes for an `api` url, from `requestUrl`,
+ * then percent-decoded, slash-collapsed and normalised, so
+ * `/%6eewsletters/<other>`, `//emails/<id>/publish`, `/./newsletters/<other>`
+ * and `<own>/../<other>` are seen for what they are. A path still encoded
+ * after one decoding is refused outright rather than guessed at.
+ */
+function requestPath(url) {
+  const decoded = decodeURIComponent(requestUrl(url).pathname);
+  if (decoded.includes("%")) {
+    throw new Error(`api refuses an encoded path: ${url}`);
+  }
+  return new URL(decoded.replace(/\/{2,}/g, "/"), API).pathname.toLowerCase();
 }
 
 /** Throws unless an image field holds an absolute URL, since Buttondown

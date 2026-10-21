@@ -60,7 +60,7 @@ npm run buttondown -- tokens       # rewrite the TOKENS block from the tokens
 npm run buttondown -- emit <dir>   # write each long field out as rendered
 npm run buttondown -- draft <f.md> # create or replace a draft
 npm run buttondown -- upload <img> # upload an image, print its URL
-npm run buttondown -- api <METHOD> <path> [json]
+npm run buttondown -- api <METHOD> <path> [json] [--send]
 ```
 
 Edit the files, never the dashboard: a dashboard edit is drift, and `npm run
@@ -78,7 +78,14 @@ files ([The API](buttondown-platform.md#the-api)).
   draft already sent is refused rather than rewritten.
 - **`api`** exists for setting a manual test up and tearing it down. It writes
   newsletter settings only to the configured newsletter, judged on the path the
-  server routes.
+  server routes. Unless the command carries `--send`, it refuses any call that
+  could send an email: a write to the emails that isn't plainly a draft (a
+  create must say `status: draft`; an edit may leave the status out), and any
+  action on an email or a subscriber, such as `publish`, `send-draft` or a
+  reminder. A send is then always a person's deliberate act, and a route
+  Buttondown adds is refused until someone looks at it. Creating an unactivated
+  subscriber still mails a confirmation; that is the manual test's stand-in for
+  a sign-up, so point it at an address you own.
 
 ## The key and the newsletter
 

@@ -12,19 +12,25 @@
  *   buttondown emit <dir>          write each long field out as rendered
  *   buttondown draft <file.md>     create or replace a draft
  *   buttondown upload <image>      upload an image, print its URL
- *   buttondown api <METHOD> <path> [json]
- *                                  any call, for setting up a manual test
+ *   buttondown api <METHOD> <path> [json] [--send]
+ *                                  any call, for setting up a manual test;
+ *                                  one that sends or schedules an email
+ *                                  is refused without --send
  *
  * `diff`, `apply` and `check` exit 1 on drift, a refusal or a problem, so a
  * script can gate on them.
  */
 import {
-  apply, assertApiPath, client, draft, drift, emit, loadSettings, readKey,
-  runCheck, upload, writeTokens,
+  apply, assertApiPath, assertNotSending, client, draft, drift, emit,
+  loadSettings, readKey, runCheck, upload, writeTokens,
 } from "../buttondown/engine.mjs";
 
+/** The one flag: without it, `api` refuses any call that could send an
+ *  email, and no other command takes it. */
+const SEND_FLAG = "--send";
+
 const USAGE = "usage: buttondown [diff|apply|check|tokens|emit <dir>|"
-  + "draft <file.md>|upload <image>|api <METHOD> <path> [json]]";
+  + `draft <file.md>|upload <image>|api <METHOD> <path> [json] [${SEND_FLAG}]]`;
 
 /** Each command with the fewest and most arguments it takes. */
 const ARGS = {
@@ -32,9 +38,13 @@ const ARGS = {
   emit: [1, 1], draft: [1, 1], upload: [1, 1], api: [2, 3],
 };
 
-const [command = "diff", ...args] = process.argv.slice(2);
+const argv = process.argv.slice(2);
+const send = argv.includes(SEND_FLAG);
+const [command = "diff", ...args] = argv.filter((a) => a !== SEND_FLAG);
 const [fewest, most] = ARGS[command] ?? [];
-if (fewest === undefined || args.length < fewest || args.length > most) {
+const badUsage = fewest === undefined || args.length < fewest
+  || args.length > most || (send && command !== "api");
+if (badUsage) {
   console.error(USAGE);
   process.exit(2);
 }
@@ -85,9 +95,16 @@ switch (command) {
   case "api": {
     const [method, url, body] = args;
     assertApiPath(settings, method, url);
-    const res = await (await api()).call(
-      method.toUpperCase(), url, body && JSON.parse(body),
-    );
+    const payload = body && JSON.parse(body);
+    if (!send) {
+      try {
+        assertNotSending(method, url, payload);
+      } catch (e) {
+        console.error(`buttondown: ${e.message}; add ${SEND_FLAG} to send it`);
+        process.exit(1);
+      }
+    }
+    const res = await (await api()).call(method.toUpperCase(), url, payload);
     console.log(res.status, res.data ? JSON.stringify(res.data, null, 2) : "");
     process.exit(res.ok ? 0 : 1);
   }
