@@ -4,7 +4,8 @@
 // the allowlist and never look like a secret. Defence-in-depth on top of
 // package.json "files" — this fails CI if that allowlist is ever loosened
 // or a secret-bearing file sneaks in. The tooling repo is public, so the
-// published/installed surface must stay configs + CLI only.
+// published/installed surface must stay configs, CLIs and the build-time
+// data sites import, and nothing private.
 import {execSync} from "node:child_process";
 
 // Dirs/files a consumer is allowed to receive. npm always adds
@@ -20,6 +21,7 @@ const ALLOWED_PREFIXES = [
   "report/",
   "styles/",
   "buttondown/",
+  "identity/",
 ];
 const ALLOWED_FILES = ["README.md", "package.json", "LICENSE", "LICENSE.md"];
 
