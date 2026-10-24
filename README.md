@@ -8,8 +8,8 @@ Shared linting, formatting, commit config, and CLI tools for Casomo Ltd's repos.
 
 | Export | Description |
 |---|---|
-| `@casomoltd/tooling/eslint` | `createBaseConfig()` — ESLint flat config with Next.js, TypeScript, and SonarJS |
-| `@casomoltd/tooling/eslint-lib` | ESLint config variant for library packages |
+| `@casomoltd/tooling/eslint` | `createBaseConfig()` — ESLint flat config with Next.js, TypeScript, SonarJS and the house rules ([docs/lint.md](docs/lint.md)) |
+| `@casomoltd/tooling/eslint-lib` | `createLibConfig()` — the same house rules for a TypeScript library ([docs/lint.md](docs/lint.md)) |
 | `@casomoltd/tooling/prettier` | Prettier config object |
 | `@casomoltd/tooling/commitlint` | commitlint config with `no-ai-attribution` plugin |
 | `@casomoltd/tooling/knip` | Knip config for unused exports/dependencies |
@@ -25,7 +25,8 @@ Shared linting, formatting, commit config, and CLI tools for Casomo Ltd's repos.
 | `check-linear` | Pre-push guard — rejects a push that would put a merge commit on the remote. History is linear; a branch catches up by rebasing. Only what the push adds is judged, so merges already on the remote stay |
 | `pre-push` | Husky pre-push hook — runs check, then the version, tag and linear-history guards |
 | `pre-commit` | Husky pre-commit hook — runs `npm run check` |
-| `commit-msg` | Husky commit-msg hook — runs commitlint |
+| `commit-msg` | Husky commit-msg hook — runs commitlint, then `check-listed-files` |
+| `check-listed-files` | Refuse a commit that changes a file still listed in `eslint-suppressions.json`, unless a `Lint-deferred:` trailer says why ([docs/lint.md](docs/lint.md)) |
 | `readability` | Measure reading difficulty of page content |
 | `screenshot` | Capture a dev server page via Playwright — an agent's visual feedback loop |
 | `build-report` | Compile a Typst client report to PDF with the house template |

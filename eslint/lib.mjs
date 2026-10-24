@@ -1,4 +1,4 @@
-import {HOUSE_RULES} from './house-rules.mjs';
+import {HOUSE_RULES, TEST_FILES_EXEMPT, TYPED_RULES} from './house-rules.mjs';
 
 /**
  * Creates a shared ESLint config for TypeScript libraries
@@ -25,5 +25,18 @@ export function createLibConfig({tseslint, sonarjs}) {
       },
     },
     HOUSE_RULES,
+    TYPED_RULES,
+    {
+      // A library's tsconfig includes only its sources and tests, so a root
+      // config file (vitest.config.ts) sits outside every project.
+      files: TYPED_RULES.files,
+      ignores: TYPED_RULES.ignores,
+      languageOptions: {
+        parserOptions: {
+          projectService: {allowDefaultProject: ['*.config.ts', '*.config.mts']},
+        },
+      },
+    },
+    TEST_FILES_EXEMPT,
   );
 }

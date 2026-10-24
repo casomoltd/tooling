@@ -24,9 +24,10 @@ for `.ts/.tsx`). General formatting (line length, file naming) is out of scope.
 ## Owns-vs-defers
 
 Owns the **design half** — data modelling, typed identifiers, value objects,
-variants over mode flags, and crawlable-navigation design (a real `<a>`/`<Link>`,
-not a JS-only handler). **Defers** mechanical rules to `eslint` (max-len, import
-order, `@typescript-eslint`, sonarjs), and anchor *phrasing/flow* to the prose
+variants over mode flags, crawlable-navigation design (a real `<a>`/`<Link>`,
+not a JS-only handler), and the size limits wherever lint is suppressed.
+**Defers** mechanical rules to `eslint` (max-len, import order,
+`@typescript-eslint`, sonarjs), and anchor *phrasing/flow* to the prose
 reviewer — this rubric owns the element, not the wording.
 
 ## Typed Identifiers
@@ -107,6 +108,67 @@ if (firstOrderDiscount) return applyCoupon(order.coupon);
 if (order.coupon !== undefined && customer.orderCount === 0) {
   return applyCoupon(order.coupon);
 }
+```
+
+## Keep a Function to One Screen
+
+The house limits on a function's length, its parameters and a file's length
+are lint errors, set once in
+[`eslint/house-rules.mjs`](../../eslint/house-rules.mjs). A file that broke one
+when it came in is listed in `eslint-suppressions.json`, which lint then
+skips, so this rubric holds the same limits there. A function past the limit
+is doing more than one thing: give each thing a name and a doc comment. A
+parameter list past it is a value object passed in pieces
+([Pass Value Objects, Not Loose Fields](#pass-value-objects-not-loose-fields)).
+
+```ts
+// Good: the entry assembles; each part is a named, documented function
+function checkout(cart: Cart): Receipt {
+  return { total: totalOf(cart), tax: taxOn(cart),
+    delivery: deliveryFor(cart) };
+}
+
+// Bad: the same function with every part inline, each headed by a comment
+function checkout(cart: Cart): Receipt {
+  // The total: …twenty lines…
+  // The tax: …twenty lines…
+  // The delivery: …twenty lines…
+}
+```
+
+## Name a Value for Whose It Is
+
+When two values of the same unit sit side by side, each name says whose it
+is or which it is. A per-record figure named like a shared default reads as
+one, and the reader cannot tell which to change.
+
+```ts
+// Good: the customer's own limit and the shop's default are told apart
+const customerCreditLimit = account.override ?? defaultCreditLimit;
+
+// Bad: the same expression; is `limit` the customer's or the default?
+const limit = account.override ?? defaultCreditLimit;
+```
+
+Why this is not covered by
+[One Value for Two Facts That Usually Agree](#one-value-for-two-facts-that-usually-agree):
+that rule is one value answering two questions; this one is two values a
+single name could mean.
+
+## Carry a Stated Answer; Don't Infer It
+
+Where the source states a fact (a yes/no on a form, a figure on a document),
+the input carries it as given and the code reads it. Deriving it from another
+field by a threshold or a proxy guesses what was never in doubt, and guesses
+wrong at the edge.
+
+```ts
+// Good: the answer the customer gave decides the rate
+const rate = signup.isBusiness ? BUSINESS_RATE : CONSUMER_RATE;
+
+// Bad: a proxy decides it, and a business with no VAT number pays the
+// consumer rate
+const rate = signup.vatNumber !== undefined ? BUSINESS_RATE : CONSUMER_RATE;
 ```
 
 ## Pass Value Objects, Not Loose Fields
@@ -198,15 +260,15 @@ instead of a bare literal.
 
 ```ts
 // Bad: a parallel shape + a re-derived value the library owns
-interface Bracket {floor: number; rate: number}
-const bracket = {
-  floor: cfg.bands[1].min + cfg.allowance,  // re-derived
-  rate: cfg.bands[1].rate,
+interface Tier {floor: number; charge: number}
+const tier = {
+  floor: cfg.tiers[1].min + cfg.baseCharge,  // re-derived
+  charge: cfg.tiers[1].charge,
 };
 
 // Good: use the library's type and its accessor
-const bracket: TaxBand = higherBand(cfg);   // library type
-const floor = bandFloor(cfg);               // library fn
+const tier: ShippingTier = upperTier(cfg);   // library type
+const floor = tierFloor(cfg);                // library fn
 ```
 
 When the library's function is wrong or incomplete for your case,
@@ -248,7 +310,7 @@ type that only names which control is active is not a domain model.
 
 ## A Domain Rule Lives in the Library, on Every Path
 
-A rule the domain owns — a statutory floor, a rounding
+A rule the domain owns — a regulatory minimum, a rounding
 convention, a region-specific adjustment — belongs in the library
 that owns the data, applied wherever that library produces the
 affected value, never re-implemented or patched at a call site.
@@ -280,7 +342,7 @@ transforms compose safely) and guard the pair with a test (below).
 ## No Silent Default for a Domain-Selecting Input
 
 A parameter that selects **which** answer you get — a locale, region,
-nation, tax year, currency, scheme — must be **required**. A default
+country, period, currency, price list — must be **required**. A default
 (`= 'gb'`, `?? firstOption`, silently taking `[0]`) returns a
 *plausible-but-wrong* value when a caller forgets it: no error, no type
 failure, no failing test, so the mistake ships — and every future call
@@ -349,7 +411,7 @@ The test is whether the code can tell a deliberate absence from a
 mistake — if it cannot, neither can the caller.
 
 Flag: an optional parameter — or a `??`/`||` fallback, or a `[0]` pick —
-that selects locale/region/nation/period/currency/scheme; a function that
+that selects locale/region/country/period/currency/price list; a function that
 returns data for a "default" locale when the caller passed none; and a
 function that answers a domain question with an empty or truncated
 result where the honest answer is to fail loud.
@@ -362,7 +424,7 @@ when it models something real, and each is also the fastest way to make
 an error go away. They are not distinguishable by looking at the diff:
 both arrive as a small type edit that turns the build green.
 
-The workspace rule *fix issues, don't disable checks* is usually read as
+The rule *fix issues, don't disable checks* is usually read as
 being about config — `strict: false`, `skipLibCheck`. It applies with
 equal force one level down. Relaxing a type is disabling a check; the
 check is just narrower and the config file is untouched.
@@ -678,15 +740,15 @@ header. That turns the test from "the code agrees with itself"
 into "the code agrees with the world".
 
 ```ts
-// £X is the 2026-27 statutory floor, per <issuing body>,
-// circular <id> (<date>): <reference>. A base below it is lifted.
-expect(regionalise(belowFloor, region)).toBe(FLOOR_FIGURE);
+// £X is the published minimum order, per <issuing body>,
+// <document id> (<date>): <reference>. A total below it is lifted.
+expect(applyMinimum(belowMinimum, region)).toBe(MINIMUM_FIGURE);
 ```
 
 ## Pin Transcribed Reference Data to a Cited Fixture
 
-When you transcribe an external table into code — pay scales, tax
-thresholds, statutory rates — commit a fixture that mirrors the
+When you transcribe an external table into code — price lists,
+shipping rates, regulatory limits — commit a fixture that mirrors the
 authoritative table (one row per value, the **source cited**) and
 assert the code against it. A code-vs-code check (a value equals a
 recomputation, or a hardcoded `toBe`) proves internal consistency,
@@ -717,9 +779,9 @@ a finding even when a fixture exists.
 
 ```ts
 // Good: provenance lives at the data.
-// NHS member contribution tiers 2026/27 — source: NHSBSA member hub
-// https://www.nhsbsa.nhs.uk/member-hub/cost-being-scheme
-const TIERS_2026_27: Tier[] = [ /* … */ ];
+// UK VAT rates — source: GOV.UK, "VAT rates on different goods and services"
+// https://www.gov.uk/guidance/rates-of-vat-on-different-goods-and-services
+const VAT_RATES: VatRate[] = [ /* … */ ];
 ```
 
 A **uniform offset across an entire table** — every value high by
@@ -1011,17 +1073,17 @@ or a published instrument, then the number belongs to whatever layer
 owns that scheme — not to the general-purpose library underneath it.
 
 ```ts
-// Bad, in a generic tax library
-/** Standard contracted weekly hours.
- *  rUK 37.5 (the health service's full-time week); the northern
- *  administration reduced to 36 under its own staff agreement. */
-standardWeeklyHours: number;
+// Bad, in a generic date library
+/** Opening hours each weekday.
+ *  9:00 to 17:30 (the flagship store's hours); the airport branch
+ *  opens at 6:00 under its own lease. */
+openingHours: TimeRange;
 ```
 
-There is no statutory UK working week. That value is one employer's
-terms, and the comment says so — which is the signal. The generic layer
-should take the hours from its caller; the domain layer above it holds
-the employer's week and passes it in.
+There are no universal opening hours. That value is one shop's terms,
+and the comment says so — which is the signal. The generic layer should
+take the hours from its caller; the domain layer above it holds the
+shop's hours and passes them in.
 
 **The second tell is duplication across a dependency edge.** If the same
 named constant is defined in both a package and something that depends
@@ -1042,10 +1104,10 @@ domain* a fact belongs to; this one asks *which layer* — and a package
 whose job is computation must not carry what a thing looks like.
 
 ```ts
-// Bad, in a generic UK tax library
-/** UK nations for the region picker. */
-export const NATIONS = {
-  scotland: {label: 'Scotland', flag: '\uD83C\uDFF4…'},
+// Bad, in a generic pricing library
+/** Countries for the region picker. */
+export const COUNTRIES = {
+  fr: {label: 'France', flag: '\uD83C\uDDEB\uD83C\uDDF7'},
 } as const;
 ```
 
@@ -1061,9 +1123,9 @@ ships in every published bundle either way.
 
 **Do not apply this reflexively to labels.** A library may legitimately
 own the one correct wording for a value it defines, so that consumers
-cannot invent competing names for the same thing — a tax band, a loan
-plan. The test is whether the string is *the thing's own name* or
-*chrome around it*. `'Plan 4'` is a name. A flag is chrome. Where it is
+cannot invent competing names for the same thing — a shipping class, a
+subscription tier. The test is whether the string is *the thing's own name*
+or *chrome around it*. `'Tier 2'` is a name. A flag is chrome. Where it is
 genuinely a name, keep it and say so at the declaration, because the
 next reader will ask.
 
@@ -1089,8 +1151,8 @@ thing, and one that treats it as a property of the present moment.
 // A year that answers two questions at once
 const CURRENT_YEAR = '2026-27';
 
-loadPayScale(CURRENT_YEAR, nation);   // which table was published
-computeTax(CURRENT_YEAR, region);     // which rates are in force now
+loadPriceList(CURRENT_YEAR, country); // which list was published
+computeVat(CURRENT_YEAR, country);    // which rates are in force now
 ```
 
 Those coincide for as long as every party publishes on schedule. They
@@ -1099,7 +1161,7 @@ someone against rates nobody is using, silently, because the value is
 still a perfectly legal year.
 
 **Splitting the value is not enough.** Renaming one of them to
-`payYear` fixes today's call sites and leaves the next author free to
+`priceListYear` fixes today's call sites and leaves the next author free to
 pass either, because both are still the same type. Two facts that must
 not be substituted for one another want either distinct types, or a
 single constructor that takes both and is the only way to obtain the
@@ -1122,8 +1184,8 @@ When a change introduces a new domain type, or reshapes existing domain
 data, map the structure and settle the model BEFORE writing the code.
 
 The failure it prevents is invisible from the inside. Reaching for the
-shape of the adjacent module — this one is a nation-by-year lookup, so
-the new one becomes a nation-by-year-by-family lookup — produces
+shape of the adjacent module — this one is a country-by-year lookup, so
+the new one becomes a country-by-year-by-category lookup — produces
 something that reads as consistent and is not modelling anything. It
 pattern-matches a neighbour, and the result looks right precisely
 because it matches.
@@ -1149,15 +1211,15 @@ low-level fallback for callers holding loose ids.
 
 ```ts
 // Bad: the caller re-supplies what the entity already knows
-const award = awardFor(post.nation, post.taxYear, post.role.band);
+const rate = shippingRateFor(order.country, order.year, order.service.tier);
 
 // Good: navigation, not query
-const award = post.award;
+const rate = order.shippingRate;
 ```
 
 Equivalently: the API reads as a QUERY — *fetch the record where
-nation=X and scale=Y* — where the domain reading is NAVIGATION — *this
-post's award*. Query-shaped APIs over a domain model are a smell exactly
+country=X and tier=Y* — where the domain reading is NAVIGATION — *this
+order's shipping rate*. Query-shaped APIs over a domain model are a smell exactly
 when the entity exists.
 
 **What does not follow**, so the rule is not over-applied: this is not a

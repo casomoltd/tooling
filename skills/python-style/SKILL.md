@@ -201,8 +201,8 @@ any code is written.
   one half quietly relies on something the other no longer guarantees. Define
   the policy once and route both directions through it.
 
-- **A domain rule holds on every path.** A rule the domain owns — a statutory
-  floor, a rounding, a region-specific adjustment — is applied wherever the code
+- **A domain rule holds on every path.** A rule the domain owns — a regulatory
+  minimum, a rounding, a region-specific adjustment — is applied wherever the code
   produces the affected value, not re-implemented at a call site. It lives in
   the type/module that owns the data, on **every** path that emits the value.
   Consolidating it into one path (a table build, one accessor) is safe only if
@@ -440,16 +440,15 @@ No top-level execution besides imports and definitions.
   assertion** — a test module is a verification document, so the reference
   sits at the exact line it verifies, proving correctness against the world,
   not just internal consistency.
-- **Pin transcribed reference data to a cited fixture.** When you transcribe
-  an external table into code — pay scales, tax thresholds, statutory rates —
-  commit a fixture mirroring the authoritative table (one row per value, the
-  source cited) and assert the code against it. A code-vs-code check (a value
-  equals a recomputation, or a hardcoded expected) proves consistency, not
-  correctness: a whole table transcribed on a wrong factor is internally
-  consistent and still wrong — only a fixture tied to the published source
-  catches it. And a **uniform offset across a whole table** (every value off
-  by the same fraction) is the signature of a wrong transform — a mis-applied
-  uplift, a rounding, a unit slip — not noise.
+- **Pin transcribed reference data to a cited fixture.** When you transcribe an
+  external table into code, commit a fixture mirroring the authoritative table
+  (one row per value, the source cited) and assert the code against it. A
+  code-vs-code check (a value equals a recomputation, or a hardcoded expected)
+  proves consistency, not correctness: a whole table transcribed on a wrong
+  factor is internally consistent and still wrong — only a fixture tied to the
+  published source catches it. And a **uniform offset across a whole table**
+  (every value off by the same fraction) is the signature of a wrong transform —
+  a mis-applied uplift, a rounding, a unit slip — not noise.
 - **Don't pin a computation to its own output.** A test for a computed model
   (projection, amortisation, forecast, any multi-step arithmetic) needs one
   assertion the implementation couldn't have produced. Both failing habits look

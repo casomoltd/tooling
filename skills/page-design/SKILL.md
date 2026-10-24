@@ -155,9 +155,9 @@ apply. Provenance in parentheses.
 
 19. **Provenance names the source AND the position in it.** Where a
     figure is read off a published table, name enough of it that a
-    reader can find the same row. A band, grade or category alone is
-    half an answer whenever the table has steps within it — two people
-    in the same band can hold different figures. Name the table and the
+    reader can find the same row. A tier, grade or category alone is
+    half an answer whenever the table has steps within it — two products
+    in the same tier can hold different prices. Name the table and the
     position on it.
     **Check:** every derived figure states what it was read off, at a
     granularity that identifies one row.

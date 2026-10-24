@@ -1,4 +1,4 @@
-import {HOUSE_RULES} from "./house-rules.mjs";
+import {HOUSE_RULES, TEST_FILES_EXEMPT, TYPED_RULES} from "./house-rules.mjs";
 
 /**
  * Creates the shared ESLint base config.
@@ -36,5 +36,7 @@ export function createBaseConfig({
       },
     },
     HOUSE_RULES,
+    TYPED_RULES,
+    TEST_FILES_EXEMPT,
   ]);
 }

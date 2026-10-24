@@ -22,9 +22,10 @@
     "!**/*.test.mjs"
   ],
   "scripts": {
-    "check": "node bin/check-gates.mjs && node bin/verify-pack.mjs && npm run check:private-refs && npm run check:personal-data && npm run typecheck && npm run test && npm run lint:md",
+    "check": "node bin/check-gates.mjs && node bin/verify-pack.mjs && npm run check:private-refs && npm run check:personal-data && npm run lint && npm run typecheck && npm run test && npm run lint:md",
+    "lint": "eslint .",
     "typecheck": "tsc --noEmit -p hooks/tsconfig.json",
-    "test": "node hooks/test.mts && node bin/check-gates.test.mjs && node bin/check-personal-data.test.mjs && node bin/casomo-config.test.mjs && node bin/buttondown.test.mjs && node commitlint/index.test.mjs && node readability/index.test.mjs",
+    "test": "node hooks/test.mts && node bin/check-gates.test.mjs && node bin/check-listed-files.test.mjs && node bin/check-personal-data.test.mjs && node bin/casomo-config.test.mjs && node bin/buttondown.test.mjs && node commitlint/index.test.mjs && node readability/index.test.mjs",
     "lint:md": "remark --frail --quiet --no-stdout --rc-path bin/skills-lint.config.mjs skills agents docs",
     "build": "echo 'no-op: source-only repo, nothing to build'",
     "prepare": "husky || true",
@@ -33,7 +34,6 @@
   },
   "casomo": {
     "gates": {
-      "lint": "publishes the shared eslint config but has none of its own yet",
       "knip": "no knip config for this repo's mixed .mts/.mjs layout yet",
       "jscpd": "no jscpd config for this repo yet",
       "spell": "no shared cspell config exists yet",
@@ -58,6 +58,7 @@
     "buttondown": "./bin/buttondown.mjs",
     "check-gates": "./bin/check-gates.mjs",
     "check-hooks": "./bin/check-hooks.sh",
+    "check-listed-files": "./bin/check-listed-files.mjs",
     "check-linear": "./bin/check-linear.sh",
     "check-personal-data": "./bin/check-personal-data.mjs",
     "check-private-refs": "./bin/check-private-refs.mjs",
@@ -80,7 +81,7 @@
   },
   "peerDependencies": {
     "@commitlint/cli": ">=20",
-    "eslint": ">=9",
+    "eslint": ">=9.24",
     "eslint-config-next": ">=16",
     "eslint-plugin-sonarjs": ">=3",
     "jscpd": ">=4",
@@ -89,12 +90,15 @@
   },
   "devDependencies": {
     "@types/node": "^26.0.0",
+    "eslint": "^9.39.5",
+    "eslint-plugin-sonarjs": "^4.2.2",
     "husky": "^9.1.7",
     "remark-cli": "^12.0.1",
     "remark-frontmatter": "^5.0.0",
     "remark-lint-frontmatter-schema": "^3.15.4",
     "remark-validate-links": "^13.1.0",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.72.0"
   },
   "overrides": {
     "remark-lint-frontmatter-schema": {

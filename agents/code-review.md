@@ -131,15 +131,15 @@ enough surrounding code (definitions, call sites) to judge design intent.
   identifier's label reflexively** — a library may legitimately own the one
   correct wording for a value it defines, so that consumers cannot invent
   competing names. The test is whether the value is the *thing's own name* (a
-  tax band, a loan plan) or *chrome around it* (a flag, an icon, a colour). The
-  first can be defended; the second cannot.
+  shipping class, a subscription tier) or *chrome around it* (a flag, an icon,
+  a colour). The first can be defended; the second cannot.
 
   Extraction is where this gets in. Code lifted from an app into a package
   brings the app's view model with it and nobody separates it at the time, so
   look hardest at a package's oldest files, not its newest.
 
 - **No silent domain-default** (`typescript` standard): a parameter that selects
-  *which* data — locale/region/nation/tax-year/currency/scheme — given a silent
+  *which* data — locale/region/country/period/currency/price list — given a silent
   default (`= 'gb'`, `?? fallback`, a `[0]` pick) instead of being required. Flag
   it: an omitted selector then returns a plausible-but-wrong answer with no error,
   and every call site can forget it the same way. The selector must be required (a
@@ -247,15 +247,15 @@ enough surrounding code (definitions, call sites) to judge design intent.
   (composition, wiring, which figure reaches which surface), where pinning
   output is the right instrument, from the arithmetic itself, where it isn't.
 - **Transcribed reference data** (both standards): a table of externally-sourced
-  constants — pay figures, tax thresholds, statutory rates — added or edited with
-  **no committed fixture tying it to the authoritative source**, or "verified"
-  only by a code-vs-code assertion (a hardcoded expected transcribed from the
-  same place as the code), **or with no primary-source citation (issuer +
-  document + URL) in a doc comment at the data itself**. Flag it: a whole table on
-  a wrong factor is internally consistent and still wrong; correctness needs a
-  fixture mirroring the published source, cited — and the source must also be
-  linked in the code at the data, so provenance is re-checkable at the number, not
-  only in a test file. A uniform offset across the table is a wrong-transform smell.
+  constants added or edited with **no committed fixture tying it to the
+  authoritative source**, or "verified" only by a code-vs-code assertion (a
+  hardcoded expected transcribed from the same place as the code), **or with no
+  primary-source citation (issuer + document + URL) in a doc comment at the data
+  itself**. Flag it: a whole table on a wrong factor is internally consistent
+  and still wrong; correctness needs a fixture mirroring the published source,
+  cited — and the source must also be linked in the code at the data, so
+  provenance is re-checkable at the number, not only in a test file. A uniform
+  offset across the table is a wrong-transform smell.
 
 - **A fallback that rescues a computation, reused in a claim.** Flag a `??`
   (or `||`, or a clamp) whose stand-in value also reaches prose, a label or an
@@ -328,16 +328,35 @@ enough surrounding code (definitions, call sites) to judge design intent.
 - **A query-shaped API where the entity already exists.** For an exported
   function, check whether some entity in the same package already carries every
   one of its parameters as fields. If so, the accessor belongs on that entity —
-  `post.award`, not `awardFor(post.nation, post.taxYear, post.band)`. Do not
-  extend this to back-pointers: the fix is where the accessor lives, not
-  storing the relationship twice.
+  `order.shippingRate`, not `shippingRateFor(order.country, order.year,
+  order.service.tier)`. Do not extend this to back-pointers: the fix is where
+  the accessor lives, not storing the relationship twice.
+
+- **A function past one screen** (`typescript` standard, § Keep a Function
+  to One Screen): a function, parameter list or file over the house limits in
+  a file lint skips because it is listed in `eslint-suppressions.json`. Name
+  the separate things the function does, as the split.
+
+- **A name that does not say whose value it is** (`typescript` standard,
+  § Name a Value for Whose It Is): two same-unit values that differ in owner
+  or source, where one name fits both.
+
+- **A stated answer inferred** (`typescript` standard, § Carry a Stated
+  Answer; Don't Infer It): a fact the source states that the code derives
+  from another field by a threshold or a proxy.
+
+- **A lint deviation without its reason** (tooling's `docs/lint.md`, § Where a
+  deviation lives): an ESLint override that turns a rule off, or relaxes it, with no
+  comment beside it saying why; or a file meant to stay exempt that is kept in
+  `eslint-suppressions.json` instead of an override.
 
 ## Ignore — owned elsewhere (never re-flag)
 
 - **Mechanical** rules linters already enforce: eslint (max-len 88, import
   order, `@typescript-eslint` recommended incl. `ban-ts-comment`, sonarjs) for
-  TS; ruff/pyright (line length, `I`, `D100`/`D103`, `RUF022`, `E722`,
-  `F`/`B`/`SIM`/`UP`, annotation syntax) for Python. If `npm run check` /
+  TS, except the size limits where lint is suppressed (*A function past one
+  screen*, above); ruff/pyright (line length, `I`, `D100`/`D103`, `RUF022`,
+  `E722`, `F`/`B`/`SIM`/`UP`, annotation syntax) for Python. If `npm run check` /
   `ruff check` would catch it, it isn't yours.
 - **Correctness bugs** and reuse/efficiency cleanups — that's the built-in
   `/code-review`. Stay on house design/style standards.
