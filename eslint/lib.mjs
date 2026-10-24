@@ -1,3 +1,5 @@
+import {HOUSE_RULES} from './house-rules.mjs';
+
 /**
  * Creates a shared ESLint config for TypeScript libraries
  * (non-Next.js projects).
@@ -22,19 +24,6 @@ export function createLibConfig({tseslint, sonarjs}) {
         '@typescript-eslint/no-require-imports': 'off',
       },
     },
-    {
-      rules: {
-        'max-len': [
-          'error',
-          {
-            code: 88,
-            ignoreUrls: true,
-            ignoreStrings: true,
-            ignoreTemplateLiterals: true,
-            ignoreRegExpLiterals: true,
-          },
-        ],
-      },
-    },
+    HOUSE_RULES,
   );
 }

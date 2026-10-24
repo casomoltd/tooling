@@ -59,8 +59,16 @@ const bashCases: Case[] = [
   // itself stays commitlint's job — the hook doesn't deny for it.
   {command: 'git commit -m "feat: x"', verdict: "ask", id: "git-commit-confirm"},
   {command: "git commit --amend", verdict: "ask", id: "git-commit-confirm"},
-  {command: 'git -C tooling commit -m "feat: x"', verdict: "ask", id: "git-commit-confirm"},
-  {command: 'git commit -m "feat: x" -m "Co-Authored-By: Claude"', verdict: "ask", id: "git-commit-confirm"},
+  {
+    command: 'git -C tooling commit -m "feat: x"',
+    verdict: "ask",
+    id: "git-commit-confirm",
+  },
+  {
+    command: 'git commit -m "feat: x" -m "Co-Authored-By: Claude"',
+    verdict: "ask",
+    id: "git-commit-confirm",
+  },
   // Plumbing/maintenance verbs that start with "commit" must NOT confirm.
   {command: "git commit-graph write", verdict: null},
   {command: "git commit-tree abc123", verdict: null},
@@ -69,10 +77,18 @@ const bashCases: Case[] = [
   // ---- dependency-sweep carve-out ----
   // An unattended sweep can't answer an `ask`, so its two branch-side shapes
   // inside a `worktrees/dep-sweep-*` checkout must fall through cleanly.
-  {command: "cd /w/worktrees/dep-sweep-lib && git commit -F /tmp/msg.txt", verdict: null},
-  {command: 'cd "/w/my repo/worktrees/dep-sweep-lib" && git commit -F /tmp/msg.txt', verdict: null},
   {
-    command: "cd /w/worktrees/dep-sweep-lib && git push --force-with-lease -u origin dep-sweep",
+    command: "cd /w/worktrees/dep-sweep-lib && git commit -F /tmp/msg.txt",
+    verdict: null,
+  },
+  {
+    command: 'cd "/w/my repo/worktrees/dep-sweep-lib"'
+      + " && git commit -F /tmp/msg.txt",
+    verdict: null,
+  },
+  {
+    command: "cd /w/worktrees/dep-sweep-lib"
+      + " && git push --force-with-lease -u origin dep-sweep",
     verdict: null,
   },
   // ...and everything else stays guarded. The exemption is the exact shape,
@@ -89,7 +105,8 @@ const bashCases: Case[] = [
   },
   // A compound tail must not ride in under the carve-out.
   {
-    command: "cd /w/worktrees/dep-sweep-lib && git commit -F /tmp/msg.txt && npm publish",
+    command: "cd /w/worktrees/dep-sweep-lib"
+      + " && git commit -F /tmp/msg.txt && npm publish",
     verdict: "ask",
     id: "git-commit-confirm",
   },
@@ -136,9 +153,17 @@ const editCases: Case[] = [
     content: "x = thing()  # type: ignore[arg-type]",
     verdict: null,
   },
-  {file_path: "/x/tsconfig.json", content: '{"compilerOptions":{"strict":true}}', verdict: null},
+  {
+    file_path: "/x/tsconfig.json",
+    content: '{"compilerOptions":{"strict":true}}',
+    verdict: null,
+  },
   // `@ts-ignore` is eslint's job now — the hook must not fire on it.
-  {file_path: "/x/foo.ts", new_string: "// @ts-ignore\nconst a = bad();", verdict: null},
+  {
+    file_path: "/x/foo.ts",
+    new_string: "// @ts-ignore\nconst a = bad();",
+    verdict: null,
+  },
 ];
 
 let pass = 0;
@@ -190,7 +215,11 @@ const lintDraft = (name: string, content: string): number | null => {
 };
 runCases(
   [
-    {name: "attribution trailer rejected", content: "fix: tidy\n\nCo-Authored-By: X\n", passes: false},
+    {
+      name: "attribution trailer rejected",
+      content: "fix: tidy\n\nCo-Authored-By: X\n",
+      passes: false,
+    },
     {name: "clean message passes", content: "fix: tidy the hook tests\n", passes: true},
   ],
   (c) => {
@@ -255,7 +284,8 @@ const e2e: E2E[] = [
   {
     // Clean evaluation, nothing matched -> allow SILENTLY (not a failure).
     name: "benign command produces no decision",
-    res: run("guard-bash.mts", {tool_name: "Bash", tool_input: {command: "git status"}}),
+    res: run("guard-bash.mts",
+      {tool_name: "Bash", tool_input: {command: "git status"}}),
     assert: (r) => {
       assert.equal(r.status, 0);
       assert.equal(r.stdout.trim(), "");

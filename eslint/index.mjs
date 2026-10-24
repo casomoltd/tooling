@@ -1,3 +1,5 @@
+import {HOUSE_RULES} from "./house-rules.mjs";
+
 /**
  * Creates the shared ESLint base config.
  *
@@ -33,19 +35,6 @@ export function createBaseConfig({
         "@typescript-eslint/no-require-imports": "off",
       },
     },
-    {
-      rules: {
-        "max-len": [
-          "error",
-          {
-            code: 88,
-            ignoreUrls: true,
-            ignoreStrings: true,
-            ignoreTemplateLiterals: true,
-            ignoreRegExpLiterals: true,
-          },
-        ],
-      },
-    },
+    HOUSE_RULES,
   ]);
 }
