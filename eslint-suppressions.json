@@ -80,11 +80,6 @@
       "count": 2
     }
   },
-  "bin/verify-pack.mjs": {
-    "sonarjs/super-linear-regex": {
-      "count": 1
-    }
-  },
   "buttondown/email-blocks.mjs": {
     "max-lines-per-function": {
       "count": 1

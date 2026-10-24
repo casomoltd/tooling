@@ -23,9 +23,17 @@ const ALLOWED_PREFIXES = [
 ];
 const ALLOWED_FILES = ["README.md", "package.json", "LICENSE", "LICENSE.md"];
 
-// Anything matching these must never ship, even from an allowed dir.
-const SECRET_PATTERN =
-  /(^|\/)(\.env(\..*)?|.*settings\.local\.json|.*\.pem|id_[rd]sa|.*\.key|\.npmrc)$/i;
+// A file whose name alone marks it as a secret must never ship, even from an
+// allowed dir: an env file, local settings, a key, or an npm token file.
+const SECRET_NAMES = new Set([".env", ".npmrc", "id_rsa", "id_dsa"]);
+const SECRET_ENDINGS = [".pem", ".key", "settings.local.json"];
+
+function looksSecret(path) {
+  const name = path.slice(path.lastIndexOf("/") + 1).toLowerCase();
+  return SECRET_NAMES.has(name)
+    || name.startsWith(".env.")
+    || SECRET_ENDINGS.some((ending) => name.endsWith(ending));
+}
 
 // Tests live beside what they test, which puts them inside an allowed dir —
 // so the allowlist alone would ship them. Consumers get the tool, not its
@@ -40,7 +48,7 @@ const escaped = files.filter(
     !ALLOWED_FILES.includes(f) &&
     !ALLOWED_PREFIXES.some((prefix) => f.startsWith(prefix)),
 );
-const secrets = files.filter((f) => SECRET_PATTERN.test(f));
+const secrets = files.filter(looksSecret);
 const tests = files.filter((f) => TEST_PATTERN.test(f));
 
 if (escaped.length || secrets.length || tests.length) {
