@@ -18,7 +18,7 @@ export const CASOMO_ORGANIZATION = Object.freeze({
   url: SITE,
   sameAs: Object.freeze([
     "https://casomo.co.uk",
-    "https://www.facebook.com/casomoltd",
+    "https://www.facebook.com/casomouk",
     "https://www.linkedin.com/company/111967567/",
   ]),
 });

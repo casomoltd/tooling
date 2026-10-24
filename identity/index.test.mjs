@@ -15,7 +15,7 @@ assert.deepEqual(CASOMO_ORGANIZATION, {
     // The NHS-facing site.
     "https://casomo.co.uk",
     // The Facebook Page, as its owner gave it.
-    "https://www.facebook.com/casomoltd",
+    "https://www.facebook.com/casomouk",
     // The LinkedIn company page, by its numeric id.
     "https://www.linkedin.com/company/111967567/",
   ],
