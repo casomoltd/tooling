@@ -61,6 +61,12 @@ it("an optional gate defined but not run is a dead gate", () => {
   );
 });
 
+it("a pre-push gate is run by the hook, so outside check it is not dead", () => {
+  const pkg = healthy();
+  pkg.scripts["check:routes"] = "check-routes";
+  assert.deepEqual(evaluate(pkg).live, []);
+});
+
 it("a reasoned exception excuses the failure and is reported", () => {
   const pkg = healthy();
   delete pkg.scripts.test;

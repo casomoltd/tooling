@@ -24,7 +24,8 @@ Shared linting, formatting, commit config, and CLI tools for Casomo Ltd's repos.
 |---|---|
 | `check-version` | Pre-push guard — rejects push if `package.json` version hasn't changed vs `origin/main` |
 | `check-linear` | Pre-push guard — rejects a push that would put a merge commit on the remote. History is linear; a branch catches up by rebasing. Only what the push adds is judged, so merges already on the remote stay |
-| `pre-push` | Husky pre-push hook — runs check, then the version, tag and linear-history guards |
+| `pre-push` | Husky pre-push hook — runs check, then `check:routes` where a repo defines it, then the version, tag and linear-history guards |
+| `check-routes` | Pre-push gate for a Next.js site — starts `next start` against the build `check` made, requests every page in `/sitemap.xml`, and fails if any is not a 200. Run it as `"check:routes": "check-routes"`; [why it runs on push](#quality-gates) |
 | `pre-commit` | Husky pre-commit hook — runs `npm run check` |
 | `commit-msg` | Husky commit-msg hook — runs commitlint, then `check-listed-files` |
 | `check-listed-files` | Refuse a commit that changes a file still listed in `eslint-suppressions.json`, unless a `Lint-deferred:` trailer says why ([docs/lint.md](docs/lint.md)) |
@@ -287,13 +288,17 @@ the local hooks are the gate, CI is the backstop.
 
 - **pre-commit**: `npm run check` — the repo's full health gate.
 - **commit-msg**: commitlint (house rules + the AI-attribution ban).
-- **pre-push**: `npm run check`, then the version and tag guards.
+- **pre-push**: `npm run check`, then `check:routes` where the repo
+  defines it, then the version, tag and linear-history guards.
 
 **`check` owns the build.** A repo whose build fails is not
 healthy, and any assertion that reads build output has to run
 after the build in the same script — so `build` belongs in
 `check`, and appears nowhere else. Declaring it in the pre-push
 gate as well would give it two owners and build twice.
+Exception: `check:routes` reads the build outside `check`. It
+starts a server, which belongs to a push rather than to every
+commit, so the pre-push hook runs it after `check`.
 
 ### What every repo's `check` must contain
 

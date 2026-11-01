@@ -14,7 +14,12 @@ export PRE_PUSH_REFS
 # owners and run it twice wherever `check` builds. A repo that needs a build
 # gate adds `npm run build` to its own `check`; one that produces no artifact
 # simply doesn't.
+#
+# `check:routes` runs after `check`, not in it: see the README, "Quality
+# gates". Repos without it skip it. Every gate in PRE_PUSH
+# (bin/check-gates.mjs) must be run here.
 npm run check \
+  && npm run --if-present check:routes \
   && echo "$PRE_PUSH_REFS" | check-version \
   && echo "$PRE_PUSH_REFS" | check-tags \
   && echo "$PRE_PUSH_REFS" | check-linear
