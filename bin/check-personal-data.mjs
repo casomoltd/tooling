@@ -66,6 +66,9 @@ const FIELD_SUFFIX = /(?:value|val|text|node|display|content)$/;
 /** A key that names a birth. */
 const BIRTH_KEY = /(?:dob|dateofbirth|birthdate|born)$/;
 
+/** How many nested field-name layers a lead-in may carry before the key. */
+const MAX_FIELD_SUFFIXES = 4;
+
 /** The constructor a source file writes a date with. `new Date(1983, 6, 14)`
  *  matches neither the printed nor the ISO rule, and the words before it end
  *  `newdate` rather than a field name, so both halves would be blind at once
@@ -83,7 +86,7 @@ const DATE_CALL = /(?:new\s*)?date\($/;
  */
 function namesABirth(lead) {
   let rest = lead;
-  for (let depth = 0; depth < 4; depth += 1) {
+  for (let depth = 0; depth < MAX_FIELD_SUFFIXES; depth += 1) {
     if (BIRTH_KEY.test(rest)) return true;
     const trimmed = rest.replace(FIELD_SUFFIX, "");
     if (trimmed === rest) return false;
@@ -94,11 +97,14 @@ function namesABirth(lead) {
 
 const NON_WORD = /[^a-z0-9]/gi;
 
-/** What precedes a date, as a reader sees it: tags dropped, a generous
- *  window, because a label and its value are separated by a cell boundary
- *  and whatever styling that cell carries. */
+/** How far back a label may sit: generous, because a label and its value
+ *  are separated by a cell boundary and whatever styling that cell carries. */
+const LEAD_IN_CHARS = 120;
+
+/** What precedes a date, as a reader sees it: tags dropped, within
+ *  LEAD_IN_CHARS. */
 const leadIn = (before) =>
-  before.replace(/<[^<>]*>/g, " ").slice(-120).replace(NON_WORD, "")
+  before.replace(/<[^<>]*>/g, " ").slice(-LEAD_IN_CHARS).replace(NON_WORD, "")
     .toLowerCase();
 
 /** A real address ends in a letters-only top-level domain; without this a
@@ -155,30 +161,33 @@ export function identityRules(allowEmail = []) {
 
 /** Every finding in one file's text, against the rules and the names. */
 export function findPersonalData(text, rules, names = []) {
-  const hits = [];
   const lines = text.split("\n");
-  for (const rule of rules) {
-    for (const [i, line] of lines.entries()) {
-      for (const m of line.matchAll(rule.re)) {
-        if (rule.allow?.(m[0])) continue;
-        if (rule.context && !rule.context(line.slice(0, m.index))) continue;
-        hits.push({line: i + 1, rule: rule.name, text: m[0]});
-      }
-    }
-  }
-  for (const name of names) {
-    // No `g`: `.test()` on a global regex advances `lastIndex`, and a name
-    // on consecutive lines would be reported on every other one.
-    const re = new RegExp(
-      `\\b${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i");
-    for (const [i, line] of lines.entries()) {
-      if (re.test(line)) {
-        hits.push({line: i + 1, rule: "name on the local denylist", text: name});
-      }
-    }
-  }
-  return hits;
+  return [
+    ...rules.flatMap((rule) =>
+      lines.flatMap((line, i) => ruleHitsOnLine(rule, line, i + 1))),
+    ...names.flatMap((name) => nameHits(lines, name)),
+  ];
 }
+
+/** One rule's findings on one line: each match its `allow` does not
+ *  excuse and its `context`, if it has one, confirms. */
+const ruleHitsOnLine = (rule, line, lineNumber) =>
+  [...line.matchAll(rule.re)]
+    .filter((m) => !rule.allow?.(m[0]))
+    .filter((m) => !rule.context || rule.context(line.slice(0, m.index)))
+    .map((m) => ({line: lineNumber, rule: rule.name, text: m[0]}));
+
+/** Each line naming someone on the local denylist. */
+const nameHits = (lines, name) => {
+  // No `g`: `.test()` on a global regex advances `lastIndex`, and a name on
+  // consecutive lines would be reported on every other one.
+  const re = new RegExp(
+    `\\b${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i");
+  return lines.flatMap((line, i) =>
+    re.test(line)
+      ? [{line: i + 1, rule: "name on the local denylist", text: name}]
+      : []);
+};
 
 /* Tracked AND untracked-but-not-ignored: the moment this exists for is the
  * first commit of a new directory, and a tracked-only listing is blind to
@@ -263,6 +272,7 @@ const isEntryPoint = () => {
   try {
     return import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href;
   } catch {
+    // No resolvable argv[1] (imported by a test, or a bare REPL): not the entry.
     return false;
   }
 };

@@ -15,20 +15,6 @@
       "count": 1
     }
   },
-  "bin/check-personal-data.mjs": {
-    "@typescript-eslint/no-magic-numbers": {
-      "count": 2
-    },
-    "complexity": {
-      "count": 1
-    },
-    "max-depth": {
-      "count": 2
-    },
-    "sonarjs/cognitive-complexity": {
-      "count": 1
-    }
-  },
   "bin/check-private-refs.mjs": {
     "@typescript-eslint/no-magic-numbers": {
       "count": 1
