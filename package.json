@@ -5,7 +5,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/casomoltd/tooling.git"
+    "url": "git+https://github.com/casomoltd/tooling.git"
   },
   "files": [
     "bin/",
@@ -60,24 +60,24 @@
     }
   },
   "bin": {
-    "build-report": "./bin/build-report.mjs",
-    "buttondown": "./bin/buttondown.mjs",
-    "check-gates": "./bin/check-gates.mjs",
-    "check-hooks": "./bin/check-hooks.sh",
-    "check-listed-files": "./bin/check-listed-files.mjs",
-    "check-linear": "./bin/check-linear.sh",
-    "check-personal-data": "./bin/check-personal-data.mjs",
-    "check-private-refs": "./bin/check-private-refs.mjs",
-    "check-routes": "./bin/check-routes.mjs",
-    "check-tags": "./bin/check-tags.sh",
-    "check-version": "./bin/check-version.sh",
-    "commit-msg": "./bin/commit-msg.sh",
-    "pre-commit": "./bin/pre-commit.sh",
-    "pre-push": "./bin/pre-push.sh",
-    "readability": "./bin/readability.mjs",
-    "render-figures": "./bin/render-figures.mjs",
-    "screenshot": "./bin/screenshot.mjs",
-    "spec-check": "./bin/spec-check.mjs"
+    "build-report": "bin/build-report.mjs",
+    "buttondown": "bin/buttondown.mjs",
+    "check-gates": "bin/check-gates.mjs",
+    "check-hooks": "bin/check-hooks.sh",
+    "check-listed-files": "bin/check-listed-files.mjs",
+    "check-linear": "bin/check-linear.sh",
+    "check-personal-data": "bin/check-personal-data.mjs",
+    "check-private-refs": "bin/check-private-refs.mjs",
+    "check-routes": "bin/check-routes.mjs",
+    "check-tags": "bin/check-tags.sh",
+    "check-version": "bin/check-version.sh",
+    "commit-msg": "bin/commit-msg.sh",
+    "pre-commit": "bin/pre-commit.sh",
+    "pre-push": "bin/pre-push.sh",
+    "readability": "bin/readability.mjs",
+    "render-figures": "bin/render-figures.mjs",
+    "screenshot": "bin/screenshot.mjs",
+    "spec-check": "bin/spec-check.mjs"
   },
   "publishConfig": {
     "access": "public"
