@@ -4,8 +4,8 @@
  * this rather than typing its own, so no two sites can disagree about who
  * publishes them, and `sameAs` ties them all to the same profiles.
  *
- * Public facts only: the company's name and the addresses its pages already
- * print. A person, such as an article's author, stays with the site.
+ * Public facts only: the company's name, its mark and the public addresses it
+ * is known by. A person, such as an article's author, stays with the site.
  */
 const SITE = "https://casomoltd.com";
 
@@ -16,6 +16,9 @@ export const CASOMO_ORGANIZATION = Object.freeze({
   "@id": `${SITE}/#organization`,
   name: "Casomo Ltd",
   url: SITE,
+  // The company's mark, as its own site serves it. Each site keeps its own
+  // favicon and palette; this is the one logo the company is known by.
+  logo: `${SITE}/assets/icon.svg`,
   sameAs: Object.freeze([
     "https://casomo.co.uk",
     "https://www.facebook.com/casomouk",

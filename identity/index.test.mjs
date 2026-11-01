@@ -11,6 +11,7 @@ assert.deepEqual(CASOMO_ORGANIZATION, {
   "@id": "https://casomoltd.com/#organization",
   name: "Casomo Ltd",
   url: "https://casomoltd.com",
+  logo: "https://casomoltd.com/assets/icon.svg",
   sameAs: [
     // The NHS-facing site.
     "https://casomo.co.uk",
@@ -26,5 +27,9 @@ assert.ok(Object.isFrozen(CASOMO_ORGANIZATION.sameAs));
 const {sameAs, url} = CASOMO_ORGANIZATION;
 assert.equal(new Set(sameAs).size, sameAs.length, "no profile twice");
 assert.ok(!sameAs.includes(url), "sameAs names other places, not the url");
+assert.ok(
+  CASOMO_ORGANIZATION.logo.startsWith(`${url}/`),
+  "the mark is the company's own",
+);
 
 console.log("identity: ok");

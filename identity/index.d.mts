@@ -8,6 +8,7 @@ export interface CasomoOrganization {
   readonly "@id": string;
   readonly name: string;
   readonly url: string;
+  readonly logo: string;
   readonly sameAs: readonly string[];
 }
 
