@@ -54,45 +54,45 @@ export const referencedGates = (check) =>
       .filter(Boolean),
   );
 
+/** Each required gate that is not defined, or defined but never run. */
+const requiredFailures = (scripts, run) =>
+  REQUIRED.flatMap((gate) => {
+    if (!(gate in scripts)) return [[gate, `required gate is not defined`]];
+    if (!run.has(gate)) {
+      return [[gate, `required gate is defined but \`check\` never runs it`]];
+    }
+    return [];
+  });
+
+/** Each other gate-shaped script that `check` never runs. `check` itself is
+ * the chain, not a step within it. */
+const deadGates = (scripts, run) =>
+  Object.keys(scripts)
+    .filter((n) => isGate(n) && n !== "check" && !REQUIRED.includes(n))
+    .filter((gate) => !run.has(gate))
+    .map((gate) => [gate, `defined but \`check\` never runs it — a dead gate`]);
+
+/** Sort the failures by their exception: none, a blank reason, or a reason. */
+const byException = (failures, exceptions) => {
+  const sorted = {live: [], excused: [], unreasoned: []};
+  for (const [gate, reason] of failures) {
+    if (!(gate in exceptions)) sorted.live.push([gate, reason]);
+    else if (!String(exceptions[gate] ?? "").trim()) sorted.unreasoned.push(gate);
+    else sorted.excused.push([gate, exceptions[gate]]);
+  }
+  return sorted;
+};
+
 export const evaluate = (pkg) => {
   const scripts = pkg.scripts ?? {};
   const exceptions = pkg.casomo?.gates ?? {};
   const run = referencedGates(scripts.check);
-
-  // `check` itself is the chain, not a step within it.
-  const defined = Object.keys(scripts).filter((n) => isGate(n) && n !== "check");
-
-  const failures = [];
-  for (const gate of REQUIRED) {
-    if (!(gate in scripts)) failures.push([gate, `required gate is not defined`]);
-    else if (!run.has(gate))
-      failures.push([gate, `required gate is defined but \`check\` never runs it`]);
-  }
-  for (const gate of defined) {
-    if (run.has(gate)) continue;
-    if (failures.some(([g]) => g === gate)) continue; // already reported above
-    failures.push([gate, `defined but \`check\` never runs it — a dead gate`]);
-  }
-
-  const excused = [];
-  const unreasoned = [];
-  const live = [];
-  for (const [gate, reason] of failures) {
-    if (!(gate in exceptions)) {
-      live.push([gate, reason]);
-    } else if (!String(exceptions[gate] ?? "").trim()) {
-      unreasoned.push(gate);
-    } else {
-      excused.push([gate, exceptions[gate]]);
-    }
-  }
-
+  const failures = [...requiredFailures(scripts, run), ...deadGates(scripts, run)];
   // An exception whose failure has gone away is the same rot in reverse.
   const stale = Object.keys(exceptions).filter(
     (gate) => !failures.some(([g]) => g === gate),
   );
-
-  return {live, excused, unreasoned, stale};
+  return {...byException(failures, exceptions), stale};
 };
 
 const main = () => {
