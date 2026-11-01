@@ -13,3 +13,16 @@ export interface CasomoOrganization {
 }
 
 export declare const CASOMO_ORGANIZATION: CasomoOrganization;
+
+/** An entry on a public register: its number, and the page that shows it. */
+export interface Registration {
+  readonly number: string;
+  readonly url: string;
+}
+
+/** The company's Companies House record. */
+export declare const COMPANY_REGISTER: Registration;
+/** The company's registration with the ICO, as a data controller. */
+export declare const ICO_REGISTER: Registration;
+/** The company's registered office, as Companies House holds it. */
+export declare const REGISTERED_OFFICE: string;

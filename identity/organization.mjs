@@ -1,11 +1,13 @@
 /**
- * Casomo Ltd as search engines should see it: the one schema.org
- * `Organization` every Casomo site names in its JSON-LD. Each site imports
- * this rather than typing its own, so no two sites can disagree about who
- * publishes them, and `sameAs` ties them all to the same profiles.
+ * Casomo Ltd's public identity, which every Casomo site imports rather than
+ * typing its own, so no two sites can disagree about the company. Here are the
+ * schema.org `Organization` every site names in its JSON-LD, whose `sameAs`
+ * ties them all to the same profiles, and the company's entries on the public
+ * registers, each by its number and the page that shows it.
  *
- * Public facts only: the company's name, its mark and the public addresses it
- * is known by. A person, such as an article's author, stays with the site.
+ * Public facts only: the company's name, its mark, the public addresses it
+ * is known by, and its public registrations. A person, such as an article's
+ * author, stays with the site.
  */
 const SITE = "https://casomoltd.com";
 
@@ -25,3 +27,29 @@ export const CASOMO_ORGANIZATION = Object.freeze({
     "https://www.linkedin.com/company/111967567/",
   ]),
 });
+
+const COMPANY_NUMBER = "15030496";
+/**
+ * The company's Companies House record.
+ * @type {import("./index.d.mts").Registration}
+ */
+export const COMPANY_REGISTER = Object.freeze({
+  number: COMPANY_NUMBER,
+  url:
+    "https://find-and-update.company-information.service.gov.uk"
+    + `/company/${COMPANY_NUMBER}`,
+});
+
+const ICO_NUMBER = "ZC219565";
+/**
+ * The company's registration with the ICO, as a data controller.
+ * @type {import("./index.d.mts").Registration}
+ */
+export const ICO_REGISTER = Object.freeze({
+  number: ICO_NUMBER,
+  url: `https://ico.org.uk/ESDWebPages/Entry/${ICO_NUMBER}`,
+});
+
+/** The company's registered office, as Companies House holds it. */
+export const REGISTERED_OFFICE =
+  "71-75 Shelton Street, Covent Garden, London, WC2H 9JQ";
