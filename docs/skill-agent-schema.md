@@ -18,6 +18,14 @@ a tiny standalone skill may carry only Intent + Method.
   (interface)
 - **Intent** — the single job, one line, a **distinct verb**. The contract that
   makes overlap visible. (interface)
+- **Principle** — where the unit carries out a principle written elsewhere (a
+  policy, a strategy page, a design rationale), one line naming it and a link to
+  where it is written. The principle keeps the *why*; the unit keeps the *how*
+  and does not restate the reasoning. When the two disagree, the principle wins
+  on intent and the unit on mechanics. In a public repo the link must be one a
+  public reader can open; where the principle is written somewhere private,
+  name it without linking. Optional: omit it when the unit applies nothing
+  beyond its own method. (interface)
 - **Scope** — in / out, plus a one-line seam to each sibling. (interface)
 - **Inputs** — data sources (IDs/schema), files, prior artefacts, params, plus
   **validation** (required/optional, limits, reject rules) — what it reads.
@@ -127,3 +135,6 @@ The **judgment** half stays human-reviewed — a linter can't check it:
   overlap?
 - **Outputs-ownership** — does exactly one unit own each field/artefact/rule?
 - **sibling seams** — does every Boundaries line point at a real sibling?
+- **principle named** — does a unit that carries out a principle name it and
+  link where it is written, does that source still say what the unit claims,
+  and in a public repo can a public reader open the link?

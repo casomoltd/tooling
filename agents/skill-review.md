@@ -116,6 +116,16 @@ the rule is an instance of, flag one a reader would not recognise as applying
 to a sibling case, and name the sibling. Such a rule is current, correct and
 well placed, so it passes every other check here.
 
+**10. The unit names the principle it carries out**, the schema's
+[*Principle* line](../docs/skill-agent-schema.md#the-interface-vocabulary).
+Where a skill exists to apply a principle written elsewhere, it says which in
+one line and links where that principle is written, so the two can be checked
+against each other. Read the linked source, and flag a unit that applies a
+principle it does not name, a link to a principle that no longer says what the
+unit claims, a private link in a public repo, per the schema, and a unit that
+restates the principle's reasoning instead of linking it (item 3). A unit that
+applies no principle beyond its own method needs no such line.
+
 ## Ignore — owned elsewhere (never re-flag)
 
 - **Broken links, anchors, and code fences missing a language tag** — the
