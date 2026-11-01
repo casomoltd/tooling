@@ -108,10 +108,10 @@
     "typescript-eslint": "^8.72.0"
   },
   "overrides": {
-    "minimatch": ">=11.0.1",
     "remark-lint-frontmatter-schema": {
       "@apidevtools/json-schema-ref-parser": "^11.1.1",
       "ajv": "^8.18.0",
+      "minimatch": "^9.0.7",
       "yaml": "^2.8.3"
     }
   }
