@@ -24,6 +24,9 @@ assert.deepEqual(CASOMO_ORGANIZATION, {
     "https://www.facebook.com/casomouk",
     // The LinkedIn company page, by its numeric id.
     "https://www.linkedin.com/company/111967567/",
+    // The GitHub organisation and the npm organisation.
+    "https://github.com/casomoltd",
+    "https://www.npmjs.com/org/casomoltd",
   ],
 });
 

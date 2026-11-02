@@ -25,6 +25,9 @@ export const CASOMO_ORGANIZATION = Object.freeze({
     "https://casomo.co.uk",
     "https://www.facebook.com/casomouk",
     "https://www.linkedin.com/company/111967567/",
+    // Where the company's open-source libraries are developed and published.
+    "https://github.com/casomoltd",
+    "https://www.npmjs.com/org/casomoltd",
   ]),
 });
 
