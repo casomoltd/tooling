@@ -8,9 +8,11 @@
  *   buttondown [diff]              what live differs in: fields and tags
  *   buttondown apply               patch what differs
  *   buttondown check               gate the skins and settings (no key)
+ *   buttondown check <file.md>     gate one post's copy (no key)
  *   buttondown tokens              rewrite the web skin's TOKENS block
  *   buttondown emit <dir>          write each long field out as rendered
- *   buttondown draft <file.md>     create or replace a draft
+ *   buttondown draft <file.md>     gate the post, then create or replace
+ *                                  its draft
  *   buttondown upload <image>      upload an image, print its URL
  *   buttondown api <METHOD> <path> [json] [--send]
  *                                  any call, for setting up a manual test;
@@ -24,12 +26,13 @@ import {
   apply, assertApiPath, assertNotSending, client, draft, drift, emit,
   loadSettings, readKey, runCheck, upload, writeTokens,
 } from "../buttondown/engine.mjs";
+import {checkPost} from "../buttondown/post-check.mjs";
 
 /** The one flag: without it, `api` refuses any call that could send an
  *  email, and no other command takes it. */
 const SEND_FLAG = "--send";
 
-const USAGE = "usage: buttondown [diff|apply|check|tokens|emit <dir>|"
+const USAGE = "usage: buttondown [diff|apply|check [file.md]|tokens|emit <dir>|"
   + `draft <file.md>|upload <image>|api <METHOD> <path> [json] [${SEND_FLAG}]]`;
 
 /** The exit status for a command line that can't be run as written,
@@ -44,10 +47,22 @@ const API_ARGS = ["method", "path", "json"];
 
 /** Each command with the fewest and most arguments it takes. */
 const ARGS = {
-  diff: [0, 0], apply: [0, 0], check: [0, 0], tokens: [0, 0],
+  diff: [0, 0], apply: [0, 0], check: [0, 1], tokens: [0, 0],
   emit: [1, 1], draft: [1, 1], upload: [1, 1],
   api: [API_ARGS.length - 1, API_ARGS.length],
 };
+
+/** Print a post's warnings and problems; true when it may go. */
+async function postPasses(file) {
+  const {problems, warnings} = await checkPost(file, {root: process.cwd()});
+  for (const w of warnings) console.warn(`buttondown check: warning: ${w}`);
+  if (problems.length) {
+    console.error(`buttondown check: ${file}:\n  ${problems.join("\n  ")}`);
+    return false;
+  }
+  console.log(`buttondown check: ${file} clean`);
+  return true;
+}
 
 /** `node` and this script come first in `process.argv`. */
 const OWN_ARGS_FROM = 2;
@@ -62,6 +77,9 @@ if (badUsage) {
   console.error(USAGE);
   process.exit(EXIT_USAGE);
 }
+
+const checksOnePost = command === "check" && args.length > 0;
+if (checksOnePost) process.exit(await postPasses(args[0]) ? 0 : 1);
 
 const settings = await loadSettings();
 const api = async () => client(settings, await readKey());
@@ -101,6 +119,7 @@ switch (command) {
     for (const field of await emit(settings, args[0])) console.log(field);
     break;
   case "draft":
+    if (!await postPasses(args[0])) process.exit(1);
     await draft(settings, await api(), args[0]);
     break;
   case "upload":

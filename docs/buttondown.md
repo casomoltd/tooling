@@ -2,7 +2,8 @@
 
 The `buttondown` command keeps a Buttondown newsletter's settings, skins and email
 templates as files in a repo, applies them to the live newsletter, and gates them
-in the repo's `check`. How the platform itself behaves is in
+in the repo's `check`. It also gates a post's copy before the post becomes a
+draft. How the platform itself behaves is in
 [Buttondown: how the platform behaves](buttondown-platform.md).
 
 ## A repo's layout
@@ -56,9 +57,10 @@ Run through the repo's `buttondown` npm script, which sets the key file:
 npm run buttondown                 # diff: what live differs in; exits 1 on drift
 npm run buttondown -- apply        # patch the fields and tags that differ
 npm run buttondown -- check        # gate the skins and settings; no key needed
+npm run buttondown -- check <f.md> # gate one post's copy; no key needed
 npm run buttondown -- tokens       # rewrite the TOKENS block from the tokens
 npm run buttondown -- emit <dir>   # write each long field out as rendered
-npm run buttondown -- draft <f.md> # create or replace a draft
+npm run buttondown -- draft <f.md> # gate the post, then create or replace a draft
 npm run buttondown -- upload <img> # upload an image, print its URL
 npm run buttondown -- api <METHOD> <path> [json] [--send]
 ```
@@ -69,13 +71,17 @@ files ([The API](buttondown-platform.md#the-api)).
 
 - **`apply`** patches only what differs, and exits 1 if Buttondown refused any
   field or tag, so a script can gate on it.
+- **`check <f.md>`** gates one post's copy
+  ([the post gate](#what-check-refuses-in-a-post)), without the key.
 - **`draft`** takes a markdown file whose first line, after any front matter, is
   `# Subject`. Keep the file outside the repo: once sent, an email is final and
   Buttondown holds the record of it. The new draft's id is written back into the
   front matter, so a re-run replaces that draft; `slug` and `description` pass
   through, and `image` sets the post's share image, defaulting to the
   newsletter's own (Buttondown otherwise takes the post's first picture). A
-  draft already sent is refused rather than rewritten.
+  draft already sent is refused rather than rewritten. It runs
+  [the post gate](#what-check-refuses-in-a-post) first and uploads nothing if
+  it fails.
 - **`api`** exists for setting a manual test up and tearing it down. It writes
   newsletter settings only to the configured newsletter, judged on the path the
   server routes. Unless the command carries `--send`, it refuses any call that
@@ -108,7 +114,9 @@ to another newsletter's settings instead; reads, and writes outside
 
 ## What `check` refuses
 
-`check` reads the fields as they will be sent, composed skins included; a
+Bare `check` gates the skins and settings; a post is gated by `check <f.md>`
+([below](#what-check-refuses-in-a-post)). It reads the fields as they will be
+sent, composed skins included; a
 newsletter with no `web_css` or `css` field is refused, since there would be
 nothing to check. It fails when:
 
@@ -130,6 +138,35 @@ nothing to check. It fails when:
 A gate is a module whose default export takes `{root, payload, css, web, email,
 readToken}` and resolves to a list of problems, empty when clean; the `Check` type
 in `@casomoltd/tooling/buttondown` declares it.
+
+## What `check` refuses in a post
+
+`check <file.md>` reads the post as `draft` would send it and runs these checks
+in the repo it is run from. A problem fails the post; a warning is printed and
+doesn't. There is no override.
+
+- **Readability:** the body's paragraphs, scored with the
+  [readability](../readability/index.mjs) formulas, must reach no higher than
+  the repo's `readability.config.mjs` `maxGrade`, else the readability
+  default. Headings, lists, tables, quotes, captions and HTML blocks are left
+  out: dense with figures and titles, they score as hard sentences when they
+  aren't. A post too short to score warns.
+- **Em dash:** none in the subject, description or body; an en dash in a range
+  passes.
+- **Banned words:** none of the `words` in
+  [`banned-words.json`](../buttondown/banned-words.json), exported as
+  `@casomoltd/tooling/banned-words`. Its `inContext` words are wrong in one
+  sense only ("leverage" as a verb), which a word match can't tell, so they are
+  listed and not checked.
+- **Spelling:** the repo's own cspell, with the config its `spell` script names
+  (`-c` or `--config`), else the first one cspell's own search finds. A repo
+  without cspell fails.
+- **Personal data:** [`check-personal-data`](../bin/check-personal-data.mjs)'s
+  rules, with the repo's `personalData` settings and local denylist.
+- **Links:** every `http(s)` link and image is fetched. A 404 or 410 fails. A
+  5xx, a timeout or a network error is retried once and then warns, and so does
+  any other 4xx: a publisher's server error or a refused robot says nothing
+  about whether the page exists.
 
 ## Shared skins and email blocks
 

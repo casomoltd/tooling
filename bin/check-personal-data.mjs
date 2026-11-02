@@ -36,6 +36,7 @@
  */
 import {execFileSync} from "node:child_process";
 import {existsSync, readFileSync, realpathSync, statSync} from "node:fs";
+import path from "node:path";
 import {pathToFileURL} from "node:url";
 import {CASOMO_CONFIG_KEYS, loadCasomoConfig} from "./utils.mjs";
 
@@ -202,9 +203,26 @@ function files(stagedOnly) {
       && statSync(f).isFile());
 }
 
-function denied(path) {
-  if (!existsSync(path)) return [];
-  return readFileSync(path, "utf8").split("\n")
+/** Where a repo keeps its local denylist unless its settings say. */
+export const DEFAULT_DENYLIST = ".personal-data-denylist";
+
+/** The rules and denied names a repo's `personalData` settings give, and the
+ *  denylist path they were read from (relative paths against `root`). */
+export function personalDataSettings(config, root = process.cwd()) {
+  const denylist = path.resolve(root, config.denylist ?? DEFAULT_DENYLIST);
+  return {
+    rules: [...identityRules(config.allowEmail), ...(config.rules ?? [])],
+    names: readDenylist(denylist),
+    denylist,
+    hasDenylist: existsSync(denylist),
+  };
+}
+
+/** The names on a local denylist, one per line; `#` starts a comment. No
+ *  file means no names. */
+export function readDenylist(file) {
+  if (!existsSync(file)) return [];
+  return readFileSync(file, "utf8").split("\n")
     .map((l) => l.trim()).filter((l) => l && !l.startsWith("#"));
 }
 
@@ -229,9 +247,8 @@ export function scan(fileList, read, rules, names) {
 
 async function main() {
   const config = await loadCasomoConfig(CASOMO_CONFIG_KEYS.personalData);
-  const denylist = config.denylist ?? ".personal-data-denylist";
-  const rules = [...identityRules(config.allowEmail), ...(config.rules ?? [])];
-  const names = denied(denylist);
+  const denylist = config.denylist ?? DEFAULT_DENYLIST;
+  const {rules, names} = personalDataSettings(config);
   const allow = (config.allow ?? []).map((a) =>
     a instanceof RegExp ? a : new RegExp(a));
 
