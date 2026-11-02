@@ -1,9 +1,4 @@
 {
-  "bin/buttondown.mjs": {
-    "@typescript-eslint/no-magic-numbers": {
-      "count": 5
-    }
-  },
   "bin/buttondown.test.mjs": {
     "complexity": {
       "count": 1

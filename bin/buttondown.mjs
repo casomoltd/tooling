@@ -32,13 +32,27 @@ const SEND_FLAG = "--send";
 const USAGE = "usage: buttondown [diff|apply|check|tokens|emit <dir>|"
   + `draft <file.md>|upload <image>|api <METHOD> <path> [json] [${SEND_FLAG}]]`;
 
+/** The exit status for a command line that can't be run as written,
+ *  apart from 1, which every command uses for a refusal or a problem. */
+const EXIT_USAGE = 2;
+
+/** The indent `api` prints a response body with. */
+const JSON_INDENT = 2;
+
+/** `api` takes a method and a path, and optionally a JSON body. */
+const API_ARGS = ["method", "path", "json"];
+
 /** Each command with the fewest and most arguments it takes. */
 const ARGS = {
   diff: [0, 0], apply: [0, 0], check: [0, 0], tokens: [0, 0],
-  emit: [1, 1], draft: [1, 1], upload: [1, 1], api: [2, 3],
+  emit: [1, 1], draft: [1, 1], upload: [1, 1],
+  api: [API_ARGS.length - 1, API_ARGS.length],
 };
 
-const argv = process.argv.slice(2);
+/** `node` and this script come first in `process.argv`. */
+const OWN_ARGS_FROM = 2;
+
+const argv = process.argv.slice(OWN_ARGS_FROM);
 const send = argv.includes(SEND_FLAG);
 const [command = "diff", ...args] = argv.filter((a) => a !== SEND_FLAG);
 const [fewest, most] = ARGS[command] ?? [];
@@ -46,7 +60,7 @@ const badUsage = fewest === undefined || args.length < fewest
   || args.length > most || (send && command !== "api");
 if (badUsage) {
   console.error(USAGE);
-  process.exit(2);
+  process.exit(EXIT_USAGE);
 }
 
 const settings = await loadSettings();
@@ -105,7 +119,8 @@ switch (command) {
       }
     }
     const res = await (await api()).call(method.toUpperCase(), url, payload);
-    console.log(res.status, res.data ? JSON.stringify(res.data, null, 2) : "");
+    const shown = res.data ? JSON.stringify(res.data, null, JSON_INDENT) : "";
+    console.log(res.status, shown);
     process.exit(res.ok ? 0 : 1);
   }
 }
