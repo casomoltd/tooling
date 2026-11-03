@@ -504,6 +504,13 @@ export declare function blockNames(form: FormDefinition): (uuid: string) => stri
  *  setting and send nothing. */
 export declare function toSettings(form: FormDefinition): TallySettings;
 
+/** What a push of the form sends, in the shape the `tally` command records
+ *  after a push: for a site that pins its forms' output, so the pin covers
+ *  exactly what is sent. */
+export declare function pushedVersion(
+  form: FormDefinition,
+): {blocks: Block[]; settings: TallySettings};
+
 /** A page's rules: its own, then a stop for each number question that words
  *  its own out-of-range message. */
 export declare function rulesOf(page: Page): Rule[];
@@ -540,5 +547,9 @@ export declare class FormIndex {
 /** One selector per block, by Tally's documented `.tally-block-<uuid>`
  *  class, each with the same suffix. */
 export declare function blockSelectors(uuids: string[], suffix: string): string;
+
+/** One custom property's value from a stylesheet's top-level `:root` or
+ *  `@theme` block. Throws when it is absent. */
+export declare function readToken(css: string, name: string): string;
 
 export { Paths, stableUuid } from "./paths.mjs";

@@ -9,10 +9,10 @@ import path from "node:path";
 
 import {
   baseline, codeVersion, droppedAnswers, formChanges, liveVersion, pushedStore,
-  pushRefusal, unportedEdits,
+  pushedVersion, pushRefusal, unportedEdits,
 } from "./compare.mjs";
 import {fixtureForm} from "./fixture.mjs";
-import {toBlocks} from "./translator.mjs";
+import {toBlocks, toSettings} from "./translator.mjs";
 
 /** @import {FormVersion} from "./compare.mjs" */
 
@@ -82,6 +82,10 @@ assert.deepEqual(unportedEdits(pushed, edited, edited, name), []);
 assert.deepEqual(codeVersion([], {hasProgressBar: true, saveForLater: false,
   hasPartialSubmissions: false, pageAutoJump: false,
   hasRespondentEmailNotifications: false}).settings.hasProgressBar, true);
+
+// A site's pin of a form is the version the command builds for its push.
+assert.deepEqual(pushedVersion(fixtureForm),
+  codeVersion(toBlocks(fixtureForm), toSettings(fixtureForm)));
 
 // The store of last pushes: nothing until a push writes one, then that, and
 // the baseline stands in with the code until there is a record.

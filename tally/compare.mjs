@@ -12,6 +12,7 @@
  */
 import {mkdir, readFile, writeFile} from "node:fs/promises";
 import path from "node:path";
+import {toBlocks, toSettings} from "./translator.mjs";
 import {BLOCK_TYPES, OPTION_TYPES} from "./vocabulary.mjs";
 
 /** @import {Block, TallySettings} from "./index.d.mts" */
@@ -102,6 +103,13 @@ export async function baseline(store, formKey, code) {
  *  @param {Block[]} blocks @param {TallySettings} settings @returns {FormVersion} */
 export function codeVersion(blocks, settings) {
   return {blocks, settings: Object.fromEntries(Object.entries(settings))};
+}
+
+/** What a push of the form sends, as the command records it, for a site that
+ *  pins its forms' output.
+ *  @param {import("./index.d.mts").FormDefinition} form @returns {FormVersion} */
+export function pushedVersion(form) {
+  return codeVersion(toBlocks(form), toSettings(form));
 }
 
 /**

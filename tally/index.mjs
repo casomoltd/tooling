@@ -5,6 +5,8 @@
 export {FormIndex} from "./form-index.mjs";
 export {Paths, stableUuid} from "./address.mjs";
 export {blockSelectors} from "./styles.mjs";
+export {readToken} from "../tokens/block.mjs";
+export {pushedVersion} from "./compare.mjs";
 export {blockNames, rangeStopKey, rulesOf, tallyPageNumber, toBlocks, toSettings}
   from "./translator.mjs";
 export {
