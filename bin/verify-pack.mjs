@@ -22,6 +22,9 @@ const ALLOWED_PREFIXES = [
   "styles/",
   "buttondown/",
   "identity/",
+  "attribution/",
+  "tally/",
+  "tokens/",
 ];
 const ALLOWED_FILES = ["README.md", "package.json", "LICENSE", "LICENSE.md"];
 

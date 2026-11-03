@@ -20,15 +20,21 @@
     "styles/",
     "buttondown/",
     "identity/",
+    "tokens/",
+    "attribution/",
+    "tally/",
     "README.md",
     "!**/*.test.mjs",
-    "!identity/tsconfig.json"
+    "!identity/tsconfig.json",
+    "!tally/tsconfig.json",
+    "!tally/fixture.mjs",
+    "!attribution/tsconfig.json"
   ],
   "scripts": {
     "check": "node bin/check-gates.mjs && node bin/verify-pack.mjs && npm run check:private-refs && npm run check:personal-data && npm run lint && npm run typecheck && npm run test && npm run lint:md",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit -p hooks/tsconfig.json && tsc --noEmit -p identity/tsconfig.json",
-    "test": "node hooks/test.mts && node bin/check-gates.test.mjs && node bin/check-listed-files.test.mjs && node bin/check-personal-data.test.mjs && node bin/check-routes.test.mjs && node bin/casomo-config.test.mjs && node bin/buttondown.test.mjs && node buttondown/post-check.test.mjs && node commitlint/index.test.mjs && node readability/index.test.mjs && node identity/index.test.mjs",
+    "typecheck": "tsc --noEmit -p hooks/tsconfig.json && tsc --noEmit -p identity/tsconfig.json && tsc --noEmit -p tally/tsconfig.json && tsc --noEmit -p attribution/tsconfig.json",
+    "test": "node hooks/test.mts && node bin/check-gates.test.mjs && node bin/check-listed-files.test.mjs && node bin/check-personal-data.test.mjs && node bin/check-routes.test.mjs && node bin/casomo-config.test.mjs && node bin/buttondown.test.mjs && node buttondown/post-check.test.mjs && node commitlint/index.test.mjs && node readability/index.test.mjs && node identity/index.test.mjs && node tally/translator.test.mjs && node tally/compare.test.mjs && node attribution/index.test.mjs && node bin/exports.test.mjs",
     "lint:md": "remark --frail --quiet --no-stdout --rc-path bin/skills-lint.config.mjs skills agents docs",
     "build": "echo 'no-op: source-only repo, nothing to build'",
     "prepare": "husky || true",
@@ -59,6 +65,18 @@
     "./identity": {
       "types": "./identity/index.d.mts",
       "default": "./identity/index.mjs"
+    },
+    "./tally": {
+      "types": "./tally/index.d.mts",
+      "default": "./tally/index.mjs"
+    },
+    "./tally/paths": {
+      "types": "./tally/paths.d.mts",
+      "default": "./tally/paths.mjs"
+    },
+    "./attribution": {
+      "types": "./attribution/index.d.mts",
+      "default": "./attribution/index.mjs"
     }
   },
   "bin": {
@@ -79,14 +97,16 @@
     "readability": "bin/readability.mjs",
     "render-figures": "bin/render-figures.mjs",
     "screenshot": "bin/screenshot.mjs",
-    "spec-check": "bin/spec-check.mjs"
+    "spec-check": "bin/spec-check.mjs",
+    "tally": "bin/tally.mjs"
   },
   "publishConfig": {
     "access": "public"
   },
   "dependencies": {
     "marked": "^18.0.13",
-    "text-readability": "^1.1.1"
+    "text-readability": "^1.1.1",
+    "zod": "^4.4.1"
   },
   "peerDependencies": {
     "@commitlint/cli": ">=20",

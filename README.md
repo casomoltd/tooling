@@ -15,8 +15,10 @@ Shared linting, formatting, commit config, and CLI tools for Casomo Ltd's repos.
 | `@casomoltd/tooling/knip` | Knip config for unused exports/dependencies |
 | `@casomoltd/tooling/jscpd` | Copy-paste detection config |
 | `@casomoltd/tooling/readability` | `scoreText()` — readability scoring for page content |
-| `@casomoltd/tooling/identity` | `CASOMO_ORGANIZATION`, the schema.org `Organization`, logo included, that every Casomo site names as publisher in its JSON-LD; and the company's public registrations, `COMPANY_REGISTER`, `ICO_REGISTER` and `REGISTERED_OFFICE` ([types](identity/index.d.mts)). App code imports it at build time, so a site that installs only production dependencies at runtime lists the package under `dependencies` |
+| `@casomoltd/tooling/identity` | `CASOMO_ORGANIZATION`, the schema.org `Organization`, logo included, that every Casomo site names as publisher in its JSON-LD; and the company's public registrations, `COMPANY_REGISTER`, `ICO_REGISTER` and `REGISTERED_OFFICE`; and `CASOMO_UTM` with `tagged()`, the values every Casomo link and signature is tagged from ([types](identity/index.d.mts)). App code imports it at build time, so a site that installs only production dependencies at runtime lists the package under `dependencies` |
 | `@casomoltd/tooling/buttondown` | For a repo using the `buttondown` command: the shared email blocks and skins (`createEmailBlocks`, `emailBaseCss`, `composeWebSkin`), `tokenReader()`, `loadSettings()` and `buildPayload()`, and `EMAIL_CHROME_HIDES` and `WEB_CHROME_HIDES` ([docs/buttondown.md](docs/buttondown.md)) |
+| `@casomoltd/tooling/tally` | For a repo keeping Tally forms as code: the form model and translator (`toBlocks`, `toSettings`, `blockNames`), `FormIndex` for styling that targets a block, `blockSelectors()`; `./tally/paths` alone for code that names a block without the builder ([docs/tally.md](docs/tally.md)) |
+| `@casomoltd/tooling/attribution` | `utmTagger(lists)`: a function that tags a link with UTM values from lists a site owns, refusing a value not in them. `identity`'s `tagged()` is this, bound to Casomo's own lists ([types](attribution/index.d.mts)) |
 
 ### Bin commands
 
@@ -37,6 +39,7 @@ Shared linting, formatting, commit config, and CLI tools for Casomo Ltd's repos.
 | `check-private-refs` | In a public repo, refuse a private tracker link or a name listed under `privateRefs` in `casomo.config.mjs` |
 | `check-personal-data` | Refuse an email, National Insurance number, UK mobile number, date of birth or locally denylisted name; per-repo allowances under `personalData` in `casomo.config.mjs` |
 | `buttondown` | Keep a Buttondown newsletter as code: `diff` and `apply` its fields (settings, skins and email templates) and tags, `check` the skins, sync their tokens, and create drafts ([docs/buttondown.md](docs/buttondown.md)) |
+| `tally` | Keep Tally forms as code: `push` a form and read it back, `diff` it against the live form, and sync its stylesheet's tokens ([docs/tally.md](docs/tally.md)) |
 
 ## Install
 

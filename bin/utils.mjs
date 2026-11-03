@@ -32,6 +32,7 @@ export const FIGURE_WIDTH_BUDGET = 958;
  * text/html must be associated with a browser, not a mail client; if the
  * opener mis-routes on Linux, run e.g.
  *   xdg-mime default firefox_firefox.desktop text/html
+ * @param {string} target
  */
 export function openPath(target) {
   const opener = process.platform === "darwin" ? "open" : "xdg-open";
@@ -43,6 +44,8 @@ export function openPath(target) {
  * default): the module, or `{}` where there is no file. The file-level loader
  * under `loadCasomoConfig`, which is where a gate's settings belong; a tool
  * still reading its own `<tool>.config.mjs` (`readability`) calls this.
+ * @param {string} filename
+ * @param {string} [dir]
  */
 export async function loadConfig(filename, dir = process.cwd()) {
   const cfgPath = path.join(dir, filename);
@@ -55,6 +58,7 @@ export const CASOMO_CONFIG_KEYS = {
   buttondown: "buttondown",
   personalData: "personalData",
   privateRefs: "privateRefs",
+  tally: "tally",
 };
 
 /** The files each gate read before `casomo.config.mjs`, by the key their
@@ -72,6 +76,8 @@ const RETIRED_CONFIGS = {
  * reads as no settings; a retired per-tool file, or a key no gate reads, is
  * refused, because either would otherwise read as no settings too and a
  * gate would pass on less than it was given.
+ * @param {string} key
+ * @param {string} [dir]
  */
 export async function loadCasomoConfig(key, dir = process.cwd()) {
   for (const [file, moveTo] of Object.entries(RETIRED_CONFIGS)) {

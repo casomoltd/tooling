@@ -9,3 +9,4 @@ export {
   ICO_REGISTER,
   REGISTERED_OFFICE,
 } from "./organization.mjs";
+export {CASOMO_UTM, tagged} from "./attribution.mjs";

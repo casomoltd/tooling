@@ -6,9 +6,11 @@ import {strict as assert} from "node:assert";
 
 import {
   CASOMO_ORGANIZATION,
+  CASOMO_UTM,
   COMPANY_REGISTER,
   ICO_REGISTER,
   REGISTERED_OFFICE,
+  tagged,
 } from "./index.mjs";
 
 assert.deepEqual(CASOMO_ORGANIZATION, {
@@ -60,5 +62,16 @@ assert.equal(
   REGISTERED_OFFICE,
   "71-75 Shelton Street, Covent Garden, London, WC2H 9JQ",
 );
+
+// The tags Casomo's links carry. Every tagged link a site or the signature
+// publishes is built from these, so a renamed value would split one channel
+// into two in the analytics.
+assert.deepEqual(CASOMO_UTM, {
+  sources: ["casomo", "signature"],
+  media: ["email"],
+  content: ["showcase", "profile", "casomoltd"],
+});
+assert.equal(tagged("https://casomoltd.com/", {source: "signature", medium: "email"}),
+  "https://casomoltd.com/?utm_source=signature&utm_medium=email");
 
 console.log("identity: ok");

@@ -63,7 +63,7 @@
   },
   "buttondown/engine.mjs": {
     "@typescript-eslint/no-magic-numbers": {
-      "count": 5
+      "count": 3
     },
     "complexity": {
       "count": 5
