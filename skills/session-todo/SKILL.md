@@ -127,9 +127,11 @@ Carrying it in both places is the duplication this skill exists to stop: the
 inbox is current by definition and the list goes stale the moment a reply lands,
 so the two disagree and neither says which is right.
 
-**The exception is when the wait itself needs an action** — a deadline that
-expires, a chase that has to go if nothing arrives by a date. Then the action is
-what goes on the list, with the date.
+**When the wait itself needs an action** — a deadline that expires, a chase
+that has to go if nothing arrives by a date — the action and its date go in the
+tracker, because a handover list is deleted when its session ends and the date
+would go with it. While the session runs, the list carries at most a one-line
+action linking that item.
 
 ## Close threads
 
