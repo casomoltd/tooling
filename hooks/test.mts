@@ -18,6 +18,7 @@ import {RULES as BASH_RULES} from "./guard-bash.mts";
 import {RULES as EDIT_RULES} from "./guard-edit.mts";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
+const REPO_ROOT = join(HERE, "..");
 
 // verdict: expected verdict, or null for "no match (allowed)".
 // id: optional — assert which rule fired.
@@ -158,7 +159,7 @@ const editCases: Case[] = [
     content: '{"compilerOptions":{"strict":true}}',
     verdict: null,
   },
-  // `@ts-ignore` is eslint's job now — the hook must not fire on it.
+  // `@ts-ignore` is eslint's job (`ban-ts-comment`): the hook must not fire on it.
   {
     file_path: "/x/foo.ts",
     new_string: "// @ts-ignore\nconst a = bad();",
@@ -204,12 +205,20 @@ checkRegistry("edit", EDIT_RULES, editCases);
 // scan — a header+body check misses the very line the rule exists to catch.
 // Run through this repo's own gate (bin/commit-msg.sh + the root config).
 const msgDir = mkdtempSync(join(tmpdir(), "commitlint-test-"));
+// The gate's listed-file check reads the repo's index, so a draft is linted
+// against an index of its own, built from HEAD with nothing staged. Without
+// it, a listed file staged for the real commit fails the passing case here.
+const draftEnv = {...process.env, GIT_INDEX_FILE: join(msgDir, "index")};
+const built = spawnSync("git", ["read-tree", "HEAD"],
+  {cwd: REPO_ROOT, env: draftEnv, encoding: "utf8"});
+if (built.status !== 0) throw new Error(`git read-tree HEAD failed: ${built.stderr}`);
 const lintDraft = (name: string, content: string): number | null => {
   const file = join(msgDir, name);
   writeFileSync(file, content);
-  const r = spawnSync("sh", [join(HERE, "..", "bin", "commit-msg.sh"), file], {
-    cwd: join(HERE, ".."),
+  const r = spawnSync("sh", [join(REPO_ROOT, "bin", "commit-msg.sh"), file], {
+    cwd: REPO_ROOT,
     encoding: "utf8",
+    env: draftEnv,
   });
   return r.status;
 };
@@ -257,7 +266,7 @@ interface E2E {
 
 const e2e: E2E[] = [
   {
-    // The compiler now proves the output SHAPE (contract.mts); this only smoke-
+    // contract.mts proves the output SHAPE at compile time; this only smoke-
     // checks that the process actually serialises a deny to stdout.
     name: "deny → stdout decision",
     res: run("guard-bash.mts", {
