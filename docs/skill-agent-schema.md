@@ -66,6 +66,37 @@ explicitly rather than burying them in Scope — the caller is coding against th
 `design-xray` and `code-review` model this: each opens with `## Inputs` (the target
 + the rubrics it preloads) and ends with a fixed `## Output` shape.
 
+### An agent that persists a report
+
+An agent that returns a rendered report
+([`design-xray`](../agents/design-xray.md), [`docs-xray`](../agents/docs-xray.md))
+writes it and names it; the caller publishes it. The agent states only which
+sections it writes and what `<target>` is, and follows this contract:
+
+1. After the last section, without waiting to be asked, write the sections
+   verbatim to `<work-dir>/<target>.md` with a quoted heredoc (`<<'EOF'`), so
+   backticks and `$` survive.
+2. Render `<target>.html` beside it:
+
+   ```bash
+   node "${CLAUDE_PLUGIN_ROOT}/bin/render-report.mjs" <work-dir>/<target>.md --no-open
+   ```
+
+   If the renderer isn't found, keep the `.md` and say HTML was skipped.
+3. Report both paths as the final lines, plainly, so the caller can act on them
+   without re-deriving anything.
+
+`<work-dir>` is the working directory the caller gave, else a scratchpad or temp
+directory: **never a tracked tree**, so no gitignore line is needed and nothing is
+left behind in the repo. **Never publish the artifact, hand-roll the HTML, or open
+a browser**: the agent has no artifact tool, and the caller publishes the `.html`
+it names.
+
+`render-report.mjs` converts the markdown in node and ships **no mermaid
+runtime**, because the artifact host renders every `pre.mermaid` block itself and
+a second runtime races it into black boxes. A page that builds its body at load
+time has no diagram blocks in it when the host looks.
+
 ### standard / rubric — the inverted interface
 
 A rubric (`python-style`, `typescript`, `frontend-design`) is not invoked to
@@ -123,9 +154,10 @@ The **mechanical** half of this schema is linted, not just trusted:
 `bin/skills-lint.config.mjs` runs stock remark (`remark-frontmatter` +
 `remark-validate-links` + `remark-lint-frontmatter-schema`) to verify every
 skill/agent's frontmatter parses and carries `name` + `description`, and that every
-cross-link and `#anchor` resolves. `npm run check` (`lint:md`) runs it over the
-`skills` tree and this `docs` tree, so a rename or hand-edit that breaks a link —
-the kind Claude Code's loader silently swallows — fails the build.
+cross-link and `#anchor` resolves. `npm run check` runs it as `lint:md`, over
+the paths that script names in [`package.json`](../package.json), so a rename or
+hand-edit that breaks a link — the kind Claude Code's loader silently swallows —
+fails the build.
 
 The **judgment** half stays human-reviewed — a linter can't check it:
 

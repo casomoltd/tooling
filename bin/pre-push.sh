@@ -15,8 +15,8 @@ export PRE_PUSH_REFS
 # gate adds `npm run build` to its own `check`; one that produces no artifact
 # simply doesn't.
 #
-# `check:routes` runs after `check`, not in it: see the README, "Quality
-# gates". Repos without it skip it. Every gate in PRE_PUSH
+# `check:routes` runs after `check`, not in it: see docs/quality-gates.md,
+# "`check` owns the build". Repos without it skip it. Every gate in PRE_PUSH
 # (bin/check-gates.mjs) must be run here.
 npm run check \
   && npm run --if-present check:routes \

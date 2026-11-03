@@ -486,3 +486,7 @@ def test_press_self_destruct_should_go_bang():
   `ruff check` with zero errors before committing.
 - Type-check with pyright (strict mode); all code must pass `pyright` with
   zero errors before committing.
+- Fix what ruff or pyright reports; never silence it with a blanket
+  `# type: ignore` or `# noqa`, or by loosening `pyproject.toml`
+  ([fix issues, don't disable
+  checks](../../docs/quality-gates.md#fix-issues-dont-disable-checks)).

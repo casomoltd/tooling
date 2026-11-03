@@ -29,6 +29,10 @@ into something other than what was meant.
   omission and distracts from the ones that mean something.
 - **M8 — Validate that the block parses before returning it.** Rendering is the
   only real check; a block that has never been rendered has never been tested.
+- **M13 — Labels are plain ASCII.** No unicode arrows, middle dots or circled
+  numbers: some parsers blank the label or the whole block.
+- **M14 — No `direction` inside a subgraph.** Renderers disagree on it, so the
+  same block lays out differently, or fails, depending on where it is viewed.
 
 ## Composition
 
@@ -45,6 +49,11 @@ follow rather than about what the parser accepts.
   stops. It never lists which nodes carry a symbol; the reader can see that.
 - **M12 — Never repeat in a node what an adjacent table already states.** One
   representation per fact, and it buys width for free.
+- **M15 — A `classDef` sets the border only.** `stroke` and `stroke-width`,
+  never `fill` or `color`: a hardcoded fill fights the reader's light or dark
+  theme, stranding light nodes on a dark canvas or leaving text unreadable.
+  Encode meaning in the border colour, keep one palette per diagram, and add a
+  one-line legend when colour carries meaning.
 
 ## Out of scope
 

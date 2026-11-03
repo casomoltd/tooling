@@ -1,5 +1,5 @@
 {
   "name": "casomoltd",
-  "description": "Casomo shared engineering standards as a Claude Code plugin: house-standard skills, PreToolUse guard hooks, and review agents (code-review, design-xray, docs-xray)",
+  "description": "Casomo shared engineering standards as a Claude Code plugin: house-standard skills, PreToolUse guard hooks, and review and mapping agents (code-review, design-xray, docs-xray, doc-review, skill-review, spec-review)",
   "author": { "name": "Casomo Ltd" }
 }

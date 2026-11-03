@@ -146,23 +146,12 @@ two explicitly.
 
 ## Persist the report — always, no prompt needed
 
-After the five sections, persist the report yourself — don't wait to be asked.
-Write all five verbatim to `<work-dir>/<target>.md` with a quoted heredoc (`<<'EOF'`,
-so backticks and `$` survive), render `<target>.html` beside it, then report both
-paths as your final lines:
-
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/render-report.mjs" <work-dir>/<target>.md --no-open
-```
-
-`<target>` = the package/dir basename (or `HEAD`/`diff` for a diff). `<work-dir>`
-is a scratchpad or temp directory — **never a tracked tree**, so no gitignore line
-is needed and nothing is left behind in the repo. If the renderer isn't found,
-keep the `.md` and say HTML was skipped.
-
-**Never publish the artifact, hand-roll the HTML, or open a browser** — you have
-no artifact tool, and the caller publishes the `.html` you name. Report the paths
-plainly so the caller can act on them without re-deriving anything.
+After the five sections, persist all five as the house report contract says:
+[An agent that persists a report](../docs/skill-agent-schema.md#an-agent-that-persists-a-report)
+(read it at `${CLAUDE_PLUGIN_ROOT}/docs/skill-agent-schema.md`).
+**Never publish the artifact, hand-roll the HTML, or open a browser**: name the
+`.html` and the caller publishes it. `<target>` = the
+package/dir basename (or `HEAD`/`diff` for a diff).
 
 ## Style of output
 

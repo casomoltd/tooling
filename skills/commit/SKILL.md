@@ -63,16 +63,17 @@ Pick the command by toolchain, detected from the repo root:
 repo may carry a dev-only `package.json` whose sole purpose is hosting the
 husky commit gate — `private: true`, `prepare: husky`, no `version`, and
 deliberately **no `check`**. Seeing the file and running `npm run check` there
-fails with "missing script".
+fails with "missing script". The README's [dev-only npm
+layer](../../README.md#a-repo-whose-toolchain-is-not-npm) is this shape.
 
 If checks fail, fix the issues and re-run until they pass. Do NOT
 proceed until they pass.
 
-**If a house gate is missing from the repo, wire the shared one — do not write
-a local equivalent.** If the shared one cannot run there, that is a bug to fix
-in this package: a local copy drifts from the shared gate and can silently
-omit checks the shared one enforces. `check-hooks` reports whether a repo is gated, and
-tests it by behaviour rather than by the hook file existing.
+If a house gate is missing from the repo, wire the shared one, never a local
+equivalent: [Wire a missing gate, never rewrite
+it](../../docs/quality-gates.md#wire-a-missing-gate-never-rewrite-it). Fix what a
+check finds rather than weakening it: [Fix issues, don't disable
+checks](../../docs/quality-gates.md#fix-issues-dont-disable-checks).
 
 ## 2. Stage changed files
 
@@ -102,11 +103,13 @@ version bump or a config-only diff):
 - **Skills and agent briefs** (`**/SKILL.md`, `agents/*.md`) →
   `casomoltd:skill-review` — it applies the `docs-style` standard and the
   authoring schema, and closes with an explicit history sweep.
+- **Repository docs** (`README.md`, `CLAUDE.md`, `docs/**/*.md`) →
+  `casomoltd:doc-review` — it applies the `docs-style` standard to one doc's
+  shape.
 - **Reader-facing prose** — JSX text, headings and FAQ strings in page
-  `.tsx`, `.md`, and `meta` titles/descriptions → `copy-review`, which a
-  workspace supplies rather than this plugin; skip the route where the caller
-  has no such agent. It owns voice, banned words and citations, so no separate
-  banned-word check is needed.
+  `.tsx`, page content `.md`, and `meta` titles/descriptions → the repo's
+  prose reviewer, if it has one; this plugin ships none, so skip the route
+  where there is no such agent.
 
 These agents are read-only and diff-scoped by design; run the relevant
 ones concurrently (one message, multiple invocations). Their findings are

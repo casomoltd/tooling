@@ -424,8 +424,9 @@ when it models something real, and each is also the fastest way to make
 an error go away. They are not distinguishable by looking at the diff:
 both arrive as a small type edit that turns the build green.
 
-The rule *fix issues, don't disable checks* is usually read as
-being about config — `strict: false`, `skipLibCheck`. It applies with
+The rule [*fix issues, don't disable
+checks*](../../docs/quality-gates.md#fix-issues-dont-disable-checks) is usually
+read as being about config — `strict: false`, `skipLibCheck`. It applies with
 equal force one level down. Relaxing a type is disabling a check; the
 check is just narrower and the config file is untouched.
 

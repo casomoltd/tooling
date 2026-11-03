@@ -6,7 +6,7 @@ description: >-
   checking a page renders correctly, or comparing against
   a reference image or design description.
 user-invocable: true
-argument-hint: "[route] [--preset mobile|tablet|desktop] [--url <base>]"
+argument-hint: "[route] [--preset mobile|tablet|desktop] [--width <n> --height <n>]"
 allowed-tools:
   - Bash(npm run ss *)
   - Bash(SCREENSHOT_URL=* *)
@@ -59,6 +59,17 @@ declare a browser, so nothing installs one for you. If the
 bin reports playwright missing, tell the user to run
 `npm i -D playwright && npx playwright install chromium`
 there and stop; do not install it yourself.
+
+The commands below assume these scripts in that
+`package.json`; if `npm run ss` is missing, tell the user
+to add them:
+
+```json
+{
+  "screenshot": "screenshot",
+  "ss": "npm run screenshot --"
+}
+```
 
 The dev server **must already be running** — never start
 one yourself (`npm run dev`, `npx next dev`, etc.).

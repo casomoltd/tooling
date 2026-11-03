@@ -51,6 +51,14 @@ change); publishing, hosting, or emailing the PDF.
   every feature the template styles; read it when unsure how to express a
   structure.
 
+## Prerequisites
+
+Two the package does not install: the **`typst` CLI** on PATH
+(`snap install typst` or `cargo install typst-cli`) and the **IBM Plex Sans and
+IBM Plex Mono** fonts ([github.com/IBM/plex](https://github.com/IBM/plex)).
+`build-report` fails on the first missing and warns on the second; if the CLI is
+missing, tell the user how to install it and stop.
+
 ## Method
 
 1. **Resolve the source.** If `$ARGUMENTS` names an existing `.typ`, skip to
@@ -88,14 +96,16 @@ change); publishing, hosting, or emailing the PDF.
    ```bash
    npx build-report reports/<name>.typ            # → $SCRATCH_DIR/reports/<name>.pdf
    npx build-report reports/<name>.typ -o <path>  # explicit output path
+   npx build-report reports/<name>.typ --watch    # recompile on save
+   npx build-report reports/<name>.typ --open     # open the PDF when done
    ```
 
-   The PDF is a build artefact — the bin defaults it to the scratch pool
-   (`$SCRATCH_DIR/reports/`, else a gitignored `<repo-root>/scratch/reports/`;
-   the README's *Client reports (Typst)* section). A PDF is a file to open
-   rather than a page to publish, which is why it keeps a scratch location.
-   Pass `-o` only when the repo deliberately keeps the PDF (e.g. a site's
-   `public/`).
+   The PDF is a build artefact, so the bin writes it to
+   `$SCRATCH_DIR/reports/<name>.pdf`, or `<repo-root>/scratch/reports/` when
+   `SCRATCH_DIR` is unset; the consumer repo gitignores `scratch/`. A PDF is a
+   file to open rather than a page to publish, which is why it keeps a scratch
+   location. Pass `-o` only when the repo deliberately keeps the PDF (e.g. a
+   site's `public/`).
 
 4. **Verify by reading the PDF** (Claude reads PDFs via the Read tool): the
    cover carries kicker/title, the contents resolve, body pages render, and

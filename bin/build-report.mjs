@@ -11,8 +11,8 @@
  *               (report/casomo-template.typ in this package).
  *
  * Options:
- *   --out, -o <file>  Output PDF path. Default follows the README's report
- *                     output rule: $SCRATCH_DIR/reports/<name>.pdf, or
+ *   --out, -o <file>  Output PDF path. Default (see the generate-report
+ *                     skill): $SCRATCH_DIR/reports/<name>.pdf, or
  *                     <repo-root>/scratch/reports/ when unset (gitignore
  *                     scratch/ in the consumer repo).
  *   --root <dir>      Typst compile root (default: auto-detected, see below)
@@ -111,8 +111,7 @@ if (fonts.status === 0) {
 }
 
 // A compiled PDF is a throwaway build artefact, not a source — default it to
-// the shared scratch pool, same resolution order as the agent reports (README
-// "Report output & SCRATCH_DIR"): $SCRATCH_DIR/reports/, else a repo-local
+// the shared scratch pool: $SCRATCH_DIR/reports/, else a repo-local
 // scratch/reports/. --out opts out for deliverables a repo serves.
 const output = values.out
   ? path.resolve(values.out)

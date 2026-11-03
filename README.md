@@ -28,8 +28,8 @@ Shared linting, formatting, commit config, and CLI tools for Casomo Ltd's repos.
 |---|---|
 | `check-version` | Pre-push guard — rejects push if `package.json` version hasn't changed vs `origin/main` |
 | `check-linear` | Pre-push guard — rejects a push that would put a merge commit on the remote. History is linear; a branch catches up by rebasing. Only what the push adds is judged, so merges already on the remote stay |
-| `pre-push` | Husky pre-push hook — runs check, then `check:routes` where a repo defines it, then the version, tag and linear-history guards |
-| `check-routes` | Pre-push gate for a Next.js site — starts `next start` against the build `check` made, requests every page in `/sitemap.xml` and follows the links a site promises (`routes.links` in `casomo.config.mjs`, and each form in its `tally` registry) through their redirects, and fails if any final response is not a 200 ([how](bin/check-routes.mjs)). Run it as `"check:routes": "check-routes"`; [why it runs on push](#quality-gates) |
+| `pre-push` | Husky pre-push hook — the push gate ([what it runs](docs/quality-gates.md#the-hooks)) |
+| `check-routes` | Pre-push gate for a Next.js site — starts `next start` against the build `check` made, requests every page in `/sitemap.xml` and follows the links a site promises (`routes.links` in `casomo.config.mjs`, and each form in its `tally` registry) through their redirects, and fails if any final response is not a 200 ([how](bin/check-routes.mjs)). Run it as `"check:routes": "check-routes"`; [why it runs on push](docs/quality-gates.md#check-owns-the-build) |
 | `pre-commit` | Husky pre-commit hook — runs `npm run check` |
 | `commit-msg` | Husky commit-msg hook — runs commitlint, then `check-listed-files` |
 | `check-listed-files` | Refuse a commit that changes a file still listed in `eslint-suppressions.json`, unless a `Lint-deferred:` trailer says why ([docs/lint.md](docs/lint.md)) |
@@ -52,10 +52,6 @@ Published to the public npm registry. Add it to a consumer's
 npm i -D @casomoltd/tooling
 ```
 
-```json
-"@casomoltd/tooling": "^0.28.0"
-```
-
 The package is public, so installs need no token or `.npmrc`. The `files`
 allowlist plus the `verify-pack` leak-gate keep the published surface to
 configs/CLI only.
@@ -69,20 +65,18 @@ declared here — see [External prerequisites](#external-prerequisites).
 Three bins need something npm cannot sensibly deliver: `screenshot` and
 `render-figures` need a Chromium build through Playwright, and
 `build-report` needs the `typst` CLI and the IBM Plex fonts. **None is
-declared — not as a dependency, and not as an optional peer.** Each loads its prerequisite lazily and fails with an
-install instruction when it is missing, so a consumer that never runs
-those bins carries nothing for them.
+declared — not as a dependency, and not as an optional peer.** Each loads
+its prerequisite lazily and fails with an install instruction when it is
+missing, so a consumer that never runs those bins carries nothing for them.
 
 The rule, for anything added later: a heavyweight prerequisite only some
 consumers need is documented here, never declared. An optional peer
 looks free because npm installs nothing for it, but it resolves into a
 consumer's lockfile as soon as anything pulls it in, and npm will not
 prune a satisfied optional peer afterwards — not on `npm install`, not
-on `npm install --package-lock-only`, not on `npm uninstall`. That is
-how one dev-only browser put the `extract-zip` advisory
-(GHSA-jmr9-qjv8-65gv) into four repos that never took a screenshot, and
-why clearing it needed a release of this package rather than a fix in
-each of them.
+on `npm install --package-lock-only`, not on `npm uninstall`. So any
+advisory against it reaches repos that never run the bin, and clearing
+it takes a release of this package rather than a fix in each of them.
 
 ## Husky hooks
 
@@ -124,7 +118,7 @@ npm layer** that exists to host the hook and nothing else:
   "description": "Dev-only npm layer: wires the shared commit-msg gate into this repo. Not the project toolchain.",
   "scripts": { "prepare": "husky" },
   "devDependencies": {
-    "@casomoltd/tooling": "^0.28.0",
+    "@casomoltd/tooling": "^<current>",
     "@commitlint/cli": "^20.0.0",
     "husky": "^9.1.7"
   }
@@ -143,11 +137,9 @@ fake. Write a `.husky/pre-push` that calls the real toolchain instead:
 uv run ruff check && uv run ruff format --check && uv run pyright && uv run pytest
 ```
 
-**Why this is documented here.** Undocumented, each non-npm repo solves it
-alone and writes its own shell or Python copy of `no-ai-attribution`, and the
-copies drift — the length limits are what they lose first. One rule, one home.
 If a house gate will not run in your repo, wire the shared one or fix this
-package. Do not write a local equivalent.
+package, never a local copy: [Wire a missing gate, never rewrite
+it](docs/quality-gates.md#wire-a-missing-gate-never-rewrite-it).
 
 ## Markdown / skills lint
 
@@ -155,9 +147,10 @@ package. Do not write a local equivalent.
 `remark-validate-links` + `remark-lint-frontmatter-schema`) that validates a
 Claude Code skills/agents/docs tree: every `SKILL.md` / `agents/*.md` has
 parseable YAML frontmatter with `name` + `description`, and every relative link
-and `#anchor` resolves. tooling runs it over its own `skills/` in `npm run
-check` (`lint:md`) — catching the breakage a rename or hand-edit leaves that
-Claude Code's loader silently swallows.
+and `#anchor` resolves. tooling runs it in `npm run check` as `lint:md`, over
+the paths that script names in [`package.json`](package.json) — catching the
+breakage a rename or hand-edit leaves that Claude Code's loader silently
+swallows.
 
 To gate a consumer repo's docs (link/anchor integrity) at its own pre-commit,
 install the remark toolchain and point it at the shipped config:
@@ -178,46 +171,11 @@ version that ships the config.
 
 ## Screenshot tool
 
-A visual feedback loop for coding agents. Claude captures the page it
-just changed, reads the PNG back and checks its own work, instead of
-waiting for someone to look and paste a screen grab. That is what the
-bin is for, and why its output lands under `.claude/`; a person wanting
-a screenshot already has a browser open.
-
-It needs a Chromium build, which this package does not install (see
-[External prerequisites](#external-prerequisites)):
-
-```bash
-npm i -D playwright && npx playwright install chromium
-```
-
-Then capture the running dev server:
-
-```bash
-npm run ss              # 1280×800 desktop capture
-npm run ss contact      # desktop capture of /contact
-npm run ss -- --width 390 --height 844   # mobile capture
-npm run ss contact --width 390           # mobile /contact
-```
-
-**Options:**
-
-| Flag | Default | Description |
-|------|---------|-------------|
-| `--width <n>` | 1280 | Viewport width in pixels |
-| `--height <n>` | 800 | Viewport height in pixels |
-
-Add these scripts to your `package.json`:
-
-```json
-{
-  "screenshot": "screenshot",
-  "ss": "npm run screenshot --"
-}
-```
-
-Screenshots are saved to `.claude/screenshots/`. Set
-`SCREENSHOT_URL` to override the default `http://localhost:3000`.
+`screenshot` is a visual feedback loop for coding agents: Claude captures the
+page it just changed, reads the PNG back and checks its own work. It needs a
+Chromium build, which this package does not install (see [External
+prerequisites](#external-prerequisites)). Setup, flags, presets and output
+location are in the [`screenshot`](skills/screenshot/SKILL.md) skill.
 
 ## Design specs
 
@@ -236,99 +194,20 @@ from somewhere else.
 
 ## Client reports (Typst)
 
-`report/` ships the Casomo house style for client-facing PDF reports —
-a [Typst](https://typst.app) template (`casomo-template.typ`, with the
-brand mark beside it) plus the `build-report` bin that compiles a
-report to PDF:
-
-```bash
-npx build-report path/to/report.typ                # → scratch (see below)
-npx build-report report.typ -o public/report.pdf   # explicit output path
-npx build-report report.typ --watch                # recompile on save
-npx build-report report.typ --open                 # open the PDF when done
-```
-
-The compiled PDF is a build artefact and goes to
-`$SCRATCH_DIR/reports/<name>.pdf`, or `<repo-root>/scratch/reports/` when
-**`SCRATCH_DIR`** is unset — add `scratch/` to the consumer repo's
-`.gitignore` (this repo does). A PDF is a file to open rather than a page
-to publish, so it keeps a scratch location where the x-ray reports need
-none. Pass `--out` only when the PDF is a deliverable the repo actually
-keeps (e.g. a site's `public/`).
-
-A report imports the template and applies it as a show rule; everything
-after is the body. From a consumer repo the import goes through
-`node_modules` (the bin sets the Typst root to the nearest
-`package.json`/`.git` ancestor so the path resolves):
-
-```typst
-#import "/node_modules/@casomoltd/tooling/report/casomo-template.typ": casomo-report, band
-
-#show: casomo-report.with(
-  kicker: "Delivery Report & Findings",
-  title: "The Report Title",
-  subtitle: "One-line summary.",  // optional
-)
-
-= Executive summary
-…
-```
-
-`report/example.typ` is a lorem-ipsum reference report exercising every
-feature the template styles — compile it to see the house style.
-
-Two [external prerequisites](#external-prerequisites) apply here: the
-**`typst` CLI** on PATH (`snap install typst` / `cargo install
-typst-cli`) and the **IBM Plex Sans / IBM Plex Mono** fonts
-([github.com/IBM/plex](https://github.com/IBM/plex)) — `build-report`
-fails loud on the former and warns on the latter.
+`report/` ships the Casomo house style for client-facing PDF reports: a
+[Typst](https://typst.app) template (`casomo-template.typ`, with the brand mark
+beside it) and the `build-report` bin that compiles a report to PDF.
+`report/example.typ` is a lorem-ipsum reference exercising every feature the
+template styles. How a report imports the template, where the PDF lands and
+the [external prerequisites](#external-prerequisites) it needs are in the
+[`generate-report`](skills/generate-report/SKILL.md) skill.
 
 ## Quality gates
 
-Quality gates run locally via git hooks, so code is
-deployment-ready by the time it reaches the remote. GitHub
-Actions re-runs `check` on push and publishes on a version tag;
-the local hooks are the gate, CI is the backstop.
-
-- **pre-commit**: `npm run check` — the repo's full health gate.
-- **commit-msg**: commitlint (house rules + the AI-attribution ban).
-- **pre-push**: `npm run check`, then `check:routes` where the repo
-  defines it, then the version, tag and linear-history guards.
-
-**`check` owns the build.** A repo whose build fails is not
-healthy, and any assertion that reads build output has to run
-after the build in the same script — so `build` belongs in
-`check`, and appears nowhere else. Declaring it in the pre-push
-gate as well would give it two owners and build twice.
-Exception: `check:routes` reads the build outside `check`. It
-starts a server, which belongs to a push rather than to every
-commit, so the pre-push hook runs it after `check`.
-
-### What every repo's `check` must contain
-
-`check` is a hand-written, ordered chain — the repos are
-heterogeneous and some orderings are load-bearing — but its
-**composition is enforced**, not remembered. Run `check-gates`
-as its first step:
-
-```json
-"check": "check-gates && npm run lint && npm run typecheck && ..."
-```
-
-It fails if a required gate is missing, if one is defined but
-never run (a dead gate), or if an exception outlives the problem
-it was written for. Required: `lint`, `typecheck`, `test`,
-`knip`, `jscpd`, `lint:md`, `spell`, `build`.
-
-A repo opts out by declaring a **reason** — a blank one fails, so
-an opt-out is never silent, and every exception is printed on
-each run:
-
-```json
-"casomo": {
-  "gates": { "test": "content site — no suite yet" }
-}
-```
+The hooks are the gate and CI the backstop. What each hook runs, why `check`
+owns the build, the gates every repo's `check` must contain, and the rule that a
+failing check is fixed rather than weakened are in
+[docs/quality-gates.md](docs/quality-gates.md).
 
 ## Usage
 
@@ -373,11 +252,11 @@ This overrides the published version until the next
 This repo is a Claude Code plugin (`.claude-plugin/`) shipping the **generic,
 public engineering standards** we work to across three agent-facing surfaces —
 **skills**, **hooks**, and **agents**. Business-specific ones live in private
-workspace config, not here.
+configuration, not here.
 
 The tooling serves three consumers: **Claude** (the editing workflow) → these
-plugin surfaces; **CI + git-hooks** (automation) → the npm `bin` scripts; manual
-human CLI is no longer a design target.
+plugin surfaces; **CI + git-hooks** (automation) → the npm `bin` scripts. The CLI
+is not designed for manual human use.
 
 **Authoring standard:** creating or editing a skill/agent follows
 [`docs/skill-agent-schema.md`](docs/skill-agent-schema.md) — the interface schema
@@ -386,16 +265,18 @@ decision table) that keeps these units composing without overlap.
 
 | Skill | Description |
 |---|---|
-| `/casomoltd:commit` | Run checks and commit cleanly (no bump, no push) |
-| `/casomoltd:release-version` | Bump → push → CI publish/deploy (the release tail) |
-| `/casomoltd:frontend-design` | Distinctive, production-grade frontend UI |
-| `/casomoltd:python-style` | Python code-generation style rules |
-| `/casomoltd:typescript` | TypeScript data modelling and type design |
-| `/casomoltd:screenshot` | Capture and analyse a dev server page |
-| `/casomoltd:design-pass` | Map → review → refactor a package (drives `design-xray` + `code-review`) |
-| `/casomoltd:draft-design-spec` | Author a reviewable HTML design spec from a brief, publish it as an Artifact, and iterate on it there before writing code (drives `design-xray`) |
-| `/casomoltd:page-design` | Structure a content/explainer page for trust — above-the-fold answer, disclosure, palette-only colour (rubric a page-design reviewer preloads) |
-| `/casomoltd:generate-report` | Scaffold a Typst client report from the house template, compile via `build-report`, verify the PDF |
+| [`/casomoltd:commit`](skills/commit/SKILL.md) | Run checks and commit cleanly (no bump, no push) |
+| [`/casomoltd:release-version`](skills/release-version/SKILL.md) | Bump → push → CI publish/deploy (the release tail) |
+| [`/casomoltd:design-pass`](skills/design-pass/SKILL.md) | Map → review → refactor a package |
+| [`/casomoltd:draft-design-spec`](skills/draft-design-spec/SKILL.md) | Author a reviewable HTML design spec before writing code |
+| [`/casomoltd:screenshot`](skills/screenshot/SKILL.md) | Capture and analyse a dev server page |
+| [`/casomoltd:generate-report`](skills/generate-report/SKILL.md) | Scaffold and compile a Typst client report, verify the PDF |
+| [`/casomoltd:session-todo`](skills/session-todo/SKILL.md) | Write and work a session handover list |
+| [`casomoltd:typescript`](skills/typescript/SKILL.md) | TypeScript data modelling and type design (rubric) |
+| [`casomoltd:python-style`](skills/python-style/SKILL.md) | Python code-generation style rules (rubric) |
+| [`casomoltd:docs-style`](skills/docs-style/SKILL.md) | Technical and reference doc convention (rubric) |
+| [`/casomoltd:frontend-design`](skills/frontend-design/SKILL.md) | Distinctive, production-grade frontend UI (rubric) |
+| [`/casomoltd:page-design`](skills/page-design/SKILL.md) | Content-page structure for trust (rubric) |
 
 Enable the plugin by adding this repo as a marketplace and installing it:
 
@@ -423,72 +304,22 @@ and the TypeScript / vendored-types design rationale.
 
 ### Agents
 
-Three namespaced agents (`agents/`), each read-only on what it inspects and
-preloading the relevant house standard as its rubric — `typescript` for
-`.ts/.tsx`, `python-style` for `.py`, `docs-style` for markdown. `design-xray` and
-`docs-xray` persist only their own report (see *Report output*, below).
+Namespaced agents (`agents/`), each read-only on what it inspects and
+preloading the house standard it applies. Each file's frontmatter and *Scope*
+say what it does and does not cover.
 
-**`casomoltd:code-review`** enforces the *judgment-level* half of the standards —
-the design calls a linter can't make (typed identifiers, static/varying
-separation, swallowed exceptions; class design, polymorphism over type-codes,
-value objects, EAFP, framework-first, test naming). It **complements, never
-duplicates**: eslint/ruff own the mechanical rules, the built-in `/code-review`
-owns correctness bugs, this owns the house design standards. Namespaced so it
-doesn't collide with the bundled `/code-review`. Invoke with
-`@agent-casomoltd:code-review` (or let Claude auto-delegate); it reports findings
-and never edits.
+| Agent | Reviews or maps |
+|---|---|
+| [`casomoltd:code-review`](agents/code-review.md) | Changed code against the house design standards |
+| [`casomoltd:design-xray`](agents/design-xray.md) | A package's structure: map, weights, refactor targets |
+| [`casomoltd:docs-xray`](agents/docs-xray.md) | A docs corpus: map, reference graph, coherence |
+| [`casomoltd:doc-review`](agents/doc-review.md) | One repository doc's shape |
+| [`casomoltd:skill-review`](agents/skill-review.md) | Changed skills and agent briefs |
+| [`casomoltd:spec-review`](agents/spec-review.md) | An HTML design spec against its authoring rubric |
 
-**`casomoltd:design-xray`** takes a package or diff and returns the *structural*
-picture: a doc-ready module inventory + mermaid class-hierarchy diagram, a weight
-table (which modules/classes are too heavy or thin), prioritized design findings,
-a ranked handoff of refactor targets, and a verdict on whether a heavier pattern
-(e.g. a state machine) is warranted yet or premature. It feeds forward — its map
-lifts straight into package docs, and its targets drive `code-review` and a
-refactor pass. The `/casomoltd:design-pass` skill chains the three
-(x-ray → code-review → refactor), and `/casomoltd:draft-design-spec` reuses its
-current-state map as the "before" picture when authoring a pre-implementation
-design spec. Like its sibling it visualizes and judges structure only — no
-correctness bugs (that's `/code-review`), no lint (eslint/ruff).
-
-**`casomoltd:docs-xray`** is the same idea for a *documentation* corpus: it walks
-every markdown doc (README, `CLAUDE.md`, `docs/`, skill/agent definitions) and
-returns a map — each doc's heading tree + outbound pointers, plus a mermaid
-reference-graph of how the docs link — and a coherence report: orphan docs nothing
-links to, stale cross-references whose summary has drifted from the target,
-duplicated coverage, and missing back-links. It judges structure and
-cross-reference coherence against `docs-style` — not mechanical broken links
-(that's a markdown link linter) or prose voice (a content reviewer).
-
-**`casomoltd:doc-review`** reviews *one repository doc* against `docs-style`:
-whether it gets to the point or buries it under furniture, whether it is one
-subject or three, whether a leaf carries an index belonging in the README,
-whether a section says "not built yet" where content should be, and whether the
-session's own progress has leaked in. A doc can be right in every sentence and
-fail this review, because what it judges is shape. Not link validity (a markdown
-link linter), not the corpus reference graph (`docs-xray`), not skills or agent
-briefs (`skill-review`).
-
-**`casomoltd:skill-review`** reviews changed *skills and agent briefs* against
-`docs-style` and [the authoring schema](docs/skill-agent-schema.md): prose that
-narrates its own past rather than stating current truth, a unit missing the
-sections its profile needs, a rule restated from the skill that owns it, and a
-description that won't route. It closes with an explicit history sweep — the
-units it read and the count flagged, including zero — because that finding sits
-where a justification would and otherwise survives an ordinary read-through. The
-[`commit`](skills/commit/SKILL.md) skill routes staged `SKILL.md` and
-`agents/*.md` changes to it. Not link validity (a markdown link linter), not the
-corpus reference graph (`docs-xray`), not prose voice (a content reviewer).
-
-**Report output.** `design-xray` and `docs-xray` write their report — the `.md`
-plus an `.html` rendered by `bin/render-report.mjs` — into a working directory
-and return both paths, and the caller publishes the `.html`. Each agent's
-*Persist the report* section is the spec for that hand-off.
-
-The rendered `.html` is built for that destination: `render-report.mjs` converts
-the markdown in node and ships **no mermaid runtime**, because the artifact host
-renders every `pre.mermaid` itself and a second runtime races it into black
-boxes. A page that builds its own body at load time has no diagram blocks in it
-when the host looks.
+`design-xray` and `docs-xray` persist their report and the caller publishes it:
+[An agent that persists a
+report](docs/skill-agent-schema.md#an-agent-that-persists-a-report).
 
 ## Package distribution
 
@@ -501,7 +332,5 @@ pin**: it builds on Node 24, whose bundled npm 11.x is already the range
 we want — at or above the `npm >= 11.5.1` trusted publishing needs, and
 short of npm 12, which still refuses non-registry fetches by default
 (`EALLOWREMOTE`) and so cannot regenerate a lockfile that resolves a
-transitive remote tarball. The other two npm 12.0.0 regressions this
-once guarded against are fixed: `npm ci` strictness (12.0.2 installs
-Linux-generated locks cleanly) and the provenance/sigstore crash
-(12.0.1). Re-test the fetch block before moving to npm 12.
+transitive remote tarball. Re-test the fetch block before moving to
+npm 12.
