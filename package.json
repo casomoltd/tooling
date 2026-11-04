@@ -1,6 +1,6 @@
 {
   "name": "@casomoltd/tooling",
-  "version": "0.43.0",
+  "version": "0.44.0",
   "description": "Casomo's shared dev config: ESLint, Prettier, commitlint, knip & jscpd presets, dev CLIs (git hooks, readability, screenshots, design specs), and the build-time data and helpers sites import (the Buttondown engine, the shared Organization)",
   "author": "Casomo Ltd",
   "license": "MIT",
