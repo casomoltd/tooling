@@ -1,8 +1,8 @@
 /**
- * `@casomoltd/tooling/tally/events`: reading what a Tally embed posts to its
- * page, safe to import in a browser. The code lives in event-reader.mjs,
- * where the typecheck reads it; beside events.d.mts, TypeScript would skip
- * it.
+ * `@casomoltd/tooling/tally/events`: the addresses a page embeds a Tally form
+ * from, and a reader of what the embed posts back; safe to import in a
+ * browser. The code lives in embed.mjs, where the typecheck reads it; beside
+ * events.d.mts, TypeScript would skip it.
  */
 export {
   readTallyEvent,
@@ -12,4 +12,4 @@ export {
   TALLY_WIDGET_URL,
   tallyEmbedSrc,
   tallyFormHref,
-} from "./event-reader.mjs";
+} from "./embed.mjs";

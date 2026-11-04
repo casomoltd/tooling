@@ -37,10 +37,10 @@ import {spawn} from "node:child_process";
 import {existsSync} from "node:fs";
 import {createServer} from "node:net";
 import {setTimeout as sleep} from "node:timers/promises";
-import path from "node:path";
-import {tallyFormHref} from "../tally/event-reader.mjs";
-import {formRegistry} from "../tally/config.mjs";
-import {CASOMO_CONFIG_KEYS, isEntryPoint, loadCasomoConfig} from "./utils.mjs";
+import {tallyFormHref} from "../tally/embed.mjs";
+import {loadTallyRegistry} from "../tally/config.mjs";
+import {CASOMO_CONFIG_KEYS, loadCasomoConfig} from "./casomo-config.mjs";
+import {isEntryPoint} from "./utils.mjs";
 
 const HOST = "127.0.0.1";
 const SITEMAP = "/sitemap.xml";
@@ -58,15 +58,20 @@ const CONCURRENCY = 8;
 
 /**
  * Something the check requests: its address, how the report names it, and
- * whether a redirect is followed. A sitemap page is not: it should be listed
- * where it lives. A promised link is, to its end.
- * @typedef {{url: string, label: string, follow: boolean}} Target
+ * fetch's redirect setting. A sitemap page's is manual, since it should be
+ * listed where it lives; a promised link's is follow, to its end.
+ * @typedef {{url: string, label: string, redirect: "manual" | "follow"}} Target
+ */
+
+/** One target's outcome: its final status, or the error that stopped it.
+ * @typedef {{label: string, status: number, error?: never}
+ *   | {label: string, error: string, status?: never}} Result
  */
 
 /** A sitemap path on the local server.
  *  @param {string} base @param {string} path @returns {Target} */
 export const pageTarget = (base, path) => ({
-  url: base + path, label: path, follow: false,
+  url: base + path, label: path, redirect: "manual",
 });
 
 /** A promised link, a site path from the local server and any other address
@@ -83,7 +88,7 @@ export const linkTarget = (base, {target, from}) => {
     );
   }
   const url = local ? base + target : new URL(address).href;
-  return {url, label: `${target}  (${from})`, follow: true};
+  return {url, label: `${target}  (${from})`, redirect: "follow"};
 };
 
 /** Request every target, CONCURRENCY at a time; return the ones whose final
@@ -91,6 +96,7 @@ export const linkTarget = (base, {target, from}) => {
  *  @param {Target[]} targets */
 export const failing = async (targets) => {
   const queue = [...targets];
+  /** @type {Result[]} */
   const failures = [];
   const worker = async () => {
     for (let target = queue.shift(); target; target = queue.shift()) {
@@ -111,12 +117,14 @@ export const failing = async (targets) => {
  */
 export const linkTargets = async (dir = process.cwd()) => {
   const routes = await loadCasomoConfig(CASOMO_CONFIG_KEYS.routes, dir);
-  const tally = await loadCasomoConfig(CASOMO_CONFIG_KEYS.tally, dir);
-  const links = (routes.links ?? []).map((target) => ({
+  /** @type {string[]} */
+  const promised = routes.links ?? [];
+  const links = promised.map((target) => ({
     target, from: "routes.links",
   }));
-  if (!tally.registry) return links;
-  const ids = await formRegistry(path.resolve(dir, tally.registry)).ids();
+  const registry = await loadTallyRegistry(dir);
+  if (!registry) return links;
+  const ids = await registry.ids();
   return [
     ...links,
     ...Object.entries(ids).map(([key, id]) => ({
@@ -126,29 +134,34 @@ export const linkTargets = async (dir = process.cwd()) => {
 };
 
 /** The path and query of every `<loc>` in a sitemap or sitemap index. The
- * sitemap names the production host; the check asks the local server. */
+ * sitemap names the production host; the check asks the local server.
+ * @param {string} xml */
 const sitemapPaths = (xml) =>
   [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(([, loc]) => {
     const url = new URL(loc.trim().replaceAll("&amp;", "&"));
     return url.pathname + url.search;
   });
 
-/** A sitemap index lists other sitemaps, not pages. */
+/** A sitemap index lists other sitemaps, not pages.  @param {string} xml */
 const isSitemapIndex = (xml) => /<sitemapindex[\s>]/.test(xml);
 
+/** @param {unknown} err */
 const message = (err) => (err instanceof Error ? err.message : String(err));
 
+/** @param {string} url @param {RequestInit} [init] */
 const get = (url, init = {}) =>
   fetch(url, {...init, signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS)});
 
-/** A sitemap's text; any answer but 200 is the failure, not a retry. */
+/** A sitemap's text; any answer but 200 is the failure, not a retry.
+ *  @param {string} base @param {string} path */
 const readSitemap = async (base, path) => {
   const res = await get(base + path);
   if (res.status !== HTTP_OK) throw new Error(`${path} answered ${res.status}`);
   return res.text();
 };
 
-/** Every page path, once each, following a sitemap index one level down. */
+/** Every page path, once each, following a sitemap index one level down.
+ *  @param {string} base @param {string} rootXml */
 const collectPaths = async (base, rootXml) => {
   if (!isSitemapIndex(rootXml)) return [...new Set(sitemapPaths(rootXml))];
   const children = await Promise.all(
@@ -158,10 +171,10 @@ const collectPaths = async (base, rootXml) => {
 };
 
 /** One target's final status, or the error that stopped the request.
- *  @param {Target} target */
-const probe = async ({url, label, follow}) => {
+ *  @param {Target} target @returns {Promise<Result>} */
+const probe = async ({url, label, redirect}) => {
   try {
-    const res = await get(url, {redirect: follow ? "follow" : "manual"});
+    const res = await get(url, {redirect});
     await res.arrayBuffer();
     return {label, status: res.status};
   } catch (err) {
@@ -169,25 +182,28 @@ const probe = async ({url, label, follow}) => {
   }
 };
 
-/** A free local port, so a dev server already on 3000 is never in the way. */
+/** A free local port, so a dev server already on 3000 is never in the way.
+ *  @returns {Promise<number>} */
 const freePort = () =>
   new Promise((resolve, reject) => {
     const listener = createServer();
     listener.on("error", reject);
     listener.listen(0, HOST, () => {
-      const {port} = listener.address();
+      const {port} = /** @type {import("node:net").AddressInfo} */ (listener.address());
       listener.close(() => resolve(port));
     });
   });
 
 /** `next start` in its own process group, so the stop reaches `next-server`
  * and not only its launcher. `died` rejects the moment the server fails to
- * spawn or exits, so a dead server fails the check now, not at the timeout. */
+ * spawn or exits, so a dead server fails the check now, not at the timeout.
+ * @param {number} port */
 const startServer = (port) => {
   const server = spawn(NEXT_BIN, ["start", "-p", String(port), "-H", HOST], {
     stdio: ["ignore", "pipe", "pipe"],
     detached: true,
   });
+  /** @type {string[]} */
   const output = [];
   server.stdout.on("data", (d) => output.push(String(d)));
   server.stderr.on("data", (d) => output.push(String(d)));
@@ -202,18 +218,19 @@ const startServer = (port) => {
   return {server, output, died};
 };
 
-/** Stop the server's process group; one that has already exited is fine. */
+/** Stop the server's process group; one that has already exited is fine.
+ *  @param {import("node:child_process").ChildProcess} server */
 const stopServer = (server) => {
   if (server.pid === undefined) return;
   try {
     process.kill(-server.pid, "SIGTERM");
   } catch (err) {
-    if (err?.code !== "ESRCH") throw err;
+    if (/** @type {NodeJS.ErrnoException} */ (err).code !== "ESRCH") throw err;
   }
 };
 
 /** The root sitemap once the server answers; keep polling only while the
- * connection is refused. */
+ * connection is refused.  @param {string} base @param {string[]} output */
 const waitForSitemap = async (base, output) => {
   const deadline = Date.now() + READY_TIMEOUT_MS;
   while (Date.now() < deadline) {
@@ -227,7 +244,8 @@ const waitForSitemap = async (base, output) => {
   throw new Error(`the server never answered ${SITEMAP}\n${output.join("")}`);
 };
 
-/** The verdict on the pages and links, printed; the exit code. */
+/** The verdict on the pages and links, printed; the exit code.
+ *  @param {number} pages @param {number} links @param {Result[]} failures */
 const report = (pages, links, failures) => {
   if (pages === 0) {
     console.error(`✗ check-routes: ${SITEMAP} lists no pages`);

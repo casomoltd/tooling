@@ -8,6 +8,7 @@ export {
   COMPANY_COLOPHON,
   COMPANY_REGISTER,
   ICO_REGISTER,
+  LINKEDIN,
   REGISTERED_OFFICE,
 } from "./organization.mjs";
 export {CASOMO_UTM, tagged} from "./attribution.mjs";

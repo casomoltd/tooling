@@ -4,5 +4,6 @@
     "allowJs": true,
     "checkJs": true
   },
-  "include": ["*.mjs", "*.d.mts", "../bin/tally.mjs", "../tokens/*.mjs"]
+  "include": ["*.mjs", "*.d.mts", "../bin/tally.mjs", "../tokens/*.mjs"],
+  "exclude": ["frame*"]
 }

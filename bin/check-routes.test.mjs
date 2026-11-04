@@ -74,6 +74,18 @@ try {
   } finally {
     await rm(dir, {recursive: true, force: true});
   }
+
+  // A tally block naming no registry is a config mistake, not "no forms". A
+  // folder of its own, as Node keeps the first config it imports from a path.
+  const bare = await mkdtemp(path.join(os.tmpdir(), "check-routes-"));
+  try {
+    await writeFile(path.join(bare, "casomo.config.mjs"), "export default "
+      + JSON.stringify({tally: {forms: "forms.mjs"}}));
+    await assert.rejects(linkTargets(bare), /needs tally\.registry/);
+    console.log("check-routes: refuses a Tally block with no registry");
+  } finally {
+    await rm(bare, {recursive: true, force: true});
+  }
 } catch (err) {
   console.error(`check-routes: ${err instanceof Error ? err.message : err}`);
   process.exitCode = 1;

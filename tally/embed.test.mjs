@@ -10,7 +10,7 @@ import {
   TALLY_WIDGET_URL,
   tallyEmbedSrc,
   tallyFormHref,
-} from "./event-reader.mjs";
+} from "./embed.mjs";
 
 const FORM = "Ab3dE9";
 
@@ -103,4 +103,4 @@ assert.ok([
   declaredFormHref, declaredWidgetUrl, declaredEmbedOptions,
 ].every(Boolean));
 
-console.log("tally event-reader tests OK");
+console.log("tally embed tests OK");

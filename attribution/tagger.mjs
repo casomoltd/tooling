@@ -7,6 +7,15 @@
 
 /** @import * as Attribution from "./index.d.mts" */
 
+/** The query parameters a tag is written as: the names a site that reads
+ *  the tags back, a contact form keeping them say, takes from here.
+ *  @type {typeof Attribution.UTM_PARAMS} */
+export const UTM_PARAMS = Object.freeze({
+  source: "utm_source",
+  medium: "utm_medium",
+  content: "utm_content",
+});
+
 /**
  * A function that tags a link with values from these lists, refusing any
  * other. Typed by its declaration, so the two can't disagree.
@@ -14,13 +23,13 @@
  */
 export const utmTagger = (lists) => {
   return (url, {source, medium, content}) => {
-    known(lists.sources, source, "utm_source");
-    known(lists.media, medium, "utm_medium");
-    if (content !== undefined) known(lists.content, content, "utm_content");
+    known(lists.sources, source, UTM_PARAMS.source);
+    known(lists.media, medium, UTM_PARAMS.medium);
+    if (content !== undefined) known(lists.content, content, UTM_PARAMS.content);
     const link = new URL(url);
-    link.searchParams.set("utm_source", source);
-    link.searchParams.set("utm_medium", medium);
-    if (content !== undefined) link.searchParams.set("utm_content", content);
+    link.searchParams.set(UTM_PARAMS.source, source);
+    link.searchParams.set(UTM_PARAMS.medium, medium);
+    if (content !== undefined) link.searchParams.set(UTM_PARAMS.content, content);
     return link.href;
   };
 };

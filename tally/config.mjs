@@ -7,7 +7,7 @@
 import {readFile, writeFile} from "node:fs/promises";
 import path from "node:path";
 import {pathToFileURL} from "node:url";
-import {CASOMO_CONFIG_KEYS, loadCasomoConfig} from "../bin/utils.mjs";
+import {CASOMO_CONFIG_KEYS, loadCasomoConfig} from "../bin/casomo-config.mjs";
 import {uniqueBy} from "./fields.mjs";
 
 /** @import {FormDefinition} from "./index.d.mts" */
@@ -34,7 +34,7 @@ export async function loadTallySettings(root = process.cwd()) {
     throw new Error(`casomo.config.mjs needs tally.${missing.join(", tally.")}`);
   }
   /** @param {string} p */
-  const at = (p) => path.resolve(root, p);
+  const at = (p) => inSite(root, p);
   return {
     root,
     forms: at(config.forms),
@@ -64,6 +64,22 @@ export async function loadForms(settings) {
   const forms = mod.forms;
   // Two forms under one key would share a Tally id and a push record.
   return uniqueBy(forms, "form");
+}
+
+/**
+ * The site's form-id registry, for a reader that needs only the ids; or
+ * undefined for a site that keeps no Tally forms. A `tally` block without a
+ * registry is a mistake in the config, refused, as loadTallySettings
+ * refuses it.
+ * @param {string} [root]
+ */
+export async function loadTallyRegistry(root = process.cwd()) {
+  const config = await loadCasomoConfig(CASOMO_CONFIG_KEYS.tally, root);
+  // No `tally` block, or an empty one, is a site that keeps no forms.
+  const keepsNoForms = Object.keys(config).length === 0;
+  if (keepsNoForms) return undefined;
+  if (!config.registry) throw new Error("casomo.config.mjs needs tally.registry");
+  return formRegistry(inSite(root, config.registry));
 }
 
 /**
@@ -106,4 +122,13 @@ export function formRegistry(file) {
       await writeFile(file, `${JSON.stringify(ids, null, JSON_INDENT)}\n`);
     },
   };
+}
+
+/**
+ * A path from the site's config, resolved against the site, never against
+ * this package.
+ * @param {string} root @param {string} p
+ */
+function inSite(root, p) {
+  return path.resolve(root, p);
 }

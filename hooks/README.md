@@ -10,11 +10,12 @@ executes and can confirm, hard-block, or wave it through. All rules are generic
 | File | Role |
 |---|---|
 | `hooks.json` | Registration — which guard runs on which tool event (the harness reads this) |
-| `guard-bash.mts` | Bash-command rule registry (git + npm discipline) |
+| `guard-bash.mts` | Bash-command rule registry (git, npm and uv discipline) |
 | `guard-edit.mts` | Edit/Write rule registry (don't weaken type-checking) |
 | `lib/run.mts` | The engine — `evaluate()` (registry → verdict) + `runGuard()` (stdin → decision, the rule's reason plus its `detail`); **asks** when the input can't be read, allows what matches nothing |
 | `lib/rule.mts` | The rule model — `Rule`, `ToolInput`, `VERDICTS` |
-| `lib/shapes.mjs` | The command shapes let through on their exact form (the dependency sweep's) and the plain-path class that keeps them exact; published as `@casomoltd/tooling/hooks/shapes` for a repo's own hook |
+| `lib/command-shapes.mjs` | The command shapes matched on their exact form, the one commit form and the dependency sweep's two, built from one `cd <dir> && <action>` template, and the plain-path class that keeps them exact |
+| `lib/shapes.mjs` | Re-exports them as `@casomoltd/tooling/hooks/shapes`, for a repo's own hook |
 | `lib/commit-detail.mts` | What a commit is about to record — repo, staged files, message — for its confirmation prompt |
 | `lib/contract.mts` | The harness wire types (**vendored**) + `preToolUseDecision()` constructor |
 | `test-cases.mts` | Each guard's cases: a tool input and the verdict it should get |
@@ -54,8 +55,9 @@ commands, exactly `cd <worktree> && git commit -F <file>` and
 `cd <worktree> && git push --force-with-lease -u origin dep-sweep`, with a
 plain (or double-quoted) worktree path and a plain message file, are let
 through the commit and push rules; every other `deny` still applies. The shape
-lives in `lib/shapes.mjs`, which a repo's own auto-approving hook imports
-rather than re-spells. It trusts the path's text: any directory whose path
+lives in `lib/command-shapes.mjs`, published as
+`@casomoltd/tooling/hooks/shapes`, which a repo's own auto-approving hook
+imports rather than re-spells. It trusts the path's text: any directory whose path
 ends in `worktrees/dep-sweep-*`, a symlink to another checkout included, gets
 the unconfirmed commit, on whatever branch is checked out there.
 

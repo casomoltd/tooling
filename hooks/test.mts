@@ -48,6 +48,25 @@ it("a rule's detail that throws leaves the reason alone", () => {
   assert.equal(reasonFor(rule, {}), "Confirm.");
 });
 
+it("a rule whose match throws is no match, and says so", () => {
+  const rule: Rule = {
+    id: "broken", verdict: VERDICTS.Deny, reason: "No.",
+    matches: () => { throw new Error("bad regex"); },
+  };
+  const logged: string[] = [];
+  const write = process.stderr.write;
+  process.stderr.write = (chunk: string | Uint8Array) => {
+    logged.push(String(chunk));
+    return true;
+  };
+  try {
+    assert.equal(evaluate([rule], {}), null);
+  } finally {
+    process.stderr.write = write;
+  }
+  assert.match(logged.join(""), /broken: its match failed \(bad regex\)/);
+});
+
 /** A guard run with a piped payload, its output as strings: by its path, or
  *  by any other, a symlink to it say. */
 const run = (script: string, payload: unknown, path = join(HERE, script)) => {

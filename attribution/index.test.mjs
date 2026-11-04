@@ -4,7 +4,7 @@
 // channel into two in the analytics.
 import {strict as assert} from "node:assert";
 
-import {utmTagger} from "./tagger.mjs";
+import {UTM_PARAMS, utmTagger} from "./tagger.mjs";
 
 const tagged = utmTagger({
   sources: ["newsletter", "signature"],
@@ -35,5 +35,12 @@ assert.throws(
     // @ts-expect-error: not a listed account.
     content: "third"}),
   /utm_content third/);
+
+// The names a tag is written as, which a site reading the tags back names
+// them from.
+assert.deepEqual(UTM_PARAMS, {
+  source: "utm_source", medium: "utm_medium", content: "utm_content",
+});
+assert.ok(Object.isFrozen(UTM_PARAMS));
 
 console.log("attribution tests OK");

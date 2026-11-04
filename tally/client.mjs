@@ -7,7 +7,7 @@
  * block left out is deleted, so a push always sends the complete form.
  */
 import {z} from "zod";
-import {TALLY_ORIGIN} from "./event-reader.mjs";
+import {TALLY_ORIGIN} from "./embed.mjs";
 
 /** @import {Block, TallySettings} from "./index.d.mts" */
 

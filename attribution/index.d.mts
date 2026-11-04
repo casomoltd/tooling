@@ -1,3 +1,11 @@
+/** The query parameters a tag is written as, for a site that reads the tags
+ *  back (a contact form keeping them) to name them from. */
+export declare const UTM_PARAMS: {
+  readonly source: "utm_source";
+  readonly medium: "utm_medium";
+  readonly content: "utm_content";
+};
+
 /** The values a site's tagged links may carry, by parameter. */
 export interface UtmLists<S extends string, M extends string, C extends string> {
   /** Where the visit came from. */

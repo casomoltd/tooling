@@ -11,6 +11,15 @@
  */
 const SITE = "https://casomoltd.com";
 
+/** The company's LinkedIn pages, by the `utm_content` value a link to each
+ *  carries: the company page, and casomo.co.uk's consumer showcase. A site
+ *  links its own; a person's profile stays with the site.
+ *  @type {import("./index.d.mts").CasomoLinkedIn} */
+export const LINKEDIN = Object.freeze({
+  casomoltd: "https://www.linkedin.com/company/111967567/",
+  showcase: "https://www.linkedin.com/showcase/146767658/",
+});
+
 /** @type {import("./index.d.mts").CasomoOrganization} */
 export const CASOMO_ORGANIZATION = Object.freeze({
   "@type": "Organization",
@@ -24,7 +33,7 @@ export const CASOMO_ORGANIZATION = Object.freeze({
   sameAs: Object.freeze([
     "https://casomo.co.uk",
     "https://www.facebook.com/casomouk",
-    "https://www.linkedin.com/company/111967567/",
+    LINKEDIN.casomoltd,
     // Where the company's open-source libraries are developed and published.
     "https://github.com/casomoltd",
     "https://www.npmjs.com/org/casomoltd",

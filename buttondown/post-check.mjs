@@ -12,7 +12,7 @@ import {
 } from "../bin/check-personal-data.mjs";
 import {
   CASOMO_CONFIG_KEYS, loadCasomoConfig, loadConfig,
-} from "../bin/utils.mjs";
+} from "../bin/casomo-config.mjs";
 import {
   DEFAULT_MAX_GRADE, DEFAULT_WORD_SUBS, scoreText,
 } from "../readability/index.mjs";

@@ -10,6 +10,7 @@ import {
   COMPANY_COLOPHON,
   COMPANY_REGISTER,
   ICO_REGISTER,
+  LINKEDIN,
   REGISTERED_OFFICE,
   tagged,
 } from "./index.mjs";
@@ -77,11 +78,22 @@ assert.equal(
 // publishes is built from these, so a renamed value would split one channel
 // into two in the analytics.
 assert.deepEqual(CASOMO_UTM, {
-  sources: ["casomo", "signature"],
-  media: ["email"],
+  sources: ["casomo", "signature", "blog"],
+  media: ["email", "footer"],
   content: ["showcase", "profile", "casomoltd"],
 });
 assert.equal(tagged("https://casomoltd.com/", {source: "signature", medium: "email"}),
   "https://casomoltd.com/?utm_source=signature&utm_medium=email");
+
+// The company's LinkedIn pages, one per site's brand; the company page is
+// the one the organisation's sameAs names.
+assert.deepEqual(LINKEDIN, {
+  casomoltd: "https://www.linkedin.com/company/111967567/",
+  showcase: "https://www.linkedin.com/showcase/146767658/",
+});
+assert.ok(Object.isFrozen(LINKEDIN));
+assert.ok(CASOMO_ORGANIZATION.sameAs.includes(LINKEDIN.casomoltd));
+assert.deepEqual(Object.keys(LINKEDIN).sort(),
+  CASOMO_UTM.content.filter((c) => c !== "profile").sort());
 
 console.log("identity: ok");

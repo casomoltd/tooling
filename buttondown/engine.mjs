@@ -38,7 +38,7 @@ import {mkdir, readdir, readFile, writeFile} from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import {pathToFileURL} from "node:url";
-import {loadCasomoConfig} from "../bin/utils.mjs";
+import {CASOMO_CONFIG_KEYS, loadCasomoConfig} from "../bin/casomo-config.mjs";
 import {
   findBlock, readToken, stripComments, TOKENS_END,
   tokensBlock as tokenLines,
@@ -140,7 +140,7 @@ const EMIT_MIN_LENGTH = 200;
  *  or the tokens file is not named, since either would otherwise be
  *  guessed. */
 export async function loadSettings(root = process.cwd()) {
-  const config = await loadCasomoConfig("buttondown", root);
+  const config = await loadCasomoConfig(CASOMO_CONFIG_KEYS.buttondown, root);
   const {id, username} = config.newsletter ?? {};
   if (!id || !username) {
     throw new Error(

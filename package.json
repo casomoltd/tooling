@@ -23,21 +23,26 @@
     "tokens/",
     "attribution/",
     "tally/",
+    "signature/",
     "hooks/lib/shapes.mjs",
+    "hooks/lib/command-shapes.mjs",
     "hooks/lib/shapes.d.mts",
     "!hooks/README.md",
     "README.md",
     "!**/*.test.mjs",
     "!identity/tsconfig.json",
     "!tally/tsconfig.json",
+    "!tally/tsconfig.browser.json",
+    "!bin/tsconfig.json",
     "!tally/fixture.mjs",
-    "!attribution/tsconfig.json"
+    "!attribution/tsconfig.json",
+    "!signature/tsconfig.json"
   ],
   "scripts": {
     "check": "node bin/check-gates.mjs && node bin/verify-pack.mjs && npm run check:private-refs && npm run check:personal-data && npm run lint && npm run typecheck && npm run test && npm run lint:md",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit -p hooks/tsconfig.json && tsc --noEmit -p identity/tsconfig.json && tsc --noEmit -p tally/tsconfig.json && tsc --noEmit -p attribution/tsconfig.json",
-    "test": "node hooks/test.mts && node hooks/commit-detail.test.mts && node bin/commit-msg.test.mjs && node bin/check-gates.test.mjs && node bin/check-listed-files.test.mjs && node bin/check-personal-data.test.mjs && node bin/check-routes.test.mjs && node bin/casomo-config.test.mjs && node bin/buttondown.test.mjs && node buttondown/post-check.test.mjs && node commitlint/index.test.mjs && node readability/index.test.mjs && node identity/index.test.mjs && node tally/translator.test.mjs && node tally/compare.test.mjs && node tally/event-reader.test.mjs && node attribution/index.test.mjs && node bin/exports.test.mjs",
+    "typecheck": "tsc --noEmit -p hooks/tsconfig.json && tsc --noEmit -p bin/tsconfig.json && tsc --noEmit -p identity/tsconfig.json && tsc --noEmit -p tally/tsconfig.json && tsc --noEmit -p tally/tsconfig.browser.json && tsc --noEmit -p attribution/tsconfig.json && tsc --noEmit -p signature/tsconfig.json",
+    "test": "node hooks/test.mts && node hooks/commit-detail.test.mts && node bin/commit-msg.test.mjs && node bin/check-gates.test.mjs && node bin/check-listed-files.test.mjs && node bin/check-personal-data.test.mjs && node bin/check-routes.test.mjs && node bin/casomo-config.test.mjs && node bin/buttondown.test.mjs && node buttondown/post-check.test.mjs && node commitlint/index.test.mjs && node readability/index.test.mjs && node identity/index.test.mjs && node tally/translator.test.mjs && node tally/compare.test.mjs && node tally/embed.test.mjs && node tally/frame.test.mjs && node tally/frame.dom.test.mjs && node attribution/index.test.mjs && node signature/rules.test.mjs && node bin/exports.test.mjs",
     "lint:md": "remark --frail --quiet --no-stdout --rc-path bin/skills-lint.config.mjs skills agents docs",
     "build": "echo 'no-op: source-only repo, nothing to build'",
     "prepare": "husky || true",
@@ -80,6 +85,14 @@
     "./tally/events": {
       "types": "./tally/events.d.mts",
       "default": "./tally/events.mjs"
+    },
+    "./signature": {
+      "types": "./signature/index.d.mts",
+      "default": "./signature/index.mjs"
+    },
+    "./tally/frame": {
+      "types": "./tally/frame.d.mts",
+      "default": "./tally/frame.mjs"
     },
     "./hooks/shapes": {
       "types": "./hooks/lib/shapes.d.mts",
@@ -126,13 +139,31 @@
     "eslint-plugin-sonarjs": ">=3",
     "jscpd": ">=4",
     "knip": ">=5",
+    "next": ">=16",
+    "react": ">=19.2",
     "typescript": ">=5"
   },
+  "peerDependenciesMeta": {
+    "next": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    }
+  },
   "devDependencies": {
+    "@types/jsdom": "^21.1.7",
     "@types/node": "^26.0.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "eslint": "^9.39.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-sonarjs": "^4.2.2",
     "husky": "^9.1.7",
+    "jsdom": "^26.1.0",
+    "next": "^16.4.5",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
     "remark-cli": "^12.0.1",
     "remark-frontmatter": "^5.0.0",
     "remark-lint-frontmatter-schema": "^3.15.4",

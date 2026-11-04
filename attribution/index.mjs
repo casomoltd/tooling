@@ -3,4 +3,4 @@
  * where the typecheck reads it against the declaration here; beside a .d.mts,
  * TypeScript would skip it.
  */
-export {utmTagger} from "./tagger.mjs";
+export {UTM_PARAMS, utmTagger} from "./tagger.mjs";

@@ -3,7 +3,18 @@
 // it says of a commit in that form.
 import {strict as assert} from "node:assert";
 import {describe, it} from "node:test";
-import {commitDetail, parseCommit} from "./lib/commit-detail.mts";
+import {commitDetail} from "./lib/commit-detail.mts";
+import * as shapes from "./lib/command-shapes.mjs";
+
+const {COMMIT_FORM, matchCommitForm} = shapes;
+
+// The published declaration (shapes.d.mts) held to the code: the typecheck
+// fails here if either changes without the other.
+const declared: typeof import("./lib/shapes.d.mts") = shapes;
+
+it("publishes the shapes it declares", () => {
+  assert.equal(declared, shapes);
+});
 
 const COMMIT = {repo: "/r/app", messageFile: "/msgs/m.txt"};
 
@@ -11,9 +22,9 @@ const COMMIT = {repo: "/r/app", messageFile: "/msgs/m.txt"};
  *  text, as `git diff --cached --name-status` would print it. */
 const staged = (files: string) => () => files;
 
-describe("parseCommit", () => {
+describe("matchCommitForm", () => {
   it("reads the form's repo and message file", () => {
-    assert.deepEqual(parseCommit("cd /r/app && git commit -F /msgs/m.txt"), COMMIT);
+    assert.deepEqual(matchCommitForm("cd /r/app && git commit -F /msgs/m.txt"), COMMIT);
   });
 
   for (const command of [
@@ -30,9 +41,18 @@ describe("parseCommit", () => {
     "cd /r$(touch${IFS}x) && git commit -F /m",
   ]) {
     it(`reads no commit from: ${command}`, () => {
-      assert.equal(parseCommit(command), undefined);
+      assert.equal(matchCommitForm(command), undefined);
     });
   }
+});
+
+describe("the form as written to a person", () => {
+  it("is the form the prompt reads, its placeholders filled", () => {
+    const filled = COMMIT_FORM
+      .replace("<absolute repo path>", "/r/app")
+      .replace("<absolute message file>", "/msgs/m.txt");
+    assert.deepEqual(matchCommitForm(filled), COMMIT);
+  });
 });
 
 describe("commitDetail", () => {

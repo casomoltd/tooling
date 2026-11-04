@@ -37,7 +37,8 @@
 import {execFileSync} from "node:child_process";
 import {existsSync, readFileSync, statSync} from "node:fs";
 import path from "node:path";
-import {CASOMO_CONFIG_KEYS, isEntryPoint, loadCasomoConfig} from "./utils.mjs";
+import {CASOMO_CONFIG_KEYS, loadCasomoConfig} from "./casomo-config.mjs";
+import {isEntryPoint} from "./utils.mjs";
 
 /** Addresses in every repo's own tooling that name no person. */
 const ALLOWED_EMAIL = [

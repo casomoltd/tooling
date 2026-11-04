@@ -12,8 +12,8 @@ export const VERDICTS = {Ask: "ask", Deny: "deny"} as const;
 
 export type Verdict = (typeof VERDICTS)[keyof typeof VERDICTS];
 
-/** A single guard rule. `matches` must be pure — a throw is treated as a
- * non-match. */
+/** A single guard rule. `matches` must be pure — a throw is logged and
+ * treated as a non-match. */
 export interface Rule {
   id: string;
   verdict: Verdict;

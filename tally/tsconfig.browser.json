@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "lib": ["esnext", "dom"],
+    "types": ["node", "react"]
+  },
+  "include": ["frame*.mjs", "frame.d.mts"],
+  "exclude": []
+}

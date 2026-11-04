@@ -220,6 +220,11 @@ the shared parts from `@casomoltd/tooling/buttondown` and keeps only its own:
   register's number, or on the text where there's none, and every URL is marked
   with a `colophon=<line>-start|run<n>|num` query for the skin to key on (see
   *Line breaks in the footer* below).
+- **`colophonHtml(colophon, link)`** is the same colophon as an email's small
+  print, its lines joined by `<br>`: a register's number linked to the register,
+  and a line with no register linked whole to its source, so a mail app doesn't
+  turn a bare address into a map link in its own colour. `link(href, text)`
+  draws each link in the site's style.
 
 ## Writing a skin
 

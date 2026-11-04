@@ -23,7 +23,7 @@
 
 import {parseArgs} from "node:util";
 import path from "node:path";
-import {loadConfig} from "./utils.mjs";
+import {loadConfig} from "./casomo-config.mjs";
 import {
   MIN_SCORABLE_WORDS,
   discoverSlugs,

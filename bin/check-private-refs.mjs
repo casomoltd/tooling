@@ -38,7 +38,7 @@
 import {execFileSync} from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import {CASOMO_CONFIG_KEYS, loadCasomoConfig} from "./utils.mjs";
+import {CASOMO_CONFIG_KEYS, loadCasomoConfig} from "./casomo-config.mjs";
 
 /**
  * Hosted trackers whose links are private by default.

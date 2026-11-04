@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// PreToolUse guard for Bash commands: generic git + npm discipline that no
+// PreToolUse guard for Bash commands: generic git, npm and uv discipline that no
 // linter or CI step catches because it happens at the command line, not in a
 // file. Verdicts:
 //   ask  -> force a user confirmation dialog (push is never automatic)
@@ -12,10 +12,10 @@
 // mention inside an argument is caught too, which errs towards caution. git
 // takes no option before its verb (`cd <dir> && git <verb>` instead), since
 // `git -C <dir> push` would put a word between the two a rule looks for.
-import {COMMIT_FORM, commitDetail, parseCommit} from "./lib/commit-detail.mts";
+import {commitDetail} from "./lib/commit-detail.mts";
 import {isEntryPoint, runGuard} from "./lib/run.mts";
 import {VERDICTS, type Rule, type ToolInput} from "./lib/rule.mts";
-import {isSweepCommand} from "./lib/shapes.mjs";
+import {COMMIT_FORM, isSweepCommand, matchCommitForm} from "./lib/command-shapes.mjs";
 
 /** `git` as a word of its own: not the end of `.git` or `my-git`. */
 const GIT = String.raw`(?<![\w.-])git`;
@@ -34,29 +34,6 @@ const NPM_INSTALL = `(?:${[
   "isnt", "isnta", "isntal", "isntall", "add", "it", "install-test",
 ].join("|")})`;
 
-/** The command's text, a line continuation read as the space it stands for. */
-const text = (input: ToolInput): string =>
-  String(input.command ?? "").replaceAll(/\\\r?\n/g, " ");
-
-/** An unattended dependency sweep's own commit and branch push
- *  (lib/shapes.mjs): the confirmations step aside for them and the commit
- *  form allows them; every other `deny` stays absolute. */
-const isSweep = (input: ToolInput): boolean => isSweepCommand(text(input));
-
-/** A short flag with this letter, alone, bundled or quoted: `-f`, `-uf`,
- *  `'-f'`. */
-const shortFlag = (letter: string): string =>
-  String.raw`\s['"]?-[A-Za-z]*${letter}[A-Za-z]*\b`;
-
-/** A word, quoted or not, and nothing more of it after. */
-const word = (pattern: string): string =>
-  String.raw`['"]?${pattern}['"]?(?![\w-])`;
-
-/** Whether a command's text runs git with this verb, then these words
- *  somewhere after it on the same line. */
-const gitRuns = (input: ToolInput, verb: string, after = ""): boolean =>
-  new RegExp(String.raw`${GIT}\s+${verb}(?![\w-])${after}`).test(text(input));
-
 // git history + remote safety.
 const gitRules = [
   {
@@ -68,7 +45,8 @@ const gitRules = [
       + "package's docs/commit.md).",
     // The one form is the commit whose prompt can show what it holds; the
     // sweep's own commit is the other form allowed.
-    matches: (i) => gitRuns(i, "commit") && !parseCommit(text(i)) && !isSweep(i),
+    matches: (i) =>
+      gitRuns(i, "commit") && !matchCommitForm(text(i)) && !isSweep(i),
   },
   {
     id: "git-commit-confirm",
@@ -78,9 +56,9 @@ const gitRules = [
       "confirm this commit is intended before it lands.",
     // The command alone shows neither what the commit holds nor its message,
     // so the detail shows both.
-    matches: (i) => !isSweep(i) && parseCommit(text(i)) !== undefined,
+    matches: (i) => !isSweep(i) && matchCommitForm(text(i)) !== undefined,
     detail: (i) => {
-      const commit = parseCommit(text(i));
+      const commit = matchCommitForm(text(i));
       if (!commit) throw new Error("not a commit in the form");
       return commitDetail(commit);
     },
@@ -142,16 +120,6 @@ const gitRules = [
   },
 ] as const satisfies readonly Rule[];
 
-/** Whether a command's text runs `npm version` or `uv version` naming one of
- *  these bump levels, after any flags. */
-const bumps = (input: ToolInput, levels: string): boolean => {
-  const c = text(input);
-  const level = word(levels);
-  return new RegExp(String.raw`\bnpm\b[^\n]*\bversion(?:${FLAG})*\s+${level}`).test(c)
-    || new RegExp(String.raw`\buv\b[^\n]*\bversion\b[^\n]*--bump[\s=]+${level}`)
-      .test(c);
-};
-
 // npm/uv package + version discipline.
 const packageRules = [
   {
@@ -195,6 +163,45 @@ export const RULES = [...gitRules, ...packageRules] as const;
 
 /** The id of a Bash rule, for a test case to name. */
 export type BashRuleId = (typeof RULES)[number]["id"];
+
+/** The command's text, a line continuation read as the space it stands for. */
+function text(input: ToolInput): string {
+  return String(input.command ?? "").replaceAll(/\\\r?\n/g, " ");
+}
+
+/** An unattended dependency sweep's own commit and branch push
+ *  (lib/command-shapes.mjs): the confirmations step aside for them and the
+ *  commit form allows them; every other `deny` stays absolute. */
+function isSweep(input: ToolInput): boolean {
+  return isSweepCommand(text(input));
+}
+
+/** A short flag with this letter, alone, bundled or quoted: `-f`, `-uf`,
+ *  `'-f'`. */
+function shortFlag(letter: string): string {
+  return String.raw`\s['"]?-[A-Za-z]*${letter}[A-Za-z]*\b`;
+}
+
+/** A word, quoted or not, and nothing more of it after. */
+function word(pattern: string): string {
+  return String.raw`['"]?${pattern}['"]?(?![\w-])`;
+}
+
+/** Whether a command's text runs git with this verb, then these words
+ *  somewhere after it on the same line. */
+function gitRuns(input: ToolInput, verb: string, after = ""): boolean {
+  return new RegExp(String.raw`${GIT}\s+${verb}(?![\w-])${after}`).test(text(input));
+}
+
+/** Whether a command's text runs `npm version` or `uv version` naming one of
+ *  these bump levels, after any flags. */
+function bumps(input: ToolInput, levels: string): boolean {
+  const c = text(input);
+  const level = word(levels);
+  return new RegExp(String.raw`\bnpm\b[^\n]*\bversion(?:${FLAG})*\s+${level}`).test(c)
+    || new RegExp(String.raw`\buv\b[^\n]*\bversion\b[^\n]*--bump[\s=]+${level}`)
+      .test(c);
+}
 
 if (isEntryPoint(import.meta.url)) {
   runGuard(RULES);

@@ -153,3 +153,11 @@ export interface ColophonLink {
 export function colophonLinks(
   colophon: readonly ColophonLine[],
 ): ColophonLink[];
+
+/** A colophon as an email's small print, its lines joined by `<br>`: a
+ *  register's number linked to the register, a line with no register
+ *  linked whole to its source. `link` draws a link in the site's style. */
+export function colophonHtml(
+  colophon: readonly ColophonLine[],
+  link: (href: string, text: string) => string,
+): string;

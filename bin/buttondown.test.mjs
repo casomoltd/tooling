@@ -621,10 +621,31 @@ assert.throws(() => createEmailBlocks(), /createEmailBlocks needs/);
     /isn't http/);
 }
 
+// The email colophon: a register's number is the link, a line with no
+// register links whole, each line ends on its full stop.
+{
+  const {colophonHtml} = await import("../buttondown/index.mjs");
+  const link = (href, text) => `<a href="${href}">${text}</a>`;
+  assert.equal(colophonHtml([
+    {text: "Registered in England and Wales, company",
+      register: {number: "123", url: "https://example.com/company/123"}},
+    {text: "Registered office: 1 Example Street", source: "https://example.com/c"},
+  ], link),
+  'Registered in England and Wales, company '
+    + '<a href="https://example.com/company/123">123</a>.<br>'
+    + '<a href="https://example.com/c">Registered office: 1 Example Street</a>.');
+  assert.throws(() => colophonHtml([{text: "nowhere"}], link), /links nowhere/);
+  assert.throws(() => colophonHtml([{text: "Stop.", source: "https://e.com"}], link),
+    /leave off the full stop/);
+  assert.throws(
+    () => colophonHtml([{text: "Mail", source: "mailto:a@example.com"}], link),
+    /isn't http/);
+}
+
 // The public entry exports exactly what index.d.mts declares.
 assert.deepEqual(Object.keys(await import("../buttondown/index.mjs")).sort(),
   ["EMAIL_CHROME_HIDES", "TABLE", "WEB_CHROME_HIDES", "buildPayload",
-    "colophonLinks", "composeWebSkin",
+    "colophonHtml", "colophonLinks", "composeWebSkin",
     "createEmailBlocks", "emailBaseCss", "loadSettings", "tokenReader"]);
 
 console.log("buttondown tests OK");

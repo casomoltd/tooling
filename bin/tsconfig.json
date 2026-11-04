@@ -1,0 +1,8 @@
+{
+  "extends": "../hooks/tsconfig.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true
+  },
+  "include": ["check-routes.mjs"]
+}

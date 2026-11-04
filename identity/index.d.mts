@@ -42,8 +42,8 @@ export declare const COMPANY_COLOPHON: readonly ColophonLine[];
 /** The values Casomo's tagged links carry: a link is tagged only where the
  *  referrer goes missing, as from an email. */
 export declare const CASOMO_UTM: {
-  readonly sources: readonly ["casomo", "signature"];
-  readonly media: readonly ["email"];
+  readonly sources: readonly ["casomo", "signature", "blog"];
+  readonly media: readonly ["email", "footer"];
   readonly content: readonly ["showcase", "profile", "casomoltd"];
 };
 
@@ -54,3 +54,12 @@ export declare const tagged: (url: string, tags: UtmTags<
   (typeof CASOMO_UTM)["media"][number],
   (typeof CASOMO_UTM)["content"][number]
 >) => string;
+
+/** The company's LinkedIn pages, by the `utm_content` value a link to each
+ *  carries: every content value but a person's profile, which stays with
+ *  the site. A content value with no page here fails the typecheck. */
+export type CasomoLinkedIn = Readonly<Record<
+  Exclude<(typeof CASOMO_UTM)["content"][number], "profile">, string
+>>;
+
+export declare const LINKEDIN: CasomoLinkedIn;

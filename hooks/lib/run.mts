@@ -37,15 +37,16 @@ const ask = (reason: string): void => {
 
 // Return the highest-severity rule that matches, or null. On a severity tie the
 // earliest rule wins (strict `>`), so registry order is the tie-break. A rule
-// whose `matches` throws counts as a non-match — one broken predicate never
-// blocks a tool.
+// whose `matches` throws counts as a non-match, logged so the broken rule is
+// seen — one broken predicate never blocks a tool.
 export function evaluate(rules: readonly Rule[], input: ToolInput): Rule | null {
   let best: Rule | null = null;
   for (const rule of rules) {
     let hit = false;
     try {
       hit = rule.matches(input);
-    } catch {
+    } catch (err) {
+      log(`${rule.id}: its match failed (${err instanceof Error ? err.message : err})`);
       hit = false;
     }
     if (!hit) continue;

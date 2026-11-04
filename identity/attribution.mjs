@@ -9,9 +9,10 @@ import {utmTagger} from "../attribution/tagger.mjs";
 
 /** @type {typeof Identity.CASOMO_UTM} */
 export const CASOMO_UTM = Object.freeze({
-  // The newsletter, as Buttondown tags it, and the email signature.
-  sources: Object.freeze(/** @type {const} */ (["casomo", "signature"])),
-  media: Object.freeze(/** @type {const} */ (["email"])),
+  // The newsletter, as Buttondown tags it, the email signature, and a
+  // site's blog, whose footer links back to the site.
+  sources: Object.freeze(/** @type {const} */ (["casomo", "signature", "blog"])),
+  media: Object.freeze(/** @type {const} */ (["email", "footer"])),
   // LinkedIn's three accounts.
   content: Object.freeze(/** @type {const} */ (["showcase", "profile", "casomoltd"])),
 });

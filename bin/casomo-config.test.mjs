@@ -5,7 +5,7 @@ import {strict as assert} from "node:assert";
 import {mkdtempSync, writeFileSync} from "node:fs";
 import {tmpdir} from "node:os";
 import {join} from "node:path";
-import {loadCasomoConfig} from "./utils.mjs";
+import {loadCasomoConfig} from "./casomo-config.mjs";
 
 const repo = (files) => {
   const dir = mkdtempSync(join(tmpdir(), "casomo-config-"));

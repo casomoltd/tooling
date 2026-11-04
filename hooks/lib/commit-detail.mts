@@ -1,13 +1,11 @@
 // What a commit is about to record, for its confirmation prompt: the repo it
 // lands in, the files staged and the message, which the command alone
-// doesn't show. A commit is made in one form, which this matches whole
-// (the tooling package's docs/commit.md § The command):
-//
-//   cd <absolute repo path> && git commit -F <absolute message file>
+// doesn't show. The commit is one in the one form (`COMMIT_FORM` in
+// command-shapes.mjs; the tooling package's docs/commit.md § The command).
 import {execFileSync} from "node:child_process";
 import {readFileSync} from "node:fs";
 import {basename} from "node:path";
-import {PLAIN_PATH_CHAR} from "./shapes.mjs";
+import type {FormCommit} from "./shapes.d.mts";
 
 /** Runs git in a repo and returns its output. */
 export type Git = (repo: string, args: readonly string[]) => string;
@@ -15,31 +13,9 @@ export type Git = (repo: string, args: readonly string[]) => string;
 /** Reads a file's text. */
 export type ReadText = (file: string) => string;
 
-/** A commit in the form: the repo it runs in and its message file. */
-export interface FormCommit {
-  repo: string;
-  messageFile: string;
-}
-
-/** The form as it is written to a person. */
-export const COMMIT_FORM =
-  "cd <absolute repo path> && git commit -F <absolute message file>";
-
-/** The form, whole and single-spaced: each path absolute and plain, so it can
- *  carry no second command. */
-const FORM = new RegExp(
-  String.raw`^cd (/${PLAIN_PATH_CHAR}*) && git commit -F (/${PLAIN_PATH_CHAR}*)$`,
-);
-
 /** How long a git read may take: the hook wraps every Bash call, so a git
  *  stuck on a lock must not hold the prompt. */
 const GIT_TIMEOUT_MS = 5_000;
-
-/** A command in the form, else undefined. */
-export function parseCommit(command: string): FormCommit | undefined {
-  const [, repo, messageFile] = FORM.exec(command.trim()) ?? [];
-  return repo && messageFile ? {repo, messageFile} : undefined;
-}
 
 /** The prompt's account of a commit in the form. A part that can't be read
  *  says so, and the rest still show. */
