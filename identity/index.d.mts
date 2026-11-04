@@ -9,7 +9,7 @@ export interface CasomoOrganization {
   readonly "@type": "Organization";
   readonly "@id": string;
   readonly name: string;
-  readonly url: string;
+  readonly url: `https://${string}`;
   readonly logo: string;
   readonly sameAs: readonly string[];
 }
@@ -19,7 +19,7 @@ export declare const CASOMO_ORGANIZATION: CasomoOrganization;
 /** An entry on a public register: its number, and the page that shows it. */
 export interface Registration {
   readonly number: string;
-  readonly url: string;
+  readonly url: `https://${string}`;
 }
 
 /** The company's Companies House record. */

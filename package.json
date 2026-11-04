@@ -24,9 +24,7 @@
     "attribution/",
     "tally/",
     "signature/",
-    "hooks/lib/shapes.mjs",
-    "hooks/lib/command-shapes.mjs",
-    "hooks/lib/shapes.d.mts",
+    "retention/",
     "!hooks/README.md",
     "README.md",
     "!**/*.test.mjs",
@@ -36,13 +34,14 @@
     "!bin/tsconfig.json",
     "!tally/fixture.mjs",
     "!attribution/tsconfig.json",
-    "!signature/tsconfig.json"
+    "!signature/tsconfig.json",
+    "!retention/tsconfig.json"
   ],
   "scripts": {
     "check": "node bin/check-gates.mjs && node bin/verify-pack.mjs && npm run check:private-refs && npm run check:personal-data && npm run lint && npm run typecheck && npm run test && npm run lint:md",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit -p hooks/tsconfig.json && tsc --noEmit -p bin/tsconfig.json && tsc --noEmit -p identity/tsconfig.json && tsc --noEmit -p tally/tsconfig.json && tsc --noEmit -p tally/tsconfig.browser.json && tsc --noEmit -p attribution/tsconfig.json && tsc --noEmit -p signature/tsconfig.json",
-    "test": "node hooks/test.mts && node hooks/commit-detail.test.mts && node bin/commit-msg.test.mjs && node bin/check-gates.test.mjs && node bin/check-listed-files.test.mjs && node bin/check-personal-data.test.mjs && node bin/check-routes.test.mjs && node bin/casomo-config.test.mjs && node bin/buttondown.test.mjs && node buttondown/post-check.test.mjs && node commitlint/index.test.mjs && node readability/index.test.mjs && node identity/index.test.mjs && node tally/translator.test.mjs && node tally/compare.test.mjs && node tally/embed.test.mjs && node tally/frame.test.mjs && node tally/frame.dom.test.mjs && node attribution/index.test.mjs && node signature/rules.test.mjs && node bin/exports.test.mjs",
+    "typecheck": "tsc --noEmit -p hooks/tsconfig.json && tsc --noEmit -p bin/tsconfig.json && tsc --noEmit -p identity/tsconfig.json && tsc --noEmit -p tally/tsconfig.json && tsc --noEmit -p tally/tsconfig.browser.json && tsc --noEmit -p attribution/tsconfig.json && tsc --noEmit -p signature/tsconfig.json && tsc --noEmit -p retention/tsconfig.json",
+    "test": "node hooks/test.mts && node hooks/commit-detail.test.mts && node bin/commit-msg.test.mjs && node bin/check-gates.test.mjs && node bin/check-listed-files.test.mjs && node bin/check-personal-data.test.mjs && node bin/check-routes.test.mjs && node bin/casomo-config.test.mjs && node bin/buttondown.test.mjs && node buttondown/post-check.test.mjs && node commitlint/index.test.mjs && node readability/index.test.mjs && node identity/index.test.mjs && node tally/translator.test.mjs && node tally/compare.test.mjs && node tally/embed.test.mjs && node tally/frame.test.mjs && node tally/frame.dom.test.mjs && node attribution/index.test.mjs && node signature/rules.test.mjs && node retention/periods.test.mjs && node bin/exports.test.mjs",
     "lint:md": "remark --frail --quiet --no-stdout --rc-path bin/skills-lint.config.mjs skills agents docs",
     "build": "echo 'no-op: source-only repo, nothing to build'",
     "prepare": "husky || true",
@@ -80,11 +79,11 @@
     },
     "./tally/paths": {
       "types": "./tally/paths.d.mts",
-      "default": "./tally/paths.mjs"
+      "default": "./tally/address.mjs"
     },
     "./tally/events": {
       "types": "./tally/events.d.mts",
-      "default": "./tally/events.mjs"
+      "default": "./tally/embed.mjs"
     },
     "./signature": {
       "types": "./signature/index.d.mts",
@@ -92,15 +91,15 @@
     },
     "./tally/frame": {
       "types": "./tally/frame.d.mts",
-      "default": "./tally/frame.mjs"
-    },
-    "./hooks/shapes": {
-      "types": "./hooks/lib/shapes.d.mts",
-      "default": "./hooks/lib/shapes.mjs"
+      "default": "./tally/frame-component.mjs"
     },
     "./attribution": {
       "types": "./attribution/index.d.mts",
-      "default": "./attribution/index.mjs"
+      "default": "./attribution/tagger.mjs"
+    },
+    "./retention": {
+      "types": "./retention/index.d.mts",
+      "default": "./retention/periods.mjs"
     }
   },
   "bin": {

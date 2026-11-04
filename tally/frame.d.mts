@@ -1,9 +1,16 @@
 import type {ReactNode} from "react";
-import type {TallyEvent} from "./events.d.mts";
 
 /** The frame's starting height, until the widget sizes it to the form; a
  *  host reserves the same space so its page doesn't jump as it loads. */
 export declare const TALLY_FRAME_HEIGHT: number;
+
+/** A page's handler for each event a form posts, any of them left out. */
+export interface TallyHandlers {
+  /** The form was submitted. */
+  submitted?: () => void;
+  /** The reader reached this page of the form, counted from 1. */
+  pageView?: (page: number) => void;
+}
 
 /** What a page tells the frame. */
 export interface TallyFrameProps {
@@ -17,10 +24,10 @@ export interface TallyFrameProps {
   hidden: ConstructorParameters<typeof URLSearchParams>[0] | undefined;
   /** The starting height; {@link TALLY_FRAME_HEIGHT} unless given. */
   height?: number;
-  /** Each page view and the submit, read down; never the answers. The frame
-   *  always calls the latest handler it was given, so a host may pass it
-   *  inline. */
-  onEvent?: (event: TallyEvent) => void;
+  /** What the page does on the form's events; never sees the answers. The
+   *  frame always calls the latest handlers it was given, so a host may pass
+   *  them inline. */
+  on?: TallyHandlers;
   /** The link to the form's own page, drawn in the site's style, where the
    *  frame can't load. */
   fallback?: (href: string) => ReactNode;

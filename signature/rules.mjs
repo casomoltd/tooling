@@ -6,9 +6,8 @@
  * file, its images' folder, its links); the rules live here, so two sites'
  * signatures are held to the same ones.
  *
- * Plain functions with no test framework, so any runner can use them. The
- * code lives here, where the typecheck reads it; beside index.d.mts,
- * TypeScript would skip it.
+ * Plain functions with no test framework, so any runner can use them. Its
+ * types are index.d.mts.
  */
 
 /** @import * as Signature from "./index.d.mts" */

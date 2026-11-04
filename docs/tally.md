@@ -38,11 +38,12 @@ model's every field is documented in its [types](../tally/index.d.mts).
   (`hidden` undefined) and draws the frame at that height until Tally's widget
   sizes it, loads the widget again after a client-side navigation, offers the
   form's own page where the script is blocked or the reader has none
-  (`fallback` draws that link in the site's style), and passes each page view
-  and the submit to `onEvent`. `useBrowserValue(read)` reads a value only the
-  browser knows, such as how the reader arrived, for `hidden`: undefined on the
-  server and while the page hydrates. It needs `react` and `next`, optional
-  peers that only a site importing it installs.
+  (`fallback` draws that link in the site's style), and calls the page's `on`
+  handler for each event: `submitted()` and `pageView(page)`.
+  `useBrowserValue(read)` reads a value only the browser knows, such as how the
+  reader arrived, for `hidden`: undefined on the server and while the page
+  hydrates. It needs `react` and `next`, optional peers that only a site
+  importing it installs.
 
 ## A site's settings
 

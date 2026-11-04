@@ -5,9 +5,8 @@
  * and the form's events read down to what a page may act on.
  *
  * Plain JS (`createElement`, no JSX), so the package keeps no build step; a
- * site's bundler compiles it with the rest of its client code. The code lives
- * here, where the typecheck reads it; beside frame.d.mts, TypeScript would
- * skip it.
+ * site's bundler compiles it with the rest of its client code. Its types are
+ * frame.d.mts.
  */
 import {
   createElement as h, Fragment, useEffect, useEffectEvent, useState,
@@ -15,7 +14,8 @@ import {
 } from "react";
 import NextScript from "next/script.js";
 import {
-  readTallyEvent, TALLY_ORIGIN, TALLY_WIDGET_URL, tallyEmbedSrc, tallyFormHref,
+  readTallyEvent, TALLY_EVENTS, TALLY_ORIGIN, TALLY_WIDGET_URL, tallyEmbedSrc,
+  tallyFormHref,
 } from "./embed.mjs";
 
 /** @import {ReactNode} from "react" */
@@ -36,20 +36,31 @@ const Script = /** @type {typeof NextScript.default} */ (
  * A Tally form in the page. `hidden` takes any shape `URLSearchParams` does,
  * or undefined while the page doesn't yet know it: the frame then holds its
  * space and offers a reader without scripts the form's own page, which is
- * what the server renders. `onEvent` hears each page view and the submit,
- * never the answers, and the frame always calls the latest one it was given;
+ * what the server renders. `on` hears each page view and the submit, never
+ * the answers, and the frame always calls the latest handlers it was given;
  * `fallback` draws the link to the form's own page in the site's style.
  * @param {Readonly<TallyFrameProps>} props
  */
 export function TallyFrame({
-  formId, title, hidden, height = TALLY_FRAME_HEIGHT, onEvent,
+  formId, title, hidden, height = TALLY_FRAME_HEIGHT, on,
   fallback = openOnTally,
 }) {
   const [blocked, setBlocked] = useState(false);
-  // The latest handler, so the listener stays put across renders and a host
-  // may pass it inline.
+  // The latest handlers, so the listener stays put across renders and a host
+  // may pass them inline.
   const onTally = useEffectEvent(
-    /** @param {TallyEvent} event */ (event) => onEvent?.(event));
+    /** @param {TallyEvent} event */ (event) => {
+      switch (event.name) {
+        case TALLY_EVENTS.SUBMITTED: on?.submitted?.(); break;
+        case TALLY_EVENTS.PAGE_VIEW: on?.pageView?.(event.page); break;
+        default: {
+          // An event TallyEvent gains fails the typecheck here until handled.
+          /** @type {never} */
+          const unhandled = event;
+          throw new Error(`unhandled Tally event ${JSON.stringify(unhandled)}`);
+        }
+      }
+    });
   useEffect(() => {
     /** @param {MessageEvent} event */
     function onMessage(event) {

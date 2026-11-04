@@ -552,4 +552,6 @@ export declare function blockSelectors(uuids: string[], suffix: string): string;
  *  `@theme` block. Throws when it is absent. */
 export declare function readToken(css: string, name: string): string;
 
+// "./paths.mjs" names no file: TypeScript reads it as paths.d.mts, the
+// declaration of address.mjs, where the code is.
 export { Paths, stableUuid } from "./paths.mjs";

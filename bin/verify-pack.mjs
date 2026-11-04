@@ -25,13 +25,11 @@ const ALLOWED_PREFIXES = [
   "attribution/",
   "tally/",
   "signature/",
+  "retention/",
   "tokens/",
 ];
 const ALLOWED_FILES = [
   "README.md", "package.json", "LICENSE", "LICENSE.md",
-  // The command shapes a consuming repo's own hook imports; the rest of
-  // hooks/ ships in the plugin, not the package.
-  "hooks/lib/shapes.mjs", "hooks/lib/shapes.d.mts", "hooks/lib/command-shapes.mjs",
 ];
 
 // A file whose name alone marks it as a secret must never ship, even from an

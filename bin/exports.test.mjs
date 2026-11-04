@@ -1,18 +1,19 @@
 #!/usr/bin/env node
-// Each public entry exports exactly the values its declaration names. A
-// module beside its own .d.mts is skipped by the typecheck, which reads the
-// declaration instead, so a value declared and never exported would compile
-// for a consumer and be undefined at run time: only this test sees the gap.
+// Each public entry exports exactly the values its declaration names. The
+// declaration is hand-written and named apart from its code (TypeScript skips
+// a module beside a declaration of its own name, so the code stays
+// type-checked), so a value declared and never exported would compile for a
+// consumer and be undefined at run time.
 import {strict as assert} from "node:assert";
 import {readFile} from "node:fs/promises";
 
-/** Every exported entry whose code sits beside a declaration of the same
- *  name, read from package.json so a new entry is covered as it is added. */
+/** Every exported entry with a hand-written declaration, as its code and its
+ *  types, read from package.json so a new entry is covered as it is added. */
 const pkgFile = new URL("../package.json", import.meta.url);
 const pkg = JSON.parse(await readFile(pkgFile, "utf8"));
 const ENTRIES = Object.values(pkg.exports)
   .filter((e) => typeof e === "object" && e.types?.endsWith(".d.mts"))
-  .map((e) => e.default.replace(/^\.\//, "").replace(/\.mjs$/, ""));
+  .map((e) => ({code: e.default, types: e.types}));
 
 /** @param {string} dts */
 function declaredValues(dts) {
@@ -26,13 +27,13 @@ function declaredValues(dts) {
   return [...names].sort((a, b) => a.localeCompare(b));
 }
 
-for (const entry of ENTRIES) {
-  const dts = await readFile(new URL(`../${entry}.d.mts`, import.meta.url), "utf8");
-  const mod = await import(new URL(`../${entry}.mjs`, import.meta.url).href);
+for (const {code, types} of ENTRIES) {
+  const dts = await readFile(new URL(types, pkgFile), "utf8");
+  const mod = await import(new URL(code, pkgFile).href);
   assert.deepEqual(
     Object.keys(mod).sort((a, b) => a.localeCompare(b)),
     declaredValues(dts),
-    `${entry}.mjs exports what ${entry}.d.mts declares`,
+    `${code} exports what ${types} declares`,
   );
 }
 

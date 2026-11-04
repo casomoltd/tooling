@@ -1,7 +1,6 @@
 /**
- * The public face of the signature entry. The code lives in rules.mjs,
- * where the typecheck reads it against the declaration here; beside a
- * .d.mts, TypeScript would skip it.
+ * The public face of the signature entry: two code files, rules.mjs and
+ * faults.mjs, behind one name. Their types are index.d.mts.
  */
 export {
   attribute,
@@ -14,3 +13,4 @@ export {
   PNG_RGB,
   readPng,
 } from "./rules.mjs";
+export {cacheFault, signatureFaults} from "./faults.mjs";

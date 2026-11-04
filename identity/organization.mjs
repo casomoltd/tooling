@@ -47,9 +47,8 @@ const COMPANY_NUMBER = "15030496";
  */
 export const COMPANY_REGISTER = Object.freeze({
   number: COMPANY_NUMBER,
-  url:
-    "https://find-and-update.company-information.service.gov.uk"
-    + `/company/${COMPANY_NUMBER}`,
+  url: `https://find-and-update.company-information.service.gov.uk/company/${
+    COMPANY_NUMBER}`,
 });
 
 const ICO_NUMBER = "ZC219565";
