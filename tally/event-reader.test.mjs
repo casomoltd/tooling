@@ -2,7 +2,15 @@
 // Tests for reading a Tally embed's messages: what a page learns from each,
 // and that a submission's answers never reach it.
 import {strict as assert} from "node:assert";
-import {readTallyEvent, TALLY_EVENTS, TALLY_ORIGIN} from "./event-reader.mjs";
+import {
+  readTallyEvent,
+  TALLY_EMBED_OPTIONS,
+  TALLY_EVENTS,
+  TALLY_ORIGIN,
+  TALLY_WIDGET_URL,
+  tallyEmbedSrc,
+  tallyFormHref,
+} from "./event-reader.mjs";
 
 const FORM = "Ab3dE9";
 
@@ -57,5 +65,36 @@ assert.equal(
   readTallyEvent(message(TALLY_EVENTS.PAGE_VIEW, {formId: FORM}), FORM),
   undefined,
 );
+
+// The addresses an embedding page loads.
+assert.equal(tallyFormHref(FORM), `https://tally.so/r/${FORM}`);
+assert.equal(TALLY_WIDGET_URL, "https://tally.so/widgets/embed.js");
+assert.equal(tallyEmbedSrc(FORM), `https://tally.so/embed/${FORM}?${TALLY_EMBED_OPTIONS}`);
+assert.equal(
+  tallyEmbedSrc(FORM, {utm_source: "x", referring_site: "a b&c"}),
+  `https://tally.so/embed/${FORM}?${TALLY_EMBED_OPTIONS}`
+    + "&utm_source=x&referring_site=a+b%26c",
+);
+
+// The hand-written declaration (events.d.mts) held to the code: the
+// typecheck fails here if either changes without the other.
+/** @type {typeof import("./events.d.mts").readTallyEvent} */
+const declaredReader = readTallyEvent;
+/** @type {typeof import("./events.d.mts").TALLY_EVENTS} */
+const declaredEvents = TALLY_EVENTS;
+/** @type {typeof import("./events.d.mts").TALLY_ORIGIN} */
+const declaredOrigin = TALLY_ORIGIN;
+/** @type {typeof import("./events.d.mts").tallyEmbedSrc} */
+const declaredEmbedSrc = tallyEmbedSrc;
+/** @type {typeof import("./events.d.mts").tallyFormHref} */
+const declaredFormHref = tallyFormHref;
+/** @type {typeof import("./events.d.mts").TALLY_WIDGET_URL} */
+const declaredWidgetUrl = TALLY_WIDGET_URL;
+/** @type {typeof import("./events.d.mts").TALLY_EMBED_OPTIONS} */
+const declaredEmbedOptions = TALLY_EMBED_OPTIONS;
+assert.ok([
+  declaredReader, declaredEvents, declaredOrigin, declaredEmbedSrc,
+  declaredFormHref, declaredWidgetUrl, declaredEmbedOptions,
+].every(Boolean));
 
 console.log("tally event-reader tests OK");

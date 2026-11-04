@@ -29,6 +29,16 @@ export declare const ICO_REGISTER: Registration;
 /** The company's registered office, as Companies House holds it. */
 export declare const REGISTERED_OFFICE: string;
 
+/** One line of a colophon: its text, then either the register that proves
+ *  it, by number, or the `source` where it is published. */
+export type ColophonLine =
+  | {readonly text: string; readonly register: Registration}
+  | {readonly text: string; readonly source: string};
+
+/** The colophon lines about the company every site carries: its
+ *  registration, its ICO registration and its registered office. */
+export declare const COMPANY_COLOPHON: readonly ColophonLine[];
+
 /** The values Casomo's tagged links carry: a link is tagged only where the
  *  referrer goes missing, as from an email. */
 export declare const CASOMO_UTM: {

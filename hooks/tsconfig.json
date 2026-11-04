@@ -9,7 +9,9 @@
     "types": ["node"],
     "verbatimModuleSyntax": true,
     "allowImportingTsExtensions": true,
+    "allowJs": true,
+    "checkJs": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["**/*.mts"]
+  "include": ["**/*.mts", "lib/*.mjs"]
 }

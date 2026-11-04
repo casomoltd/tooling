@@ -12,19 +12,27 @@
 //     workspace (you stay able to run the commands that fix or disable it).
 import {readFileSync} from "node:fs";
 import {preToolUseDecision, type PreToolUseHookInput} from "./contract.mts";
-import type {Rule, ToolInput, Verdict} from "./rule.mts";
+import {VERDICTS, type Rule, type ToolInput, type Verdict} from "./rule.mts";
 
-const SEVERITY: Record<Verdict, number> = {deny: 3, ask: 2, warn: 1};
+// A guard runs only as the entry point, which a plugin may reach through a
+// symlink; the check is the bin scripts' own.
+export {isEntryPoint} from "../../bin/utils.mjs";
 
-const warn = (message: string): void => {
+/** Each verdict's severity: a higher one outranks a lower. */
+const SEVERITY: Readonly<Record<Verdict, number>> = {
+  [VERDICTS.Ask]: 1,
+  [VERDICTS.Deny]: 2,
+};
+
+const log = (message: string): void => {
   process.stderr.write(`[casomoltd hooks] ${message}\n`);
 };
 
 // Can't read the input -> ask the human rather than proceed blind. stderr too,
 // so the reason is visible in logs as well as the confirmation dialog.
 const ask = (reason: string): void => {
-  warn(reason);
-  process.stdout.write(JSON.stringify(preToolUseDecision("ask", reason)));
+  log(reason);
+  process.stdout.write(JSON.stringify(preToolUseDecision(VERDICTS.Ask, reason)));
 };
 
 // Return the highest-severity rule that matches, or null. On a severity tie the
@@ -41,7 +49,9 @@ export function evaluate(rules: readonly Rule[], input: ToolInput): Rule | null 
       hit = false;
     }
     if (!hit) continue;
-    if (!best || SEVERITY[rule.verdict] > SEVERITY[best.verdict]) best = rule;
+    const outranks = !best
+      || SEVERITY[rule.verdict] > SEVERITY[best.verdict];
+    if (outranks) best = rule;
   }
   return best;
 }
@@ -53,7 +63,7 @@ export function reasonFor(rule: Rule, input: ToolInput): string {
   try {
     return `${rule.reason}\n\n${rule.detail(input)}`;
   } catch (err) {
-    warn(`${rule.id}: its detail failed (${err instanceof Error ? err.message : err})`);
+    log(`${rule.id}: its detail failed (${err instanceof Error ? err.message : err})`);
     return rule.reason;
   }
 }
@@ -76,12 +86,6 @@ export function runGuard(rules: readonly Rule[]): void {
 
   const matched = evaluate(rules, input);
   if (!matched) return; // matched nothing -> allow silently
-
-  const {verdict} = matched;
   const reason = reasonFor(matched, input);
-  if (verdict === "deny" || verdict === "ask") {
-    process.stdout.write(JSON.stringify(preToolUseDecision(verdict, reason)));
-  } else {
-    warn(reason);
-  }
+  process.stdout.write(JSON.stringify(preToolUseDecision(matched.verdict, reason)));
 }

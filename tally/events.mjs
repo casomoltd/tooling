@@ -4,4 +4,12 @@
  * where the typecheck reads it; beside events.d.mts, TypeScript would skip
  * it.
  */
-export {readTallyEvent, TALLY_EVENTS, TALLY_ORIGIN} from "./event-reader.mjs";
+export {
+  readTallyEvent,
+  TALLY_EMBED_OPTIONS,
+  TALLY_EVENTS,
+  TALLY_ORIGIN,
+  TALLY_WIDGET_URL,
+  tallyEmbedSrc,
+  tallyFormHref,
+} from "./event-reader.mjs";

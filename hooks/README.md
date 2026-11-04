@@ -12,10 +12,15 @@ executes and can confirm, hard-block, or wave it through. All rules are generic
 | `hooks.json` | Registration — which guard runs on which tool event (the harness reads this) |
 | `guard-bash.mts` | Bash-command rule registry (git + npm discipline) |
 | `guard-edit.mts` | Edit/Write rule registry (don't weaken type-checking) |
-| `lib/run.mts` | The engine — `evaluate()` (registry → verdict) + `runGuard()` (stdin → decision, the rule's reason plus its `detail`); **fails open** |
+| `lib/run.mts` | The engine — `evaluate()` (registry → verdict) + `runGuard()` (stdin → decision, the rule's reason plus its `detail`); **asks** when the input can't be read, allows what matches nothing |
+| `lib/rule.mts` | The rule model — `Rule`, `ToolInput`, `VERDICTS` |
+| `lib/shapes.mjs` | The command shapes let through on their exact form (the dependency sweep's) and the plain-path class that keeps them exact; published as `@casomoltd/tooling/hooks/shapes` for a repo's own hook |
 | `lib/commit-detail.mts` | What a commit is about to record — repo, staged files, message — for its confirmation prompt |
 | `lib/contract.mts` | The harness wire types (**vendored**) + `preToolUseDecision()` constructor |
-| `test.mts` | Rule-behaviour tests + end-to-end stdin/stdout + fail-open checks |
+| `test-cases.mts` | Each guard's cases: a tool input and the verdict it should get |
+| `wrapped-cases.mts` | The Bash guard's cases for a command wrapped or quoted: behind a prefix, in a subshell or `bash -c`, or with its flag quoted |
+| `test.mts` | The cases run against the registries, plus end-to-end runs and the ask-on-unreadable checks |
+| `commit-detail.test.mts` | The commit prompt's reading of the one form, and its text |
 | `tsconfig.json` | Strict `tsc --noEmit` config for the type gate |
 
 ## What the guards enforce
@@ -25,6 +30,8 @@ executes and can confirm, hard-block, or wave it through. All rules are generic
 | `git commit` in [the one form](../docs/commit.md#the-command) | **ask** | deliberate, not automatic; the prompt shows what the commit will record |
 | `git commit` in any other form | **deny** | its prompt couldn't show what it holds; names the form to use |
 | `git push` | **ask** | never automatic — confirm; nudges `--follow-tags` |
+| `git` with an option before its verb (`git -C <dir> …`) | **deny** | the rules read the verb as the word after `git`; run `cd <dir> && git …` |
+| an unattended dependency sweep's own commit and branch push | none | exempt from the commit and push rules above ([the exemption](#the-dependency-sweeps-exemption)) |
 | `npm version patch\|minor` / `uv version --bump patch\|minor` | **ask** | the release tail, not a mid-work step |
 | force-push / `reset --hard` / `rebase -i` / `tag -d` / `filter-branch` | **deny** | rewrites/loses history |
 | `npm version major` / `uv version --bump major` | **deny** | needs explicit human approval |
@@ -32,7 +39,25 @@ executes and can confirm, hard-block, or wave it through. All rules are generic
 | `tsconfig` strict-weakening (`strict:false`, `skipLibCheck:true`, …) | **deny** | fix code, not the config |
 | bare `# type: ignore` (Python) | **deny** | scope it: `# type: ignore[code]` |
 
-`ask` forces a user confirmation dialog; `deny` hard-blocks.
+`ask` forces a user confirmation dialog; `deny` hard-blocks. Each rule
+searches the whole command text, so a command is caught however it is wrapped:
+behind `sudo` or an env prefix, in a subshell, a substitution or `bash -c`.
+A mention inside an argument is caught too, which errs towards caution. The
+one shape a text search can't see through is an option between `git` and its
+verb, so that is refused outright.
+
+### The dependency sweep's exemption
+
+An unattended job that prepares dependency fixes on its own branch, inside a
+`worktrees/dep-sweep-*` checkout, has no one to answer a confirmation. Its two
+commands, exactly `cd <worktree> && git commit -F <file>` and
+`cd <worktree> && git push --force-with-lease -u origin dep-sweep`, with a
+plain (or double-quoted) worktree path and a plain message file, are let
+through the commit and push rules; every other `deny` still applies. The shape
+lives in `lib/shapes.mjs`, which a repo's own auto-approving hook imports
+rather than re-spells. It trusts the path's text: any directory whose path
+ends in `worktrees/dep-sweep-*`, a symlink to another checkout included, gets
+the unconfirmed commit, on whatever branch is checked out there.
 
 The bulk of these are **command/shell intent** — git/npm safety that no linter
 or commit hook can see (it isn't a file, and the commit hasn't happened yet).
@@ -123,7 +148,7 @@ drift is caught at author time (see vendoring below). But:
     tools still run — just unguarded (**fail open**). Documented in the parent
     README.
   - Constraint: only *erasable* syntax (no `enum`/`namespace`/decorators) — we
-    use string-literal unions, so this is satisfied.
+    use `as const` objects and string-literal unions, so this is satisfied.
 - **Stripping ≠ checking.** Running `.mts` *erases* types; it validates nothing.
   The real enforcement is the `tsc --noEmit` gate in `npm run check` — that's
   what fails the build when a rule or the contract is mis-typed.
@@ -148,8 +173,9 @@ than `import type` from the SDK to:
 
 Trade-off — **drift**: the `tsc` gate checks our code against this *snapshot*,
 so it can't, by construction, notice the upstream contract moving. That's
-acceptable because we depend only on three long-stable fields (`command`,
-`file_path`, `hookSpecificOutput.permissionDecision`) and the contract evolves
+acceptable because we read only `tool_input`'s `command`, `file_path`,
+`content` and `new_string`, and write only `hookSpecificOutput`'s
+`permissionDecision` and `permissionDecisionReason`, and the contract evolves
 *additively*, so the realistic risk is low. When bumping the plugin or if hooks
 misbehave, **re-sync** the declarations in `contract.mts` from the current
 `sdk.d.ts` and bump the cited version (the file header records the source); the
@@ -158,10 +184,13 @@ behaves.
 
 ## Testing & adding rules
 
-`npm run check` runs `verify-pack` → `tsc --noEmit -p hooks/tsconfig.json` →
-`node hooks/test.mts`. The types prove the output *shape*; the tests prove the
-rule *logic* (a type can't check a regex) plus fail-open behaviour.
+`npm run typecheck` type-checks `hooks/tsconfig.json`; `npm run test` runs
+`hooks/test.mts` and `hooks/commit-detail.test.mts` (`node:test`); both run in
+`npm run check`. The types
+prove the output *shape*; the tests prove the rule *logic* plus the
+ask-on-unreadable behaviour.
 
-To add a rule: append a `Rule` object (`{ id, verdict, reason, matches }`) to the
-relevant registry — the `Rule` type enforces its shape — and add a case to
-`test.mts`.
+To add a rule: append a `Rule` object (`{id, verdict, reason, matches,
+detail?}`) to the relevant registry — the `Rule` type enforces its shape, and
+a case naming a rule id that doesn't exist fails to compile — and add its
+cases to `test-cases.mts`.

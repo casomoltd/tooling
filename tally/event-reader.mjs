@@ -1,5 +1,6 @@
 /**
- * Reading the events a Tally embed posts to the page that hosts it.
+ * A page that embeds a Tally form: the addresses it loads the form from,
+ * and the events the embed posts back to it.
  *
  * Tally sends each one as a JSON string, `{event, payload}`
  * (https://developers.tally.so/widgets/events, read 6 Oct 2026). A submit's
@@ -16,9 +17,38 @@ export const TALLY_EVENTS = Object.freeze({
   SUBMITTED: "Tally.FormSubmitted",
 });
 
-/** The origin a Tally embed posts from; a message from any other is not
- *  Tally's. */
+/** The origin Tally serves forms from, and that an embed posts from; a
+ *  message from any other is not Tally's. */
 export const TALLY_ORIGIN = "https://tally.so";
+
+/** Tally's widget script, which sizes an embedded form and loads it lazily. */
+export const TALLY_WIDGET_URL = `${TALLY_ORIGIN}/widgets/embed.js`;
+
+/** How a Casomo site embeds a form: aligned with the page, no second title,
+ *  the page's own ground behind it, and as tall as the form. A house choice,
+ *  kept here so every site embeds alike. */
+export const TALLY_EMBED_OPTIONS =
+  "alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1";
+
+/**
+ * A form's own public page on Tally.
+ * @param {string} formId
+ */
+export function tallyFormHref(formId) {
+  return `${TALLY_ORIGIN}/r/${formId}`;
+}
+
+/**
+ * The address a form is embedded from: the embed options, then any hidden
+ * fields, each escaped.
+ * @param {string} formId
+ * @param {Readonly<Record<string, string>>} [hidden]
+ */
+export function tallyEmbedSrc(formId, hidden = {}) {
+  const fields = new URLSearchParams(hidden).toString();
+  const query = fields ? `${TALLY_EMBED_OPTIONS}&${fields}` : TALLY_EMBED_OPTIONS;
+  return `${TALLY_ORIGIN}/embed/${formId}?${query}`;
+}
 
 /**
  * One message the page received, read down to the event it names, or

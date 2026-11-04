@@ -96,6 +96,10 @@ export function formRegistry(file) {
       if (!id) throw new Error(`${formKey} has not been pushed yet`);
       return id;
     },
+    /** Every form's id, by form key. */
+    async ids() {
+      return read();
+    },
     /** @param {string} formKey @param {string} id */
     async record(formKey, id) {
       const ids = {...await read(), [formKey]: id};

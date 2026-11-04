@@ -7,13 +7,14 @@
  * block left out is deleted, so a push always sends the complete form.
  */
 import {z} from "zod";
+import {TALLY_ORIGIN} from "./event-reader.mjs";
 
 /** @import {Block, TallySettings} from "./index.d.mts" */
 
 const API = "https://api.tally.so";
 
 /** The page a form is edited on, for a person to open. */
-export const EDITOR = "https://tally.so/forms";
+export const EDITOR = `${TALLY_ORIGIN}/forms`;
 
 /** The state a new form is created in: a draft, until it is published in
  *  Tally's editor. */

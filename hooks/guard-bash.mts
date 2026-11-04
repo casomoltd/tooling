@@ -6,198 +6,196 @@
 //   deny -> hard block (destructive/irreversible or needs human authorisation)
 // Everything else falls through untouched. Contains no repo-specific names —
 // this ships in the public tooling plugin.
-import {pathToFileURL} from "node:url";
-import {COMMIT_FORM, commitDetail, parseCommit} from "./lib/commit-detail.mts";
-import {runGuard} from "./lib/run.mts";
-import type {Rule, ToolInput} from "./lib/rule.mts";
-
-const text = (input: ToolInput): string => String(input.command ?? "");
-
-// An unattended dependency sweep is the one automation that must commit and
-// push with nobody watching. It works inside a throwaway
-// `worktrees/dep-sweep-*` checkout, on the `dep-sweep` branch, and never
-// touches `main`. No human is present to answer an `ask`, so a confirm verdict
-// there does not gate that sweep — it refuses the command outright and the
-// whole branch-preparing half of the job dies. Hence the exemption below.
 //
-// It is whole-command strict — `cd <sweep worktree> && <one allowed action>`
-// and nothing else — for two reasons: a compound tail must not be able to
-// smuggle extra work in under the exemption, and a consumer whose settings
-// allow-list Bash has nothing stricter standing behind this predicate, so it
-// is the line rather than a hint to a prompt that would otherwise follow.
-const SWEEP_PATH = String.raw`/worktrees/dep-sweep-[\w.-]+`;
-// Plain path characters only, quoted or not: a `;`, `$(` or quote in the
-// path could carry a second command under the exemption.
-const SWEEP_TARGET =
-  String.raw`(?:"[\w./@+ -]*${SWEEP_PATH}"|[\w./@+-]*${SWEEP_PATH})`;
-const SWEEP_ACTIONS = [
-  String.raw`git commit -F [\w./@+-]+`,
-  String.raw`git push --force-with-lease -u origin dep-sweep`,
-];
-const SWEEP_COMMAND = new RegExp(
-  String.raw`^cd\s+${SWEEP_TARGET}\s+&&\s+(?:${SWEEP_ACTIONS.join("|")})$`,
-);
+// Every rule searches the whole command text, so a command is caught however
+// it is wrapped: behind `sudo`, an env prefix, a subshell or `bash -c`. A
+// mention inside an argument is caught too, which errs towards caution. git
+// takes no option before its verb (`cd <dir> && git <verb>` instead), since
+// `git -C <dir> push` would put a word between the two a rule looks for.
+import {COMMIT_FORM, commitDetail, parseCommit} from "./lib/commit-detail.mts";
+import {isEntryPoint, runGuard} from "./lib/run.mts";
+import {VERDICTS, type Rule, type ToolInput} from "./lib/rule.mts";
+import {isSweepCommand} from "./lib/shapes.mjs";
 
-/** The sweep's own branch-side commands, which the `ask` rules step aside
- * for and the commit form allows; every other `deny` stays absolute. */
-const isSweepCommand = (i: ToolInput): boolean =>
-  SWEEP_COMMAND.test(text(i).trim());
+/** `git` as a word of its own: not the end of `.git` or `my-git`. */
+const GIT = String.raw`(?<![\w.-])git`;
 
-/** Where one command ends and the next starts: `&&`, `||`, `;`, `|`, a newline,
- *  or the opening of a `$(…)`. */
-const COMMAND_BREAK = /&&|\|\||[;|\n]|\$\(/;
+/** A flag after a verb and, where it takes one, its value: a word or a
+ *  quoted string, as in `version -m "Release" major`. */
+const FLAG = String.raw`\s+-\S+(?:\s+(?:"[^"]*"|'[^']*'|[^-\s]\S*))?`;
 
-/** git's options before its verb that take a separate value. */
-const GIT_VALUE_OPTIONS = new Set([
-  "-C", "-c", "--git-dir", "--work-tree", "--namespace",
-]);
+/** The bump levels a release takes, and those that need a person's say. */
+const MAJOR = "(?:pre)?major";
+const PATCH_OR_MINOR = "(?:pre)?(?:patch|minor)";
 
-/** An option and the value after it. */
-const OPTION_AND_VALUE = 2;
+/** npm's install verb, in each spelling npm accepts. */
+const NPM_INSTALL = `(?:${[
+  "i", "in", "ins", "inst", "insta", "instal", "install",
+  "isnt", "isnta", "isntal", "isntall", "add", "it", "install-test",
+].join("|")})`;
 
-/**
- * Whether a command runs a git commit: some command in it, after an opening
- * `(`, is `git`, its options before the verb, then `commit` (not
- * `commit-tree` or `commit-graph`). Only a command's first word counts, so
- * the words "git commit" inside an argument, a file being written say, are
- * not read as one; a heredoc line that starts with them is.
- */
-function runsGitCommit(command: string): boolean {
-  return command.split(COMMAND_BREAK).some((part) => {
-    const words = part.trim().replace(/^\(+/, "").split(/\s+/);
-    if (words[0] !== "git") return false;
-    let i = 1;
-    while (words[i]?.startsWith("-")) {
-      i += GIT_VALUE_OPTIONS.has(words[i]) ? OPTION_AND_VALUE : 1;
-    }
-    return words[i] === "commit";
-  });
-}
+/** The command's text, a line continuation read as the space it stands for. */
+const text = (input: ToolInput): string =>
+  String(input.command ?? "").replaceAll(/\\\r?\n/g, " ");
+
+/** An unattended dependency sweep's own commit and branch push
+ *  (lib/shapes.mjs): the confirmations step aside for them and the commit
+ *  form allows them; every other `deny` stays absolute. */
+const isSweep = (input: ToolInput): boolean => isSweepCommand(text(input));
+
+/** A short flag with this letter, alone, bundled or quoted: `-f`, `-uf`,
+ *  `'-f'`. */
+const shortFlag = (letter: string): string =>
+  String.raw`\s['"]?-[A-Za-z]*${letter}[A-Za-z]*\b`;
+
+/** A word, quoted or not, and nothing more of it after. */
+const word = (pattern: string): string =>
+  String.raw`['"]?${pattern}['"]?(?![\w-])`;
+
+/** Whether a command's text runs git with this verb, then these words
+ *  somewhere after it on the same line. */
+const gitRuns = (input: ToolInput, verb: string, after = ""): boolean =>
+  new RegExp(String.raw`${GIT}\s+${verb}(?![\w-])${after}`).test(text(input));
 
 // git history + remote safety.
-const gitRules: readonly Rule[] = [
+const gitRules = [
   {
     id: "git-commit-form",
-    verdict: "deny",
+    verdict: VERDICTS.Deny,
     reason:
       `Commit in the one form, run alone: \`${COMMIT_FORM}\`, after staging by `
-      + "name and running the commit-msg hook on the file (docs/commit.md).",
+      + "name and running the commit-msg hook on the file (the tooling "
+      + "package's docs/commit.md).",
     // The one form is the commit whose prompt can show what it holds; the
     // sweep's own commit is the other form allowed.
-    matches: (i) =>
-      runsGitCommit(text(i)) && !parseCommit(text(i)) && !isSweepCommand(i),
+    matches: (i) => gitRuns(i, "commit") && !parseCommit(text(i)) && !isSweep(i),
   },
   {
     id: "git-commit-confirm",
-    verdict: "ask",
+    verdict: VERDICTS.Ask,
     reason:
       "Committing is deliberate, not automatic — stage and review first, then " +
       "confirm this commit is intended before it lands.",
-    // Not `commit-tree`/`commit-graph` (plumbing/maintenance, not a commit).
-    // Allows git's pre-verb flags (`git -C <dir> commit` is still a commit).
-    matches: (i) => !isSweepCommand(i) && runsGitCommit(text(i)),
-    // The command alone names neither the repo nor what the commit holds.
-    detail: (i) => commitDetail(text(i)),
+    // The command alone shows neither what the commit holds nor its message,
+    // so the detail shows both.
+    matches: (i) => !isSweep(i) && parseCommit(text(i)) !== undefined,
+    detail: (i) => {
+      const commit = parseCommit(text(i));
+      if (!commit) throw new Error("not a commit in the form");
+      return commitDetail(commit);
+    },
   },
   {
     id: "git-push-confirm",
-    verdict: "ask",
+    verdict: VERDICTS.Ask,
     reason:
       "git push is never automatic — confirm it's intended. " +
       "Prefer `git push --follow-tags` so annotated version tags ship too.",
-    matches: (i) => !isSweepCommand(i) && /\bgit\s+push\b/.test(text(i)),
+    matches: (i) => !isSweep(i) && gitRuns(i, "push"),
   },
   {
     id: "git-force-push",
-    verdict: "deny",
+    verdict: VERDICTS.Deny,
     reason:
       "Force-pushing rewrites published history. Blocked — if a remote " +
       "rewrite is genuinely required, ask the user to run it themselves.",
-    matches: (i) => {
-      const c = text(i);
-      if (!/\bgit\s+push\b/.test(c)) return false;
-      return (
-        /--force(?!-with-lease)\b/.test(c) ||
-        /(^|\s)-f(\s|$)/.test(c) ||
-        /\bgit\s+push\b[^\n]*\s\+\S+/.test(c) // force refspec, e.g. `+main`
-      );
-    },
+    // `--force` (not the lease form), `-f`, or a `+` refspec such as `+main`.
+    matches: (i) => gitRuns(i, "push", String.raw`[^\n]*(?:--force(?!-with-lease)\b`
+      + String.raw`|${shortFlag("f")}|\s\+\S)`),
   },
   {
     id: "git-reset-hard",
-    verdict: "deny",
+    verdict: VERDICTS.Deny,
     reason: "`git reset --hard` discards work irrecoverably. Blocked.",
-    matches: (i) => /\bgit\s+reset\b[^\n]*--hard\b/.test(text(i)),
+    matches: (i) => gitRuns(i, "reset", String.raw`[^\n]*--hard\b`),
   },
   {
     id: "git-rebase-interactive",
-    verdict: "deny",
+    verdict: VERDICTS.Deny,
     reason: "Interactive rebase rewrites history. Blocked.",
     matches: (i) =>
-      /\bgit\s+rebase\b[^\n]*(\s-i\b|--interactive\b)/.test(text(i)),
+      gitRuns(i, "rebase", String.raw`[^\n]*(?:${shortFlag("i")}|--interactive\b)`),
   },
   {
     id: "git-tag-delete",
-    verdict: "deny",
+    verdict: VERDICTS.Deny,
     reason: "Deleting tags can desync published versions. Blocked.",
-    matches: (i) => /\bgit\s+tag\b[^\n]*(\s-d\b|--delete\b)/.test(text(i)),
+    matches: (i) =>
+      gitRuns(i, "tag", String.raw`[^\n]*(?:${shortFlag("d")}|--delete\b)`),
   },
   {
     id: "git-filter-branch",
-    verdict: "deny",
+    verdict: VERDICTS.Deny,
     reason: "`git filter-branch` rewrites entire history. Blocked.",
-    matches: (i) => /\bgit\s+filter-branch\b/.test(text(i)),
+    matches: (i) => gitRuns(i, "filter-branch"),
   },
-];
+  // Last of the git denies, so a rule naming what the command does wins the
+  // tie and this one fires only where none does.
+  {
+    id: "git-option-before-verb",
+    verdict: VERDICTS.Deny,
+    reason:
+      "Run git from its repo, `cd <dir> && git <verb> …`, not with an option "
+      + "before the verb (`git -C <dir> …`): the guards read the verb as the "
+      + "word after `git`.",
+    matches: (i) => new RegExp(String.raw`${GIT}\s+-`).test(text(i)),
+  },
+] as const satisfies readonly Rule[];
+
+/** Whether a command's text runs `npm version` or `uv version` naming one of
+ *  these bump levels, after any flags. */
+const bumps = (input: ToolInput, levels: string): boolean => {
+  const c = text(input);
+  const level = word(levels);
+  return new RegExp(String.raw`\bnpm\b[^\n]*\bversion(?:${FLAG})*\s+${level}`).test(c)
+    || new RegExp(String.raw`\buv\b[^\n]*\bversion\b[^\n]*--bump[\s=]+${level}`)
+      .test(c);
+};
 
 // npm/uv package + version discipline.
-const packageRules: readonly Rule[] = [
+const packageRules = [
   {
     id: "version-major",
-    verdict: "deny",
+    verdict: VERDICTS.Deny,
     reason:
       "Major version bumps need explicit human approval — never automatic. " +
       "Use patch/minor, or ask the user to authorise the major bump.",
-    matches: (i) => {
-      const c = text(i);
-      return (
-        /\bnpm\s+version\s+major\b/.test(c) ||
-        /\buv\s+version\b[^\n]*--bump\s+major\b/.test(c)
-      );
-    },
+    matches: (i) => bumps(i, MAJOR),
   },
   {
     id: "version-bump-confirm",
-    verdict: "ask",
+    verdict: VERDICTS.Ask,
     reason:
       "A version bump is the release tail, not a mid-work step — confirm you're " +
       "shipping now. Bump once, right before the push that publishes/deploys.",
     // patch/minor only; major is denied above, a bare `npm version` just prints.
-    matches: (i) => {
-      const c = text(i);
-      return (
-        /\bnpm\s+version\s+(patch|minor)\b/.test(c) ||
-        /\buv\s+version\b[^\n]*--bump\s+(patch|minor)\b/.test(c)
-      );
-    },
+    matches: (i) => bumps(i, PATCH_OR_MINOR),
   },
   {
     id: "npm-global-install",
-    verdict: "deny",
+    verdict: VERDICTS.Deny,
     reason:
       "Global installs are forbidden — project-local only " +
       "(`npm i` / `npm i -D`).",
+    // Global by a flag before or after the verb (`-g`, bundled or quoted,
+    // `--global`, `--location=global`) or by npm's own environment setting.
     matches: (i) =>
-      /\bnpm\s+(i|install|add)\b[^\n]*(\s-g\b|--global\b)/.test(text(i)),
+      new RegExp(String.raw`\bnpm\b[^\n]*\s${NPM_INSTALL}(?:\s|$)`).test(text(i))
+      && (new RegExp(String.raw`\bnpm\b[^\n]*(?:${shortFlag("g")}|--global\b`
+        + String.raw`|--location[\s=]global\b)`).test(text(i))
+        || /\bnpm_config_global=true\b/i.test(text(i))),
   },
-];
+] as const satisfies readonly Rule[];
 
 // One flat registry per Bash invocation, composed from the topical groups.
 // NB: AI-attribution in commit messages is intentionally NOT guarded here —
 // commitlint's `no-ai-attribution` (the commit-msg git hook) owns it, for every
 // committer, not just a Claude session.
-export const RULES: readonly Rule[] = [...gitRules, ...packageRules];
+export const RULES = [...gitRules, ...packageRules] as const;
 
-if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
+/** The id of a Bash rule, for a test case to name. */
+export type BashRuleId = (typeof RULES)[number]["id"];
+
+if (isEntryPoint(import.meta.url)) {
   runGuard(RULES);
 }

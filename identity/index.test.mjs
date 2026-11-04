@@ -7,6 +7,7 @@ import {strict as assert} from "node:assert";
 import {
   CASOMO_ORGANIZATION,
   CASOMO_UTM,
+  COMPANY_COLOPHON,
   COMPANY_REGISTER,
   ICO_REGISTER,
   REGISTERED_OFFICE,
@@ -55,6 +56,15 @@ assert.deepEqual(ICO_REGISTER, {
 });
 assert.ok(Object.isFrozen(COMPANY_REGISTER));
 assert.ok(Object.isFrozen(ICO_REGISTER));
+
+// The colophon's company lines: registration, ICO, office, each proved by
+// its register or published at its source.
+assert.deepEqual(COMPANY_COLOPHON, [
+  {text: "Registered in England and Wales, company", register: COMPANY_REGISTER},
+  {text: "ICO registration", register: ICO_REGISTER},
+  {text: `Registered office: ${REGISTERED_OFFICE}`, source: COMPANY_REGISTER.url},
+]);
+assert.ok(Object.isFrozen(COMPANY_COLOPHON));
 for (const {number, url} of [COMPANY_REGISTER, ICO_REGISTER]) {
   assert.ok(url.endsWith(number), "a register's page names its number");
 }

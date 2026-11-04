@@ -34,12 +34,13 @@
  */
 
 import {spawn} from "node:child_process";
-import {existsSync, readFileSync, realpathSync} from "node:fs";
+import {existsSync} from "node:fs";
 import {createServer} from "node:net";
 import {setTimeout as sleep} from "node:timers/promises";
-import {pathToFileURL} from "node:url";
 import path from "node:path";
-import {CASOMO_CONFIG_KEYS, loadCasomoConfig} from "./utils.mjs";
+import {tallyFormHref} from "../tally/event-reader.mjs";
+import {formRegistry} from "../tally/config.mjs";
+import {CASOMO_CONFIG_KEYS, isEntryPoint, loadCasomoConfig} from "./utils.mjs";
 
 const HOST = "127.0.0.1";
 const SITEMAP = "/sitemap.xml";
@@ -54,16 +55,46 @@ const READY_TIMEOUT_MS = 60_000;
 const REQUEST_TIMEOUT_MS = 30_000;
 // Enough to keep a few hundred pages quick without starving the server.
 const CONCURRENCY = 8;
-// Where a Tally form id is published.
-const TALLY_FORM_URL = "https://tally.so/r/";
 
-/** Probe every path, CONCURRENCY at a time; return the ones not 200. */
-export const failingPages = async (base, paths) => {
-  const queue = [...paths];
+/**
+ * Something the check requests: its address, how the report names it, and
+ * whether a redirect is followed. A sitemap page is not: it should be listed
+ * where it lives. A promised link is, to its end.
+ * @typedef {{url: string, label: string, follow: boolean}} Target
+ */
+
+/** A sitemap path on the local server.
+ *  @param {string} base @param {string} path @returns {Target} */
+export const pageTarget = (base, path) => ({
+  url: base + path, label: path, follow: false,
+});
+
+/** A promised link, a site path from the local server and any other address
+ *  as written (a protocol-relative one over https), followed to its end; a
+ *  link that is neither is a mistake in the config, named as one.
+ *  @param {string} base @param {{target: string, from: string}} link
+ *  @returns {Target} */
+export const linkTarget = (base, {target, from}) => {
+  const local = target.startsWith("/") && !target.startsWith("//");
+  const address = target.startsWith("//") ? `https:${target}` : target;
+  if (!local && !URL.canParse(address)) {
+    throw new Error(
+      `${from}: "${target}" is neither a site path nor an absolute address`,
+    );
+  }
+  const url = local ? base + target : new URL(address).href;
+  return {url, label: `${target}  (${from})`, follow: true};
+};
+
+/** Request every target, CONCURRENCY at a time; return the ones whose final
+ *  answer is not 200, each with its status or the error that stopped it.
+ *  @param {Target[]} targets */
+export const failing = async (targets) => {
+  const queue = [...targets];
   const failures = [];
   const worker = async () => {
-    for (let path = queue.shift(); path !== undefined; path = queue.shift()) {
-      const result = await probe(base, path);
+    for (let target = queue.shift(); target; target = queue.shift()) {
+      const result = await probe(target);
       if (result.status !== HTTP_OK) failures.push(result);
     }
   };
@@ -72,9 +103,9 @@ export const failingPages = async (base, paths) => {
 };
 
 /**
- * Every link the site's config promises: its `routes.links`, then a form URL
- * for each id in its Tally registry. Each is `{target, from}`, the address
- * and where it was named, for the report.
+ * Every link the site's config promises: its `routes.links`, then each form
+ * in its Tally registry at its public address. Each is `{target, from}`, the
+ * address and where it was named, for the report.
  * @param {string} [dir]
  * @returns {Promise<{target: string, from: string}[]>}
  */
@@ -85,37 +116,13 @@ export const linkTargets = async (dir = process.cwd()) => {
     target, from: "routes.links",
   }));
   if (!tally.registry) return links;
-  const registry = JSON.parse(
-    readFileSync(path.resolve(dir, tally.registry), "utf8"),
-  );
+  const ids = await formRegistry(path.resolve(dir, tally.registry)).ids();
   return [
     ...links,
-    ...Object.entries(registry).map(([key, id]) => ({
-      target: TALLY_FORM_URL + id, from: `tally form ${key}`,
+    ...Object.entries(ids).map(([key, id]) => ({
+      target: tallyFormHref(id), from: `tally form ${key}`,
     })),
   ];
-};
-
-/** Follow each link to its end, a site path from `base`; return the ones
- *  whose last answer is not 200. */
-export const failingLinks = async (base, links) => {
-  const results = await Promise.all(links.map(async (link) => {
-    try {
-      const res = await get(linkUrl(base, link.target));
-      await res.arrayBuffer();
-      return {...link, status: res.status};
-    } catch (err) {
-      return {...link, error: message(err)};
-    }
-  }));
-  return results.filter((r) => r.status !== HTTP_OK);
-};
-
-/** Where a link points: a site path on the local server; any other address
- *  as written, a protocol-relative one over https. */
-const linkUrl = (base, target) => {
-  const local = target.startsWith("/") && !target.startsWith("//");
-  return local ? base + target : new URL(target, "https://placeholder.invalid").href;
 };
 
 /** The path and query of every `<loc>` in a sitemap or sitemap index. The
@@ -150,15 +157,15 @@ const collectPaths = async (base, rootXml) => {
   return [...new Set(children.flatMap(sitemapPaths))];
 };
 
-/** One page's status, or the error that stopped the request. A redirect
- * counts as a failure: a sitemap should list where a page lives. */
-const probe = async (base, path) => {
+/** One target's final status, or the error that stopped the request.
+ *  @param {Target} target */
+const probe = async ({url, label, follow}) => {
   try {
-    const res = await get(base + path, {redirect: "manual"});
+    const res = await get(url, {redirect: follow ? "follow" : "manual"});
     await res.arrayBuffer();
-    return {path, status: res.status};
+    return {label, status: res.status};
   } catch (err) {
-    return {path, error: message(err)};
+    return {label, error: message(err)};
   }
 };
 
@@ -220,29 +227,23 @@ const waitForSitemap = async (base, output) => {
   throw new Error(`the server never answered ${SITEMAP}\n${output.join("")}`);
 };
 
-const report = (count, failures, linkCount, linkFailures) => {
-  if (count === 0) {
+/** The verdict on the pages and links, printed; the exit code. */
+const report = (pages, links, failures) => {
+  if (pages === 0) {
     console.error(`✗ check-routes: ${SITEMAP} lists no pages`);
     return 1;
   }
   if (failures.length > 0) {
-    console.error(`✗ check-routes: ${failures.length} of ${count} pages failed`);
-    for (const {path: page, status, error} of failures) {
-      console.error(`  ${status ?? error}  ${page}`);
-    }
-  }
-  if (linkFailures.length > 0) {
     console.error(
-      `✗ check-routes: ${linkFailures.length} of ${linkCount} links failed`,
+      `✗ check-routes: ${failures.length} of ${pages + links} failed`
+        + ` (${pages} pages, ${links} links)`,
     );
-    for (const {target, from, status, error} of linkFailures) {
-      console.error(`  ${status ?? error}  ${target}  (${from})`);
+    for (const {label, status, error} of failures) {
+      console.error(`  ${status ?? error}  ${label}`);
     }
+    return 1;
   }
-  if (failures.length > 0 || linkFailures.length > 0) return 1;
-  console.log(
-    `✓ check-routes: ${count} pages and ${linkCount} links answered 200`,
-  );
+  console.log(`✓ check-routes: ${pages} pages and ${links} links answered 200`);
   return 0;
 };
 
@@ -261,10 +262,11 @@ const run = async () => {
   try {
     const rootXml = await Promise.race([waitForSitemap(base, output), died]);
     const paths = await collectPaths(base, rootXml);
-    const [failures, linkFailures] = await Promise.all([
-      failingPages(base, paths), failingLinks(base, links),
+    const failures = await failing([
+      ...paths.map((page) => pageTarget(base, page)),
+      ...links.map((link) => linkTarget(base, link)),
     ]);
-    return report(paths.length, failures, links.length, linkFailures);
+    return report(paths.length, links.length, failures);
   } catch (err) {
     console.error(`✗ check-routes: ${message(err)}`);
     return 1;
@@ -286,15 +288,4 @@ const main = async () => {
   process.exit(code);
 };
 
-/** True only when this file is the entry point. npm installs a bin as a
- * symlink, so `process.argv[1]` is the link while `import.meta.url` is the
- * target it resolves to: resolve before comparing, or `main` never runs. */
-const isEntryPoint = () => {
-  try {
-    return import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href;
-  } catch {
-    return false;
-  }
-};
-
-if (isEntryPoint()) await main();
+if (isEntryPoint(import.meta.url)) await main();

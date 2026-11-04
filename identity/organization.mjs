@@ -56,3 +56,21 @@ export const ICO_REGISTER = Object.freeze({
 /** The company's registered office, as Companies House holds it. */
 export const REGISTERED_OFFICE =
   "71-75 Shelton Street, Covent Garden, London, WC2H 9JQ";
+
+/**
+ * The lines every site's colophon carries about the company, in order: its
+ * registration, its ICO registration and its registered office. A site adds
+ * its own lines around them.
+ * @type {readonly import("./index.d.mts").ColophonLine[]}
+ */
+export const COMPANY_COLOPHON = Object.freeze([
+  Object.freeze({
+    text: "Registered in England and Wales, company",
+    register: COMPANY_REGISTER,
+  }),
+  Object.freeze({text: "ICO registration", register: ICO_REGISTER}),
+  Object.freeze({
+    text: `Registered office: ${REGISTERED_OFFICE}`,
+    source: COMPANY_REGISTER.url,
+  }),
+]);

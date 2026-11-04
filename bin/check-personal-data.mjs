@@ -35,10 +35,9 @@
  *   check-personal-data --staged   # staged only
  */
 import {execFileSync} from "node:child_process";
-import {existsSync, readFileSync, realpathSync, statSync} from "node:fs";
+import {existsSync, readFileSync, statSync} from "node:fs";
 import path from "node:path";
-import {pathToFileURL} from "node:url";
-import {CASOMO_CONFIG_KEYS, loadCasomoConfig} from "./utils.mjs";
+import {CASOMO_CONFIG_KEYS, isEntryPoint, loadCasomoConfig} from "./utils.mjs";
 
 /** Addresses in every repo's own tooling that name no person. */
 const ALLOWED_EMAIL = [
@@ -283,15 +282,4 @@ async function main() {
   );
 }
 
-/** True only when this file is the entry point. npm installs a bin as a
- *  symlink, so compare the resolved path, or `main` never runs in a consumer. */
-const isEntryPoint = () => {
-  try {
-    return import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href;
-  } catch {
-    // No resolvable argv[1] (imported by a test, or a bare REPL): not the entry.
-    return false;
-  }
-};
-
-if (isEntryPoint()) main();
+if (isEntryPoint(import.meta.url)) main();

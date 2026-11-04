@@ -1,19 +1,29 @@
 // The guards' cases: each a tool input and the verdict it should get, read
-// by test.mts.
+// by test.mts. `verdict` is the expected verdict, or null for "no match
+// (allowed)"; `id`, where given, is the rule that must fire.
+import type {BashRuleId} from "./guard-bash.mts";
+import type {EditRuleId} from "./guard-edit.mts";
 import type {Verdict} from "./lib/rule.mts";
+import {wrappedCases} from "./wrapped-cases.mts";
 
-// verdict: expected verdict, or null for "no match (allowed)".
-// id: optional — assert which rule fired.
-export interface Case {
-  command?: string;
-  file_path?: string;
+/** A Bash command and the verdict it should get. */
+export interface BashCase {
+  command: string;
+  verdict: Verdict | null;
+  id?: BashRuleId;
+}
+
+/** An Edit or Write and the verdict it should get: Write carries `content`,
+ *  Edit `new_string`. */
+export interface EditCase {
+  file_path: string;
   content?: string;
   new_string?: string;
   verdict: Verdict | null;
-  id?: string;
+  id?: EditRuleId;
 }
 
-export const bashCases: Case[] = [
+export const bashCases: BashCase[] = [
   {
     command: "git push origin main",
     verdict: "ask",
@@ -124,9 +134,14 @@ export const bashCases: Case[] = [
   // A commit in the one form asks for confirmation (git-commit-confirm);
   // AI-attribution stays commitlint's job. Any other form is refused.
   {
-    command: "git -C /r/app commit -F /msgs/m.txt",
+    command: "cd /r/app && git commit -F /msgs/m.txt",
     verdict: "ask",
     id: "git-commit-confirm",
+  },
+  {
+    command: "git -C /r/app commit -F /msgs/m.txt",
+    verdict: "deny",
+    id: "git-option-before-verb",
   },
   {
     command: 'git commit -m "feat: x"',
@@ -141,17 +156,22 @@ export const bashCases: Case[] = [
   {
     command: 'git -C tooling commit -m "feat: x"',
     verdict: "deny",
+    id: "git-option-before-verb",
+  },
+  {
+    command: "cd a && git commit -F /m",
+    verdict: "deny",
     id: "git-commit-form",
   },
   {
-    command: "cd /a && git commit -F /m",
+    command: "cd /a && git commit -F m",
     verdict: "deny",
     id: "git-commit-form",
   },
   {
     command: "git add a && git -C /a commit -F /m",
     verdict: "deny",
-    id: "git-commit-form",
+    id: "git-option-before-verb",
   },
   {
     command: "git status; git commit -am x",
@@ -163,36 +183,33 @@ export const bashCases: Case[] = [
     verdict: "deny",
     id: "git-commit-form",
   },
-  // git's options before the verb, in every spelling, are still a commit.
+  // git's options before the verb, in every spelling, are refused.
   {
     command: "git -C/r commit -m x",
     verdict: "deny",
-    id: "git-commit-form",
+    id: "git-option-before-verb",
   },
   {
     command: "git --work-tree /r commit -m x",
     verdict: "deny",
-    id: "git-commit-form",
+    id: "git-option-before-verb",
   },
   {
     command: "git -P commit -m x",
     verdict: "deny",
-    id: "git-commit-form",
+    id: "git-option-before-verb",
   },
   // A path word carrying a second command is not the form.
   {
-    command: "git -C /r commit -F /m;git${IFS}push",
+    command: "cd /r && git commit -F /m;git${IFS}push",
     verdict: "deny",
     id: "git-commit-form",
   },
-  // The words in an argument are not a commit.
+  // A mention inside an argument counts, erring towards caution.
   {
     command: "grep -rn 'git commit' docs",
-    verdict: null,
-  },
-  {
-    command: "echo 'run git commit -F file' > notes.txt",
-    verdict: null,
+    verdict: "deny",
+    id: "git-commit-form",
   },
   // Plumbing/maintenance verbs that start with "commit" are not commits.
   {
@@ -207,6 +224,59 @@ export const bashCases: Case[] = [
     command: "git tag -a v1.0.0 -m v1.0.0",
     verdict: null,
   },
+
+  // An option before git's verb is refused: the rules read the verb as the
+  // word after `git`, so this rule is the only one that sees the command.
+  {
+    command: "git -C /r push --force origin main",
+    verdict: "deny",
+    id: "git-option-before-verb",
+  },
+  {
+    command: "git -C /r push origin main",
+    verdict: "deny",
+    id: "git-option-before-verb",
+  },
+  {
+    command: "git -C /r status",
+    verdict: "deny",
+    id: "git-option-before-verb",
+  },
+  {
+    command: "ls .git -la",
+    verdict: null,
+  },
+  {
+    command: "git -C /r reset --hard HEAD~1",
+    verdict: "deny",
+    id: "git-option-before-verb",
+  },
+  {
+    command: "git -c core.x=y tag -d v1.0.0",
+    verdict: "deny",
+    id: "git-option-before-verb",
+  },
+  {
+    command: "git --git-dir /r/.git rebase -i HEAD~2",
+    verdict: "deny",
+    id: "git-option-before-verb",
+  },
+  {
+    command: "npm --prefix /r version major",
+    verdict: "deny",
+    id: "version-major",
+  },
+  {
+    command: "npm --prefix /r version minor",
+    verdict: "ask",
+    id: "version-bump-confirm",
+  },
+  {
+    command: "npm -g install eslint",
+    verdict: "deny",
+    id: "npm-global-install",
+  },
+  ...wrappedCases,
 
   // ---- dependency-sweep carve-out ----
   // An unattended sweep can't answer an `ask`, so its two branch-side shapes
@@ -256,11 +326,11 @@ export const bashCases: Case[] = [
     verdict: "deny",
     id: "git-commit-form",
   },
-  // A non-sweep worktree is an ordinary checkout.
+  // A non-sweep worktree is an ordinary checkout: its commit is confirmed.
   {
     command: "cd /w/worktrees/feature-x && git commit -F /tmp/msg.txt",
-    verdict: "deny",
-    id: "git-commit-form",
+    verdict: "ask",
+    id: "git-commit-confirm",
   },
   // Every other `deny` is absolute — the carve-out never reaches them.
   {
@@ -275,7 +345,7 @@ export const bashCases: Case[] = [
   },
 ];
 
-export const editCases: Case[] = [
+export const editCases: EditCase[] = [
   {
     file_path: "/x/tsconfig.json",
     content: '{"compilerOptions":{"strict":false}}',

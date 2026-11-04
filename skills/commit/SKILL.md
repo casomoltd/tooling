@@ -14,6 +14,7 @@ allowed-tools:
   - Bash(npm --prefix * run check)
   - Bash(uv run *)
   - Bash(git *)
+  - Bash(cd * && git *)
 ---
 
 # Commit Workflow
@@ -21,8 +22,9 @@ allowed-tools:
 Run checks, then commit. Follow these steps in order; do NOT skip or
 reorder. This skill **commits only** — it does not bump the version or
 push. The release tail (bump → push → publish/deploy) is a separate,
-deliberate step (`release-version`). Why each step is there, the one commit
-command and which gate checks what: [Commits](../../docs/commit.md).
+deliberate step ([`release-version`](../release-version/SKILL.md)). Why each
+step is there, the one commit command and which gate checks what:
+[Commits](../../docs/commit.md).
 
 ## Intent
 
@@ -34,16 +36,18 @@ job: commit, behind an explicit confirmation gate. Not bump, not push.
 
 Decide which repo to commit in:
 
-- `-C <path>` given → that directory (resolved relative to the current
-  dir, git-style; e.g. `-C tooling` from a multi-repo workspace root).
+- `-C <path>` given (the skill's argument, not git's) → that directory
+  (resolved relative to the current dir; e.g. `-C tooling` from a
+  multi-repo workspace root).
 - otherwise → the current directory.
 
 Confirm it's the intended repo and take its absolute path with
-`git -C <path> rev-parse --show-toplevel`. If it isn't a git repo with a
+`cd <path> && git rev-parse --show-toplevel`. If it isn't a git repo with a
 recognised toolchain (e.g. you're at a multi-repo workspace root with no
 `package.json` / `pyproject.toml`), **stop and ask which repo** — never
-guess. `<repo>` below is that absolute path: every command names it, so
-none depends on the shell's directory.
+guess. `<repo>` below is that absolute path. Every git command runs as
+`cd <repo> && git …` ([why](../../docs/commit.md#the-command)); npm and uv
+take the repo as an option, which the guards don't read.
 
 ## 1. Run checks
 
@@ -72,12 +76,12 @@ tests it by behaviour rather than by the hook file existing.
 
 ## 2. Stage changed files
 
-Stage files explicitly by name, `git -C <repo> add <file>…`. **Never**
-`git add -A` or `git add .`. Review with `git -C <repo> diff --stat` first.
+Stage files explicitly by name, `cd <repo> && git add <file>…`. **Never**
+`git add -A` or `git add .`. Review with `cd <repo> && git diff --stat` first.
 
 ## 3. Check for remaining unstaged changes
 
-After staging, run `git -C <repo> diff --stat` again. If there are related changes
+After staging, run `cd <repo> && git diff --stat` again. If there are related changes
 that should ship together, make **multiple commits** (repeat steps 2–6
 per batch) rather than lumping unrelated work into one commit.
 
@@ -86,7 +90,7 @@ per batch) rather than lumping unrelated work into one commit.
 Before showing the diff for approval, run the **house review agents over
 the staged diff** so findings land alongside the diff, not after the
 commit. Scope every agent to the changed files only
-(`git -C <repo> diff --staged --name-only`) — never the whole tree. Match by file
+(`cd <repo> && git diff --staged --name-only`) — never the whole tree. Match by file
 type, and skip this step when nothing reviewable changed (e.g. a pure
 version bump or a config-only diff):
 
@@ -110,7 +114,7 @@ advisory input to the approval gate below — not a hard block.
 
 ## 5. Show the diff and wait for confirmation
 
-Run `git -C <repo> diff --staged` and present it **together with the review
+Run `cd <repo> && git diff --staged` and present it **together with the review
 findings from step 4**, grouped by file. Offer to fix anything flagged
 before committing. **Stop and wait for the user's explicit confirmation
 that they're happy** — never commit off your own judgement. Do not proceed
@@ -132,15 +136,15 @@ the commit itself then raises its own confirmation prompt (step 6).
    flags until it passes; don't hand-count the limits, the gate counts them:
 
    ```bash
-   hook="$(git -C <repo> rev-parse --path-format=absolute --git-path hooks)"
+   hook="$(cd <repo> && git rev-parse --path-format=absolute --git-path hooks)"
    [ ! -x "$hook/commit-msg" ] || "$hook/commit-msg" <absolute message file>
    ```
 
-3. **Commit in [the one form](../../docs/commit.md#the-command), as a command
-   of its own:**
+3. **Commit in [the one form](../../docs/commit.md#the-command), not
+   chained with another step:**
 
    ```bash
-   git -C <repo> commit -F <absolute message file>
+   cd <repo> && git commit -F <absolute message file>
    ```
 
    Confirm its prompt; never suppress or bypass it.
@@ -149,13 +153,15 @@ the commit itself then raises its own confirmation prompt (step 6).
 
 The version bump and push are **not** part of committing. After the
 commit, report the local state and hand off: the release tail lives in
-`release-version`, and pushing happens only on an explicit request.
+[`release-version`](../release-version/SKILL.md), and pushing happens only on
+an explicit request.
 
 ## Boundaries
 
-- **vs `release-version`** — that skill owns the release tail (bump → push →
-  publish/deploy); this one never bumps, tags, or pushes. The clean tree is the
-  seam: `commit` leaves the tree clean, `release-version` picks up from there.
+- **vs [`release-version`](../release-version/SKILL.md)** — that skill owns
+  the release tail (bump → push → publish/deploy); this one never bumps,
+  tags, or pushes. The clean tree is the seam: `commit` leaves the tree
+  clean, `release-version` picks up from there.
 - **vs the built-in `/code-review`** — step 4 delegates correctness-bug review to
   it and house-standard design review to `casomoltd:code-review`; this skill
   orchestrates the gate, it doesn't re-implement the review.
@@ -168,5 +174,5 @@ history is worth more than a tidy-looking sequence.
 
 - **Pre-commit hook fails after staging:** fix the issue and make a
   **new** commit — never amend a commit that has been shared.
-- **Wrong files staged:** unstage with `git -C <repo> restore --staged <file>` and
+- **Wrong files staged:** unstage with `cd <repo> && git restore --staged <file>` and
   re-stage correctly; don't force anything.

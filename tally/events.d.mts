@@ -4,8 +4,27 @@ export declare const TALLY_EVENTS: {
   readonly SUBMITTED: "Tally.FormSubmitted";
 };
 
-/** The origin a Tally embed posts from. */
+/** The origin Tally serves forms from, and that an embed posts from. */
 export declare const TALLY_ORIGIN: "https://tally.so";
+
+/** Tally's widget script, which sizes an embedded form and loads it lazily. */
+export declare const TALLY_WIDGET_URL: "https://tally.so/widgets/embed.js";
+
+/** How a Casomo site embeds a form: aligned with the page, no second title,
+ *  the page's own ground behind it, and as tall as the form. A house choice,
+ *  kept here so every site embeds alike. */
+export declare const TALLY_EMBED_OPTIONS:
+  "alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1";
+
+/** A form's own public page on Tally. */
+export declare function tallyFormHref(formId: string): string;
+
+/** The address a form is embedded from: the embed options, then any hidden
+ *  fields, each escaped. */
+export declare function tallyEmbedSrc(
+  formId: string,
+  hidden?: Readonly<Record<string, string>>,
+): string;
 
 /** An event read down to what a page may act on: a page view's number, or
  *  that the form was submitted. Never the answers. */

@@ -7,7 +7,10 @@
  * coerce defensively. */
 export type ToolInput = Record<string, unknown>;
 
-export type Verdict = "deny" | "ask" | "warn";
+/** What a matched rule does, in rising severity: ask the person, or refuse. */
+export const VERDICTS = {Ask: "ask", Deny: "deny"} as const;
+
+export type Verdict = (typeof VERDICTS)[keyof typeof VERDICTS];
 
 /** A single guard rule. `matches` must be pure — a throw is treated as a
  * non-match. */

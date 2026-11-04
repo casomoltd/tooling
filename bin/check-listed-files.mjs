@@ -32,8 +32,8 @@
  *   check-listed-files <commit-message-file>
  */
 import {execFileSync} from "node:child_process";
-import {readFileSync, realpathSync} from "node:fs";
-import {pathToFileURL} from "node:url";
+import {readFileSync} from "node:fs";
+import {isEntryPoint} from "./utils.mjs";
 
 /** ESLint's default suppressions file, at the repo root. */
 export const SUPPRESSIONS_FILE = "eslint-suppressions.json";
@@ -120,8 +120,6 @@ function main(messageFile) {
   process.exit(1);
 }
 
-// Run through npm's bin symlink, argv[1] is the link and import.meta.url
-// the real file, so compare real paths.
-if (import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
+if (isEntryPoint(import.meta.url)) {
   main(process.argv[2]);
 }

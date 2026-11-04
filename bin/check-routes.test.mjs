@@ -7,7 +7,7 @@ import {createServer} from "node:http";
 import {mkdtemp, rm, writeFile} from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import {failingLinks, failingPages, linkTargets} from "./check-routes.mjs";
+import {failing, linkTarget, linkTargets, pageTarget} from "./check-routes.mjs";
 
 const HOST = "127.0.0.1";
 
@@ -27,27 +27,38 @@ await new Promise((resolve) => server.listen(0, HOST, resolve));
 const base = `http://${HOST}:${server.address().port}`;
 
 try {
-  const failures = await failingPages(base, ["/", "/broken", "/moved"]);
+  // A page must answer 200 where it is listed: a redirect fails it.
+  const pages = await failing(
+    ["/", "/broken", "/moved"].map((page) => pageTarget(base, page)),
+  );
   assert.deepEqual(
-    failures.sort((a, b) => a.path.localeCompare(b.path)),
-    [
-      {path: "/broken", status: 500},
-      {path: "/moved", status: 308},
-    ],
+    pages.map(({label, status}) => [label, status]).sort(),
+    [["/broken", 500], ["/moved", 308]],
   );
   console.log("check-routes: fails each page that is not a 200");
 
   // A link counts where its redirects end: /book reaches a 200, /gone a 404.
-  const links = [
+  const links = await failing([
     {target: "/book", from: "routes.links"},
     {target: "/gone", from: "routes.links"},
     {target: `${base}/broken`, from: "tally form contact"},
-  ];
+  ].map((link) => linkTarget(base, link)));
   assert.deepEqual(
-    (await failingLinks(base, links)).map(({target, status}) => [target, status]),
-    [["/gone", 404], [`${base}/broken`, 500]],
+    links.map(({label, status}) => [label, status]).sort(),
+    [["/gone  (routes.links)", 404], [`${base}/broken  (tally form contact)`, 500]],
   );
   console.log("check-routes: fails each link whose last answer is not a 200");
+
+  // A link that is neither a site path nor an address names its config entry.
+  assert.throws(
+    () => linkTarget(base, {target: "book", from: "routes.links"}),
+    /routes\.links: "book" is neither a site path nor an absolute address/,
+  );
+  assert.equal(
+    linkTarget(base, {target: "//cal.example/x", from: "routes.links"}).url,
+    "https://cal.example/x",
+  );
+  console.log("check-routes: names a link that is not an address");
 
   // The links come from routes.links and every id in the Tally registry.
   const dir = await mkdtemp(path.join(os.tmpdir(), "check-routes-"));

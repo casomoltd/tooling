@@ -10,7 +10,7 @@ hooks are in [Quality gates](../README.md#quality-gates).
 1. **Run the repo's checks.** `npm run check`, or a Python repo's suite, so
    the commit's own `pre-commit` hook, which runs the same, passes once it
    is confirmed.
-2. **Stage the files by name.** `git add a.ts b.ts`, never `git add -A` or
+2. **Stage the files by name.** `cd <repo> && git add a.ts b.ts`, never `git add -A` or
    `git add .`, so a commit holds only what was meant for it.
 3. **Review the staged diff.** The review agents read what is staged, and the
    diff and their findings go to the person committing before anything lands.
@@ -26,8 +26,8 @@ hooks are in [Quality gates](../README.md#quality-gates).
    `commit-msg` checks the message again; either one failing stops the
    commit.
 
-Each step is a command of its own, never chained into another, so each one
-that asks for permission asks for itself alone.
+Each step is a command of its own, never chained with another step, so each
+one that asks for permission asks for itself alone.
 
 A commit never bumps the version or pushes; that is the release, a separate
 step ([`release-version`](../skills/release-version/SKILL.md)).
@@ -35,23 +35,24 @@ step ([`release-version`](../skills/release-version/SKILL.md)).
 ## The command
 
 ```text
-git -C <absolute repo path> commit -F <absolute message file>
+cd <absolute repo path> && git commit -F <absolute message file>
 ```
 
 Run alone, never chained after a `git add` or before a `git push`.
 
-- **`-C` and absolute paths** name the repo outright, so the prompt can say
+- **`cd` and absolute paths** name the repo outright, so the prompt can say
   which repo the commit lands in, and a commit never depends on which
-  directory the shell happens to be in.
+  directory the shell happened to be in. git takes no option before its verb
+  (`git -C`): the guards read the verb as the word after `git`.
 - **`-F`** takes the message from the file step 4 wrote and step 5 checked.
   `-m` would send text nothing has checked.
-- **One form** means the prompt reads the command by position, word by word,
-  rather than parsing the many ways a shell command can be written.
+- **One form** means the prompt matches the command whole, rather than
+  parsing the many ways a shell command can be written.
 
 The plugin's `git-commit-form` guard refuses a commit in any other form, with
 the form to use instead ([the guards](../hooks/README.md)). The one exception
 is an unattended dependency sweep's own commit, which no one is there to
-confirm.
+confirm ([the sweep exemption](../hooks/README.md#the-dependency-sweeps-exemption)).
 
 ## Which gate checks what
 

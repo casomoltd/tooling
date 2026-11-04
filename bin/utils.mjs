@@ -62,6 +62,21 @@ export const CASOMO_CONFIG_KEYS = {
   tally: "tally",
 };
 
+/**
+ * Whether the module at `moduleUrl` is the one node was started with. npm
+ * installs a bin as a symlink, and a plugin's hooks may be reached through
+ * one, so `process.argv[1]` is the link while
+ * `import.meta.url` is the target it resolves to: resolve before comparing,
+ * or the entry point never runs. A module a test imports has no matching
+ * `argv[1]`, and is not the entry point.
+ * @param {string} moduleUrl
+ */
+export function isEntryPoint(moduleUrl) {
+  const started = process.argv[1];
+  if (!started) return false;
+  return moduleUrl === pathToFileURL(fs.realpathSync(started)).href;
+}
+
 /** The files each gate read before `casomo.config.mjs`, by the key their
  *  settings now go under. A repo still holding one would have its settings
  *  ignored, so their presence fails the run. */
