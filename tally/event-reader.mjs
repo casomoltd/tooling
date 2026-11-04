@@ -40,9 +40,10 @@ export function tallyFormHref(formId) {
 
 /**
  * The address a form is embedded from: the embed options, then any hidden
- * fields, each escaped.
+ * fields, each escaped. The fields come in any shape `URLSearchParams` takes:
+ * a record, pairs, or a query string a page already holds.
  * @param {string} formId
- * @param {Readonly<Record<string, string>>} [hidden]
+ * @param {ConstructorParameters<typeof URLSearchParams>[0]} [hidden]
  */
 export function tallyEmbedSrc(formId, hidden = {}) {
   const fields = new URLSearchParams(hidden).toString();

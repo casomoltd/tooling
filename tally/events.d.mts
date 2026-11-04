@@ -20,10 +20,11 @@ export declare const TALLY_EMBED_OPTIONS:
 export declare function tallyFormHref(formId: string): string;
 
 /** The address a form is embedded from: the embed options, then any hidden
- *  fields, each escaped. */
+ *  fields, each escaped. The fields come in any shape `URLSearchParams`
+ *  takes: a record, pairs, or a query string a page already holds. */
 export declare function tallyEmbedSrc(
   formId: string,
-  hidden?: Readonly<Record<string, string>>,
+  hidden?: ConstructorParameters<typeof URLSearchParams>[0],
 ): string;
 
 /** An event read down to what a page may act on: a page view's number, or

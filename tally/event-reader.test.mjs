@@ -75,6 +75,12 @@ assert.equal(
   `https://tally.so/embed/${FORM}?${TALLY_EMBED_OPTIONS}`
     + "&utm_source=x&referring_site=a+b%26c",
 );
+// A query string the page already holds gives the same address.
+assert.equal(
+  tallyEmbedSrc(FORM, "utm_source=x&referring_site=a+b%26c"),
+  tallyEmbedSrc(FORM, {utm_source: "x", referring_site: "a b&c"}),
+);
+assert.equal(tallyEmbedSrc(FORM, ""), tallyEmbedSrc(FORM));
 
 // The hand-written declaration (events.d.mts) held to the code: the
 // typecheck fails here if either changes without the other.
