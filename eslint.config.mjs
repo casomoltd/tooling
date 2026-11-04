@@ -13,7 +13,7 @@ export default [
   {
     // The tests are plain node:assert scripts with no describe or it, which
     // this rule reads as empty.
-    files: ['**/*.test.mjs', 'hooks/test.mts'],
+    files: ['**/*.test.mjs', 'hooks/test.mts', 'hooks/*.test.mts'],
     rules: {'sonarjs/no-empty-test-file': 'off'},
   },
 ];

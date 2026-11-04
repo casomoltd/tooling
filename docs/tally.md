@@ -24,6 +24,12 @@ model's every field is documented in its [types](../tally/index.d.mts).
   ([Key stability](#key-stability)) alone,
   for code that reads a submission by block (a webhook) without loading the
   builder.
+- **`@casomoltd/tooling/tally/events`** exports `readTallyEvent`,
+  `TALLY_EVENTS` and `TALLY_ORIGIN` ([types](../tally/events.d.mts)), for a
+  page hosting an embed: it takes a message event whole, checks it came from
+  Tally, and reads it down to a page view's number or the fact of a
+  submission, never the answers a submission carries. It imports nothing, so
+  it is safe in a browser bundle, which the rest of `./tally` is not.
 
 ## A site's settings
 

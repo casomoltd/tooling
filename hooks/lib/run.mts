@@ -46,6 +46,18 @@ export function evaluate(rules: readonly Rule[], input: ToolInput): Rule | null 
   return best;
 }
 
+/** The matched rule's reason, with its detail after it where it has one. A
+ *  detail that throws is left out, so the verdict never depends on it. */
+export function reasonFor(rule: Rule, input: ToolInput): string {
+  if (!rule.detail) return rule.reason;
+  try {
+    return `${rule.reason}\n\n${rule.detail(input)}`;
+  } catch (err) {
+    warn(`${rule.id}: its detail failed (${err instanceof Error ? err.message : err})`);
+    return rule.reason;
+  }
+}
+
 // Read the payload, evaluate the registry, emit the verdict. We only `ask` when
 // the input is genuinely unreadable (unparseable, or no tool_input) — we don't
 // hunt for missing fields; a present-but-odd payload that matches no rule is
@@ -65,7 +77,8 @@ export function runGuard(rules: readonly Rule[]): void {
   const matched = evaluate(rules, input);
   if (!matched) return; // matched nothing -> allow silently
 
-  const {verdict, reason} = matched;
+  const {verdict} = matched;
+  const reason = reasonFor(matched, input);
   if (verdict === "deny" || verdict === "ask") {
     process.stdout.write(JSON.stringify(preToolUseDecision(verdict, reason)));
   } else {

@@ -58,6 +58,7 @@ export const CASOMO_CONFIG_KEYS = {
   buttondown: "buttondown",
   personalData: "personalData",
   privateRefs: "privateRefs",
+  routes: "routes",
   tally: "tally",
 };
 

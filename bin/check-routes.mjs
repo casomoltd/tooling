@@ -13,20 +13,33 @@
  * It reads the sitemap Next emits: plain `<loc>` elements, in a urlset or a
  * sitemap index one level deep, with `&amp;` the only entity in a URL.
  *
+ * It then follows the links a site promises will work wherever they were
+ * sent, through their redirects, and fails unless the final response is a
+ * 200: every entry in `routes.links` of casomo.config.mjs (an address in an
+ * email signature that redirects to a booking page, say), and every form in
+ * the Tally id registry `tally.registry` names, at tally.so/r/<id>, so a
+ * form deleted in Tally fails the push. A path's first request goes to the
+ * local server; where it redirects, the check follows to wherever that is,
+ * the live site included. A registered form must answer publicly, so a draft
+ * not yet published fails the push too. A page that has gone but still
+ * answers 200 passes; the check sees statuses, not content.
+ *
  * Usage, in the site's root after `next build`:
  *   check-routes
  *
  * Exit codes:
- *   0  every listed page answered 200
- *   1  a page did not, the sitemap failed or listed none, or the server
- *      never started
+ *   0  every listed page and link answered 200
+ *   1  one did not, the sitemap failed or listed none, the config could not
+ *      be read, or the server never started
  */
 
 import {spawn} from "node:child_process";
-import {existsSync, realpathSync} from "node:fs";
+import {existsSync, readFileSync, realpathSync} from "node:fs";
 import {createServer} from "node:net";
 import {setTimeout as sleep} from "node:timers/promises";
 import {pathToFileURL} from "node:url";
+import path from "node:path";
+import {CASOMO_CONFIG_KEYS, loadCasomoConfig} from "./utils.mjs";
 
 const HOST = "127.0.0.1";
 const SITEMAP = "/sitemap.xml";
@@ -41,6 +54,8 @@ const READY_TIMEOUT_MS = 60_000;
 const REQUEST_TIMEOUT_MS = 30_000;
 // Enough to keep a few hundred pages quick without starving the server.
 const CONCURRENCY = 8;
+// Where a Tally form id is published.
+const TALLY_FORM_URL = "https://tally.so/r/";
 
 /** Probe every path, CONCURRENCY at a time; return the ones not 200. */
 export const failingPages = async (base, paths) => {
@@ -54,6 +69,53 @@ export const failingPages = async (base, paths) => {
   };
   await Promise.all(Array.from({length: CONCURRENCY}, worker));
   return failures;
+};
+
+/**
+ * Every link the site's config promises: its `routes.links`, then a form URL
+ * for each id in its Tally registry. Each is `{target, from}`, the address
+ * and where it was named, for the report.
+ * @param {string} [dir]
+ * @returns {Promise<{target: string, from: string}[]>}
+ */
+export const linkTargets = async (dir = process.cwd()) => {
+  const routes = await loadCasomoConfig(CASOMO_CONFIG_KEYS.routes, dir);
+  const tally = await loadCasomoConfig(CASOMO_CONFIG_KEYS.tally, dir);
+  const links = (routes.links ?? []).map((target) => ({
+    target, from: "routes.links",
+  }));
+  if (!tally.registry) return links;
+  const registry = JSON.parse(
+    readFileSync(path.resolve(dir, tally.registry), "utf8"),
+  );
+  return [
+    ...links,
+    ...Object.entries(registry).map(([key, id]) => ({
+      target: TALLY_FORM_URL + id, from: `tally form ${key}`,
+    })),
+  ];
+};
+
+/** Follow each link to its end, a site path from `base`; return the ones
+ *  whose last answer is not 200. */
+export const failingLinks = async (base, links) => {
+  const results = await Promise.all(links.map(async (link) => {
+    try {
+      const res = await get(linkUrl(base, link.target));
+      await res.arrayBuffer();
+      return {...link, status: res.status};
+    } catch (err) {
+      return {...link, error: message(err)};
+    }
+  }));
+  return results.filter((r) => r.status !== HTTP_OK);
+};
+
+/** Where a link points: a site path on the local server; any other address
+ *  as written, a protocol-relative one over https. */
+const linkUrl = (base, target) => {
+  const local = target.startsWith("/") && !target.startsWith("//");
+  return local ? base + target : new URL(target, "https://placeholder.invalid").href;
 };
 
 /** The path and query of every `<loc>` in a sitemap or sitemap index. The
@@ -158,31 +220,51 @@ const waitForSitemap = async (base, output) => {
   throw new Error(`the server never answered ${SITEMAP}\n${output.join("")}`);
 };
 
-const report = (count, failures) => {
+const report = (count, failures, linkCount, linkFailures) => {
   if (count === 0) {
     console.error(`✗ check-routes: ${SITEMAP} lists no pages`);
     return 1;
   }
   if (failures.length > 0) {
     console.error(`✗ check-routes: ${failures.length} of ${count} pages failed`);
-    for (const {path, status, error} of failures) {
-      console.error(`  ${status ?? error}  ${path}`);
+    for (const {path: page, status, error} of failures) {
+      console.error(`  ${status ?? error}  ${page}`);
     }
-    return 1;
   }
-  console.log(`✓ check-routes: ${count} pages answered 200`);
+  if (linkFailures.length > 0) {
+    console.error(
+      `✗ check-routes: ${linkFailures.length} of ${linkCount} links failed`,
+    );
+    for (const {target, from, status, error} of linkFailures) {
+      console.error(`  ${status ?? error}  ${target}  (${from})`);
+    }
+  }
+  if (failures.length > 0 || linkFailures.length > 0) return 1;
+  console.log(
+    `✓ check-routes: ${count} pages and ${linkCount} links answered 200`,
+  );
   return 0;
 };
 
-/** Start the server, check every page, stop it; the exit code. */
+/** Start the server, check every page and link, stop it; the exit code. */
 const run = async () => {
+  let links;
+  try {
+    links = await linkTargets();
+  } catch (err) {
+    console.error(`✗ check-routes: ${message(err)}`);
+    return 1;
+  }
   const port = await freePort();
   const base = `http://${HOST}:${port}`;
   const {server, output, died} = startServer(port);
   try {
     const rootXml = await Promise.race([waitForSitemap(base, output), died]);
     const paths = await collectPaths(base, rootXml);
-    return report(paths.length, await failingPages(base, paths));
+    const [failures, linkFailures] = await Promise.all([
+      failingPages(base, paths), failingLinks(base, links),
+    ]);
+    return report(paths.length, failures, links.length, linkFailures);
   } catch (err) {
     console.error(`✗ check-routes: ${message(err)}`);
     return 1;

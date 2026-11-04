@@ -7,6 +7,7 @@
 // Everything else falls through untouched. Contains no repo-specific names —
 // this ships in the public tooling plugin.
 import {pathToFileURL} from "node:url";
+import {COMMIT_FORM, commitDetail, parseCommit} from "./lib/commit-detail.mts";
 import {runGuard} from "./lib/run.mts";
 import type {Rule, ToolInput} from "./lib/rule.mts";
 
@@ -25,22 +26,67 @@ const text = (input: ToolInput): string => String(input.command ?? "");
 // allow-list Bash has nothing stricter standing behind this predicate, so it
 // is the line rather than a hint to a prompt that would otherwise follow.
 const SWEEP_PATH = String.raw`/worktrees/dep-sweep-[\w.-]+`;
-const SWEEP_TARGET = String.raw`(?:"[^"]*${SWEEP_PATH}"|[^\s"]*${SWEEP_PATH})`;
+// Plain path characters only, quoted or not: a `;`, `$(` or quote in the
+// path could carry a second command under the exemption.
+const SWEEP_TARGET =
+  String.raw`(?:"[\w./@+ -]*${SWEEP_PATH}"|[\w./@+-]*${SWEEP_PATH})`;
 const SWEEP_ACTIONS = [
-  String.raw`git commit -F \S+`,
+  String.raw`git commit -F [\w./@+-]+`,
   String.raw`git push --force-with-lease -u origin dep-sweep`,
 ];
 const SWEEP_COMMAND = new RegExp(
   String.raw`^cd\s+${SWEEP_TARGET}\s+&&\s+(?:${SWEEP_ACTIONS.join("|")})$`,
 );
 
-/** The sweep's own branch-side commands, which the `ask` rules step aside for.
- * Only those two rules consult it — every `deny` stays absolute. */
+/** The sweep's own branch-side commands, which the `ask` rules step aside
+ * for and the commit form allows; every other `deny` stays absolute. */
 const isSweepCommand = (i: ToolInput): boolean =>
   SWEEP_COMMAND.test(text(i).trim());
 
+/** Where one command ends and the next starts: `&&`, `||`, `;`, `|`, a newline,
+ *  or the opening of a `$(…)`. */
+const COMMAND_BREAK = /&&|\|\||[;|\n]|\$\(/;
+
+/** git's options before its verb that take a separate value. */
+const GIT_VALUE_OPTIONS = new Set([
+  "-C", "-c", "--git-dir", "--work-tree", "--namespace",
+]);
+
+/** An option and the value after it. */
+const OPTION_AND_VALUE = 2;
+
+/**
+ * Whether a command runs a git commit: some command in it, after an opening
+ * `(`, is `git`, its options before the verb, then `commit` (not
+ * `commit-tree` or `commit-graph`). Only a command's first word counts, so
+ * the words "git commit" inside an argument, a file being written say, are
+ * not read as one; a heredoc line that starts with them is.
+ */
+function runsGitCommit(command: string): boolean {
+  return command.split(COMMAND_BREAK).some((part) => {
+    const words = part.trim().replace(/^\(+/, "").split(/\s+/);
+    if (words[0] !== "git") return false;
+    let i = 1;
+    while (words[i]?.startsWith("-")) {
+      i += GIT_VALUE_OPTIONS.has(words[i]) ? OPTION_AND_VALUE : 1;
+    }
+    return words[i] === "commit";
+  });
+}
+
 // git history + remote safety.
 const gitRules: readonly Rule[] = [
+  {
+    id: "git-commit-form",
+    verdict: "deny",
+    reason:
+      `Commit in the one form, run alone: \`${COMMIT_FORM}\`, after staging by `
+      + "name and running the commit-msg hook on the file (docs/commit.md).",
+    // The one form is the commit whose prompt can show what it holds; the
+    // sweep's own commit is the other form allowed.
+    matches: (i) =>
+      runsGitCommit(text(i)) && !parseCommit(text(i)) && !isSweepCommand(i),
+  },
   {
     id: "git-commit-confirm",
     verdict: "ask",
@@ -49,11 +95,9 @@ const gitRules: readonly Rule[] = [
       "confirm this commit is intended before it lands.",
     // Not `commit-tree`/`commit-graph` (plumbing/maintenance, not a commit).
     // Allows git's pre-verb flags (`git -C <dir> commit` is still a commit).
-    matches: (i) =>
-      !isSweepCommand(i) &&
-      /\bgit\s+(?:-C\s+\S+\s+|-c\s+\S+\s+|--[\w-]+(?:=\S+)?\s+)*commit\b(?!-)/.test(
-        text(i),
-      ),
+    matches: (i) => !isSweepCommand(i) && runsGitCommit(text(i)),
+    // The command alone names neither the repo nor what the commit holds.
+    detail: (i) => commitDetail(text(i)),
   },
   {
     id: "git-push-confirm",

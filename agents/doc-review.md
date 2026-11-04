@@ -35,6 +35,8 @@ well-meant, and twice as long as they need to be.
   name is ambiguous, ask the caller what the doc owns rather than guessing —
   half the findings below depend on knowing its subject.
 - **Optionally, a scope.** Honour it and say what you did not look at.
+- **Optionally, sibling repos** to trace the doc's process or rule across
+  (Focus 9).
 
 ## Scope
 
@@ -42,6 +44,8 @@ Read the **whole doc**, not a diff. Shape findings are about proportion and
 order, which a diff cannot show: a section is only furniture relative to what
 else is in the file, and the substance can only be buried relative to how much
 precedes it.
+
+Focus 9 looks beyond the doc, for its own process or rule only.
 
 ## Focus — judgment-level
 
@@ -83,11 +87,23 @@ as one finding with the list, never one per heading.
 **8. Voice and single-source.** The rest of `docs-style` — present tense, no
 changelog narration, one fact one home, WHY not WHAT, sourcing. Cite the section.
 
+**9. One home for the doc's process or rule**, against
+[`design-rubric`](../docs/design-rubric.md) Q6. Take the process or rule the
+doc exists to describe and search the rest of the repo, and any sibling repos
+the caller names, for another doc, skill or config file that states it too.
+Read those only far enough to show the split; they are evidence, not part of
+the review. A split is a **Structural** finding naming each place and which
+should own it. Search by its names and its distinctive strings with Grep. With
+no sibling repos named, trace within this repo only. Where the reviewed repo is
+public and the evidence sits in a private sibling, describe what is there;
+never quote it into a finding that may land in the public repo.
+
 ## Ignore — owned elsewhere (never re-flag)
 
 - **Broken links and anchors**, frontmatter schema → the markdown link linter.
 - **Orphans, stale cross-references, duplication across the corpus** →
   `docs-xray`. You judge one doc against the standard; it judges the graph.
+  Focus 9 is the exception for this doc's own process or rule only.
 - **`SKILL.md` and `agents/*.md`** → `skill-review`, which applies this same
   standard plus the authoring schema.
 - **Marketing or reader-facing copy** → the copy standard that owns brand voice.

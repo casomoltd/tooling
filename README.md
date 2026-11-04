@@ -17,7 +17,7 @@ Shared linting, formatting, commit config, and CLI tools for Casomo Ltd's repos.
 | `@casomoltd/tooling/readability` | `scoreText()` — readability scoring for page content |
 | `@casomoltd/tooling/identity` | `CASOMO_ORGANIZATION`, the schema.org `Organization`, logo included, that every Casomo site names as publisher in its JSON-LD; and the company's public registrations, `COMPANY_REGISTER`, `ICO_REGISTER` and `REGISTERED_OFFICE`; and `CASOMO_UTM` with `tagged()`, the values every Casomo link and signature is tagged from ([types](identity/index.d.mts)). App code imports it at build time, so a site that installs only production dependencies at runtime lists the package under `dependencies` |
 | `@casomoltd/tooling/buttondown` | For a repo using the `buttondown` command: the shared email blocks and skins (`createEmailBlocks`, `emailBaseCss`, `composeWebSkin`), `tokenReader()`, `loadSettings()` and `buildPayload()`, and `EMAIL_CHROME_HIDES` and `WEB_CHROME_HIDES` ([docs/buttondown.md](docs/buttondown.md)) |
-| `@casomoltd/tooling/tally` | For a repo keeping Tally forms as code: the form model and translator (`toBlocks`, `toSettings`, `blockNames`), `FormIndex` for styling that targets a block, `blockSelectors()`; `./tally/paths` alone for code that names a block without the builder ([docs/tally.md](docs/tally.md)) |
+| `@casomoltd/tooling/tally` | For a repo keeping Tally forms as code: the form model and translator (`toBlocks`, `toSettings`, `blockNames`), `FormIndex` for styling that targets a block, `blockSelectors()`; `./tally/paths` alone for code that names a block without the builder; `./tally/events` for a page reading what its embed posts, safe in a browser ([docs/tally.md](docs/tally.md)) |
 | `@casomoltd/tooling/attribution` | `utmTagger(lists)`: a function that tags a link with UTM values from lists a site owns, refusing a value not in them. `identity`'s `tagged()` is this, bound to Casomo's own lists ([types](attribution/index.d.mts)) |
 
 ### Bin commands
@@ -27,7 +27,7 @@ Shared linting, formatting, commit config, and CLI tools for Casomo Ltd's repos.
 | `check-version` | Pre-push guard — rejects push if `package.json` version hasn't changed vs `origin/main` |
 | `check-linear` | Pre-push guard — rejects a push that would put a merge commit on the remote. History is linear; a branch catches up by rebasing. Only what the push adds is judged, so merges already on the remote stay |
 | `pre-push` | Husky pre-push hook — runs check, then `check:routes` where a repo defines it, then the version, tag and linear-history guards |
-| `check-routes` | Pre-push gate for a Next.js site — starts `next start` against the build `check` made, requests every page in `/sitemap.xml`, and fails if any is not a 200. Run it as `"check:routes": "check-routes"`; [why it runs on push](#quality-gates) |
+| `check-routes` | Pre-push gate for a Next.js site — starts `next start` against the build `check` made, requests every page in `/sitemap.xml` and follows the links a site promises (`routes.links` in `casomo.config.mjs`, and each form in its `tally` registry) through their redirects, and fails if any final response is not a 200 ([how](bin/check-routes.mjs)). Run it as `"check:routes": "check-routes"`; [why it runs on push](#quality-gates) |
 | `pre-commit` | Husky pre-commit hook — runs `npm run check` |
 | `commit-msg` | Husky commit-msg hook — runs commitlint, then `check-listed-files` |
 | `check-listed-files` | Refuse a commit that changes a file still listed in `eslint-suppressions.json`, unless a `Lint-deferred:` trailer says why ([docs/lint.md](docs/lint.md)) |
@@ -130,8 +130,7 @@ npm layer** that exists to host the hook and nothing else:
 ```
 
 Plus `commitlint.config.cjs` re-exporting the rules, and `.husky/commit-msg`.
-No `version`, because the repo versions itself with its own tool. Live
-examples: `kallim`, `paperpi`.
+No `version`, because the repo versions itself with its own tool.
 
 **Do not wire `pre-commit` or `pre-push` from this package in such a repo.**
 Both run `npm run check`, and `check-gates` reads `package.json` and requires

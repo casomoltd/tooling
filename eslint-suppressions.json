@@ -98,11 +98,6 @@
       "count": 1
     }
   },
-  "hooks/guard-bash.mts": {
-    "sonarjs/regex-complexity": {
-      "count": 1
-    }
-  },
   "readability/index.mjs": {
     "@typescript-eslint/no-magic-numbers": {
       "count": 9

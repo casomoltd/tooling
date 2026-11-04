@@ -11,10 +11,9 @@ description: >-
 user-invocable: true
 argument-hint: "[message] [-C <repo>]"
 allowed-tools:
-  - Bash(npm run check)
+  - Bash(npm --prefix * run check)
   - Bash(uv run *)
   - Bash(git *)
-  - Bash(cd *)
 ---
 
 # Commit Workflow
@@ -22,7 +21,8 @@ allowed-tools:
 Run checks, then commit. Follow these steps in order; do NOT skip or
 reorder. This skill **commits only** — it does not bump the version or
 push. The release tail (bump → push → publish/deploy) is a separate,
-deliberate step (`release-version`).
+deliberate step (`release-version`). Why each step is there, the one commit
+command and which gate checks what: [Commits](../../docs/commit.md).
 
 ## Intent
 
@@ -38,45 +38,46 @@ Decide which repo to commit in:
   dir, git-style; e.g. `-C tooling` from a multi-repo workspace root).
 - otherwise → the current directory.
 
-`cd` there, then confirm it's the intended repo with
-`git rev-parse --show-toplevel`. If it isn't a git repo with a recognised
-toolchain (e.g. you're at a multi-repo workspace root with no
+Confirm it's the intended repo and take its absolute path with
+`git -C <path> rev-parse --show-toplevel`. If it isn't a git repo with a
+recognised toolchain (e.g. you're at a multi-repo workspace root with no
 `package.json` / `pyproject.toml`), **stop and ask which repo** — never
-guess. Every step below runs in this repo.
+guess. `<repo>` below is that absolute path: every command names it, so
+none depends on the shell's directory.
 
 ## 1. Run checks
 
 Pick the command by toolchain, detected from the repo root:
 
-- **npm repo** (`package.json` with a `check` script): `npm run check`
-- **Python/uv repo** (`pyproject.toml`): run the strict suite directly, e.g.
-  `uv run ruff check && uv run ruff format --check && uv run pyright &&
-  uv run pytest`
+- **npm repo** (`package.json` with a `check` script):
+  `npm --prefix <repo> run check`
+- **Python/uv repo** (`pyproject.toml`): run the strict suite directly, each
+  as `uv run --directory <repo> …`, e.g. `ruff check`, `ruff format --check`,
+  `pyright` and `pytest`
 
 **Detect on the `check` script, not on `package.json` existing.** A non-npm
 repo may carry a dev-only `package.json` whose sole purpose is hosting the
 husky commit gate — `private: true`, `prepare: husky`, no `version`, and
 deliberately **no `check`**. Seeing the file and running `npm run check` there
-fails with "missing script". `kallim` and `paperpi` are both this shape.
+fails with "missing script".
 
 If checks fail, fix the issues and re-run until they pass. Do NOT
 proceed until they pass.
 
 **If a house gate is missing from the repo, wire the shared one — do not write
 a local equivalent.** If the shared one cannot run there, that is a bug to fix
-in this package. Three separate hand-written copies of `no-ai-attribution` grew
-this way, two of them silently missing the length limits, because each author
-found no hook and wrote one. `check-hooks` reports whether a repo is gated, and
+in this package: a local copy drifts from the shared gate and can silently
+omit checks the shared one enforces. `check-hooks` reports whether a repo is gated, and
 tests it by behaviour rather than by the hook file existing.
 
 ## 2. Stage changed files
 
-Stage files explicitly by name. **Never** `git add -A` or `git add .` —
-list specific files. Review with `git diff --stat` first.
+Stage files explicitly by name, `git -C <repo> add <file>…`. **Never**
+`git add -A` or `git add .`. Review with `git -C <repo> diff --stat` first.
 
 ## 3. Check for remaining unstaged changes
 
-After staging, run `git diff --stat` again. If there are related changes
+After staging, run `git -C <repo> diff --stat` again. If there are related changes
 that should ship together, make **multiple commits** (repeat steps 2–6
 per batch) rather than lumping unrelated work into one commit.
 
@@ -85,7 +86,7 @@ per batch) rather than lumping unrelated work into one commit.
 Before showing the diff for approval, run the **house review agents over
 the staged diff** so findings land alongside the diff, not after the
 commit. Scope every agent to the changed files only
-(`git diff --staged --name-only`) — never the whole tree. Match by file
+(`git -C <repo> diff --staged --name-only`) — never the whole tree. Match by file
 type, and skip this step when nothing reviewable changed (e.g. a pure
 version bump or a config-only diff):
 
@@ -109,49 +110,40 @@ advisory input to the approval gate below — not a hard block.
 
 ## 5. Show the diff and wait for confirmation
 
-Run `git diff --staged` and present it **together with the review
+Run `git -C <repo> diff --staged` and present it **together with the review
 findings from step 4**, grouped by file. Offer to fix anything flagged
 before committing. **Stop and wait for the user's explicit confirmation
 that they're happy** — never commit off your own judgement. Do not proceed
 until the user confirms.
 
-This gate is **enforced, not advisory**: the `git-commit-confirm` guard hook
-surfaces a confirmation on every `git commit`, so a commit can't slip through
-unconfirmed. Don't try to work around it — the staged tree waiting on the
-user's "yes" is the intended resting state.
+The staged tree waiting on the user's "yes" is the intended resting state;
+the commit itself then raises its own confirmation prompt (step 6).
 
 ## 6. Commit
 
-- **Header:** ≤ 50 chars, imperative mood.
-- **Body** (optional): wrap at 72 chars, explain *why*.
-- **No AI attribution** — no "Co-Authored-By" / "Generated with …" lines.
+- **Header:** imperative mood. **Body** (optional): explain *why*.
+- **No AI attribution** lines; the gate refuses them.
 - **Issue reference:** if an issue number is already in context, add a
   `Closes #<n>` / `Refs #<n>` footer; don't prompt for one otherwise.
 
-**Draft to a file and pre-flight it — never present a doomed commit.**
-Write the message to a temp file (Write tool, scratch dir; avoids every
-shell-quoting hazard), then run the repo's own `commit-msg` gate on it
-and fix exactly what it flags until it passes:
+1. **Write the message to a file** with the Write tool, in a scratch
+   directory (a quoted message from the arguments goes in the file as given).
+2. **Run the repo's `commit-msg` gate on it** and fix exactly what it
+   flags until it passes; don't hand-count the limits, the gate counts them:
 
-```bash
-hook="$(git rev-parse --path-format=absolute --git-path hooks)/commit-msg"
-[ ! -x "$hook" ] || "$hook" <msgfile>
-```
+   ```bash
+   hook="$(git -C <repo> rev-parse --path-format=absolute --git-path hooks)"
+   [ ! -x "$hook/commit-msg" ] || "$hook/commit-msg" <absolute message file>
+   ```
 
-Only then run `git commit -F <msgfile>`. Don't hand-count character
-limits — the gate counts them; a draft that passes here cannot bounce
-at commit time, so the user is never asked to confirm a commit that
-the hooks would reject.
+3. **Commit in [the one form](../../docs/commit.md#the-command), as a command
+   of its own:**
 
-Run the pre-flight and staging as their own separate commands, and run
-`git commit -F <msgfile>` **alone, never inside a compound command** —
-the `git-commit-confirm` dialog keys on the whole Bash call, so
-bundling makes the user approve drafting/linting/staging along with
-the commit. One guarded action per command.
+   ```bash
+   git -C <repo> commit -F <absolute message file>
+   ```
 
-Use a quoted message from the arguments if given. Running `git commit` surfaces
-the `git-commit-confirm` guard hook's dialog — that's the enforced form of the
-step-5 gate; confirm it, never suppress or bypass it.
+   Confirm its prompt; never suppress or bypass it.
 
 ## 7. Stop — do not bump, do not push
 
@@ -176,5 +168,5 @@ history is worth more than a tidy-looking sequence.
 
 - **Pre-commit hook fails after staging:** fix the issue and make a
   **new** commit — never amend a commit that has been shared.
-- **Wrong files staged:** unstage with `git restore --staged <file>` and
+- **Wrong files staged:** unstage with `git -C <repo> restore --staged <file>` and
   re-stage correctly; don't force anything.

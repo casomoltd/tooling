@@ -34,14 +34,23 @@ Before proposing a type, an interface, or a module, ask:
 5. **Am I inventing a type the domain object already implies?** If the object
    carries the data — or defaults it — don't wrap it or pass a sidecar. Optional
    inputs default (to none / zero / identity); don't require or thread them.
+6. **Does each responsibility this change touches have one owner?** Find every
+   other place that implements, enforces or documents it, in other files and
+   other repos, and keep one owner the rest call or link to: a split one
+   changes everywhere at once, and the forgotten copy drifts. Q2 is the case
+   for a value. (Single-responsibility principle: Robert C. Martin, *Clean
+   Architecture*, 2017, ch. 7; the extension across files and repos is this
+   rubric's own.)
 
 Plus one sequencing rule: **foundations first, features on top** — land the
 domain / library correctness before the features that consume it, not the reverse.
 
 ## The rules behind the lens
 
-Each lens question is enforced by a named rule in the language standards. Cite
-those **by name**; don't restate them here.
+Each lens question is backed by a named rule in the standards, or, for Q6, by
+the review briefs. Cite those **by name**; don't restate them here. The
+question numbers are stable identifiers, cited elsewhere: a new question takes
+the next number.
 
 - **Q1 · Q2 — library-first, one producer** → `typescript`: *Reuse the Library's
   Types and Values* · *Don't Wrap a Domain Object to Decorate It* · *A Domain Rule
@@ -55,6 +64,11 @@ those **by name**; don't restate them here.
   Silent Default for a Domain-Selecting Input* · *Variants over Mode Flags* ·
   *Once Dispatched, Don't Re-Ask the Type* · *Don't Swallow Exceptions*.
   `python-style`: **Design** (value objects, EAFP, polymorphism).
+- **Q6 — one owner per responsibility** → `docs-style`: *One fact, one home*,
+  for prose. Code, config and hooks have no language rule for it: the
+  [`code-review`](../agents/code-review.md) and
+  [`doc-review`](../agents/doc-review.md) briefs trace each responsibility a
+  change touches beyond its own files.
 - **Unifying two paths** — when you must temporarily keep two, `typescript`:
   *Guard Cross-Path Invariants with a Test* (retire it once unified).
 

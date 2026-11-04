@@ -12,7 +12,8 @@ executes and can confirm, hard-block, or wave it through. All rules are generic
 | `hooks.json` | Registration — which guard runs on which tool event (the harness reads this) |
 | `guard-bash.mts` | Bash-command rule registry (git + npm discipline) |
 | `guard-edit.mts` | Edit/Write rule registry (don't weaken type-checking) |
-| `lib/run.mts` | The engine — `evaluate()` (registry → verdict) + `runGuard()` (stdin → decision); **fails open** |
+| `lib/run.mts` | The engine — `evaluate()` (registry → verdict) + `runGuard()` (stdin → decision, the rule's reason plus its `detail`); **fails open** |
+| `lib/commit-detail.mts` | What a commit is about to record — repo, staged files, message — for its confirmation prompt |
 | `lib/contract.mts` | The harness wire types (**vendored**) + `preToolUseDecision()` constructor |
 | `test.mts` | Rule-behaviour tests + end-to-end stdin/stdout + fail-open checks |
 | `tsconfig.json` | Strict `tsc --noEmit` config for the type gate |
@@ -21,7 +22,10 @@ executes and can confirm, hard-block, or wave it through. All rules are generic
 
 | Rule | Verdict | |
 |---|---|---|
+| `git commit` in [the one form](../docs/commit.md#the-command) | **ask** | deliberate, not automatic; the prompt shows what the commit will record |
+| `git commit` in any other form | **deny** | its prompt couldn't show what it holds; names the form to use |
 | `git push` | **ask** | never automatic — confirm; nudges `--follow-tags` |
+| `npm version patch\|minor` / `uv version --bump patch\|minor` | **ask** | the release tail, not a mid-work step |
 | force-push / `reset --hard` / `rebase -i` / `tag -d` / `filter-branch` | **deny** | rewrites/loses history |
 | `npm version major` / `uv version --bump major` | **deny** | needs explicit human approval |
 | global install (`npm i -g` / `--global`) | **deny** | project-local only |
@@ -49,7 +53,8 @@ ruff config adds `PGH003`) — stay only because nothing else guards them yet.
 (Drafted commit *messages* are deliberately not guarded here either: the
 `commit` skill drafts the message to a file, runs the repo's own `commit-msg`
 git hook over it, and only then commits with `git commit -F` — same file, same
-gate, just before the commit instead of during it.)
+gate, just before the commit instead of during it. The whole process, step by
+step, is [Commits](../docs/commit.md).)
 
 ## Failure handling
 

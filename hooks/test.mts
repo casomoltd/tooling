@@ -12,160 +12,15 @@ import {mkdtempSync, rmSync, writeFileSync} from "node:fs";
 import {tmpdir} from "node:os";
 import {fileURLToPath} from "node:url";
 import {dirname, join} from "node:path";
-import {evaluate} from "./lib/run.mts";
-import type {Rule, Verdict} from "./lib/rule.mts";
+import {evaluate, reasonFor} from "./lib/run.mts";
+import type {Rule} from "./lib/rule.mts";
+import {bashCases, editCases, type Case} from "./test-cases.mts";
 import {RULES as BASH_RULES} from "./guard-bash.mts";
 import {RULES as EDIT_RULES} from "./guard-edit.mts";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = join(HERE, "..");
 
-// verdict: expected verdict, or null for "no match (allowed)".
-// id: optional — assert which rule fired.
-interface Case {
-  command?: string;
-  file_path?: string;
-  content?: string;
-  new_string?: string;
-  verdict: Verdict | null;
-  id?: string;
-}
-
-const bashCases: Case[] = [
-  {command: "git push origin main", verdict: "ask", id: "git-push-confirm"},
-  {command: "git push --follow-tags", verdict: "ask"},
-  {command: "git push --force origin main", verdict: "deny", id: "git-force-push"},
-  {command: "git push -f", verdict: "deny", id: "git-force-push"},
-  {command: "git push origin +main", verdict: "deny", id: "git-force-push"},
-  // --force-with-lease is the safe variant: confirm, don't hard-block.
-  {command: "git push --force-with-lease", verdict: "ask", id: "git-push-confirm"},
-  {command: "git reset --hard HEAD~3", verdict: "deny", id: "git-reset-hard"},
-  {command: "git rebase -i HEAD~2", verdict: "deny", id: "git-rebase-interactive"},
-  {command: "git tag -d v1.0.0", verdict: "deny", id: "git-tag-delete"},
-  {command: "git filter-branch --tree-filter x", verdict: "deny"},
-  {command: "npm version major", verdict: "deny", id: "version-major"},
-  {command: "uv version --bump major", verdict: "deny", id: "version-major"},
-  {command: "npm i -g typescript", verdict: "deny", id: "npm-global-install"},
-  {command: "npm install --global eslint", verdict: "deny"},
-  // Bumping is the release tail — confirm patch/minor (major stays denied).
-  {command: "npm version patch", verdict: "ask", id: "version-bump-confirm"},
-  {command: "npm version minor", verdict: "ask", id: "version-bump-confirm"},
-  {command: "uv version --bump patch", verdict: "ask", id: "version-bump-confirm"},
-  // Allowed — no rule should fire.
-  {command: "git status", verdict: null},
-  {command: "git push --help", verdict: "ask"}, // still a push token; confirm
-  {command: "npm version", verdict: null}, // bare — prints, doesn't bump
-  {command: "npm i -D eslint", verdict: null},
-  // Every commit asks for confirmation (git-commit-confirm). AI-attribution
-  // itself stays commitlint's job — the hook doesn't deny for it.
-  {command: 'git commit -m "feat: x"', verdict: "ask", id: "git-commit-confirm"},
-  {command: "git commit --amend", verdict: "ask", id: "git-commit-confirm"},
-  {
-    command: 'git -C tooling commit -m "feat: x"',
-    verdict: "ask",
-    id: "git-commit-confirm",
-  },
-  {
-    command: 'git commit -m "feat: x" -m "Co-Authored-By: Claude"',
-    verdict: "ask",
-    id: "git-commit-confirm",
-  },
-  // Plumbing/maintenance verbs that start with "commit" must NOT confirm.
-  {command: "git commit-graph write", verdict: null},
-  {command: "git commit-tree abc123", verdict: null},
-  {command: "git tag -a v1.0.0 -m v1.0.0", verdict: null},
-
-  // ---- dependency-sweep carve-out ----
-  // An unattended sweep can't answer an `ask`, so its two branch-side shapes
-  // inside a `worktrees/dep-sweep-*` checkout must fall through cleanly.
-  {
-    command: "cd /w/worktrees/dep-sweep-lib && git commit -F /tmp/msg.txt",
-    verdict: null,
-  },
-  {
-    command: 'cd "/w/my repo/worktrees/dep-sweep-lib"'
-      + " && git commit -F /tmp/msg.txt",
-    verdict: null,
-  },
-  {
-    command: "cd /w/worktrees/dep-sweep-lib"
-      + " && git push --force-with-lease -u origin dep-sweep",
-    verdict: null,
-  },
-  // ...and everything else stays guarded. The exemption is the exact shape,
-  // not the directory: being in a sweep worktree licenses nothing on its own.
-  {
-    command: 'cd /w/worktrees/dep-sweep-lib && git commit -m "feat: x"',
-    verdict: "ask",
-    id: "git-commit-confirm",
-  },
-  {
-    command: "cd /w/worktrees/dep-sweep-lib && git push -u origin main",
-    verdict: "ask",
-    id: "git-push-confirm",
-  },
-  // A compound tail must not ride in under the carve-out.
-  {
-    command: "cd /w/worktrees/dep-sweep-lib"
-      + " && git commit -F /tmp/msg.txt && npm publish",
-    verdict: "ask",
-    id: "git-commit-confirm",
-  },
-  // A non-sweep worktree is an ordinary checkout.
-  {
-    command: "cd /w/worktrees/feature-x && git commit -F /tmp/msg.txt",
-    verdict: "ask",
-    id: "git-commit-confirm",
-  },
-  // The `deny` rules are absolute — the carve-out never reaches them.
-  {
-    command: "cd /w/worktrees/dep-sweep-lib && git push --force -u origin dep-sweep",
-    verdict: "deny",
-    id: "git-force-push",
-  },
-  {
-    command: "cd /w/worktrees/dep-sweep-lib && git reset --hard HEAD~1",
-    verdict: "deny",
-    id: "git-reset-hard",
-  },
-];
-
-const editCases: Case[] = [
-  {
-    file_path: "/x/tsconfig.json",
-    content: '{"compilerOptions":{"strict":false}}',
-    verdict: "deny",
-    id: "tsconfig-strict-weakening",
-  },
-  {
-    file_path: "/x/tsconfig.base.json",
-    content: '{"compilerOptions":{"skipLibCheck":true}}',
-    verdict: "deny",
-  },
-  {
-    file_path: "/x/bar.py",
-    content: "x = thing()  # type: ignore",
-    verdict: "deny",
-    id: "py-type-ignore-blanket",
-  },
-  // Allowed cases.
-  {
-    file_path: "/x/bar.py",
-    content: "x = thing()  # type: ignore[arg-type]",
-    verdict: null,
-  },
-  {
-    file_path: "/x/tsconfig.json",
-    content: '{"compilerOptions":{"strict":true}}',
-    verdict: null,
-  },
-  // `@ts-ignore` is eslint's job (`ban-ts-comment`): the hook must not fire on it.
-  {
-    file_path: "/x/foo.ts",
-    new_string: "// @ts-ignore\nconst a = bad();",
-    verdict: null,
-  },
-];
 
 let pass = 0;
 const fail: string[] = [];
@@ -239,6 +94,25 @@ runCases(
 );
 rmSync(msgDir, {recursive: true, force: true});
 
+// A rule's detail is read after its match; one that throws leaves the reason.
+try {
+  const rule: Rule = {
+    id: "r", verdict: "ask", reason: "Confirm.", matches: () => true,
+    detail: () => { throw new Error("boom"); },
+  };
+  assert.equal(reasonFor(rule, {}), "Confirm.");
+  pass++;
+} catch (err) {
+  fail.push(`reasonFor: ${err instanceof Error ? err.message : String(err)}`);
+}
+
+// A real repo with a staged file and a message file, for the prompt's text.
+const commitRepo = mkdtempSync(join(tmpdir(), "commit-prompt-"));
+spawnSync("git", ["init", "-q", commitRepo]);
+writeFileSync(join(commitRepo, "a.txt"), "a\n");
+spawnSync("git", ["-C", commitRepo, "add", "a.txt"]);
+writeFileSync(join(commitRepo, "msg.txt"), "Add a\n\nBecause a.\n");
+
 // End-to-end: spawn the real script with a piped payload. Normalise the result
 // so stdout/stderr are strings regardless of platform buffering.
 interface RunResult {
@@ -311,6 +185,22 @@ const e2e: E2E[] = [
     },
   },
   {
+    name: "a commit's prompt shows its repo, files and message",
+    res: run("guard-bash.mts", {
+      tool_name: "Bash",
+      tool_input: {
+        command: `git -C ${commitRepo} commit -F ${join(commitRepo, "msg.txt")}`,
+      },
+    }),
+    assert: (r) => {
+      const reason: string = JSON.parse(r.stdout)
+        .hookSpecificOutput.permissionDecisionReason;
+      assert.match(reason, /Repo: commit-prompt-/);
+      assert.match(reason, /Staged:\n {2}A\ta\.txt/);
+      assert.match(reason, /Message:\n {2}Add a\n {2}\n {2}Because a\./);
+    },
+  },
+  {
     name: "empty stdin asks",
     res: run("guard-edit.mts", ""),
     assert: (r) => {
@@ -337,6 +227,8 @@ for (const t of e2e) {
     fail.push(`e2e "${t.name}": ${err instanceof Error ? err.message : String(err)}`);
   }
 }
+
+rmSync(commitRepo, {recursive: true, force: true});
 
 if (fail.length) {
   console.error(`✖ hooks tests: ${fail.length} failed\n  ` + fail.join("\n  "));

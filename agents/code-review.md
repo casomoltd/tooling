@@ -21,7 +21,7 @@ invent rules):
 
 The cross-cutting design lens is [`design-rubric`](../docs/design-rubric.md)
 (library-first · one producer per value · thinnest interface · a concern per
-layer) — run it too; the rule you cite by name is the preloaded language standard.
+layer · one owner per responsibility) — run it too; the rule you cite by name is the preloaded language standard.
 
 ## Inputs (the caller provides)
 
@@ -36,11 +36,13 @@ layer) — run it too; the rule you cite by name is the preloaded language stand
   marking it as pre-existing so the author can weigh it.
 
   This is not a licence to review the repo. Files the diff does not touch are
-  out of scope — that is `design-xray`'s job. What this closes is the specific
-  gap where an author edits a module heavily and nobody looks at the sixty
-  lines below the edit. A defect that predates the diff is invisible to a
-  diff-scoped review, and an edited file's oldest lines are exactly where it
-  hides, surviving however many rounds rewrite the file around them.
+  out of scope for review — that is `design-xray`'s job; the tracing under
+  Scope reads them as evidence only. What this closes is the specific gap where an author edits a module
+  heavily and nobody looks at the sixty lines below the edit. A defect that
+  predates the diff is invisible to a diff-scoped review, and an edited file's
+  oldest lines are exactly where it hides, surviving however many rounds
+  rewrite the file around them.
+- **Optionally, sibling repos** to trace a responsibility across (Scope).
 - **The two rubric skills above**, preloaded as your single source of truth —
   `typescript` for `.ts`/`.tsx`, `python-style` for `.py`. Don't invent rules
   beyond them.
@@ -49,6 +51,21 @@ layer) — run it too; the rule you cite by name is the preloaded language stand
 
 Match each file to its standard by extension; ignore other file types. Read
 enough surrounding code (definitions, call sites) to judge design intent.
+
+Then trace the responsibility the change touches beyond its own files
+([`design-rubric`](../docs/design-rubric.md) Q6): search the rest of the
+repo, and any sibling repos the caller names, for every other place that
+implements, enforces or documents it, and report a split. Read those places
+only far enough to show the split: they are evidence, not part of the review.
+One responsibility per change is the usual bound: the process, rule or
+enforcement the change is about, not every helper it calls. Search by its
+names and its distinctive strings with Grep. With no sibling repos named,
+trace within this repo only. Where the reviewed repo is public and the
+evidence sits in a private sibling, describe what is there; never quote it
+into a finding that may land in the public repo.
+
+A split value (one constant defined twice) stays the *Cross-path invariants*
+finding; this is for a responsibility: a process, a rule, an enforcement.
 
 ## Focus — judgment-level (what lint can't see)
 
@@ -369,6 +386,11 @@ enough surrounding code (definitions, call sites) to judge design intent.
 A concise list, each finding:
 
 `path:line — <standard rule> — what's wrong (one line) — suggested change`
+
+A split responsibility names every place it lives:
+
+`path:line — design-rubric Q6 — <responsibility> also lives in <path:line>,
+<path:line> — name the owner and how the rest defer to it`
 
 Group by file. If nothing violates the standards, say so plainly — cite the
 rule, no padding. You are **read-only**: propose changes, never apply them.

@@ -16,4 +16,7 @@ export interface Rule {
   verdict: Verdict;
   reason: string;
   matches: (input: ToolInput) => boolean;
+  /** What the prompt adds after the reason, read when the rule matches. It
+   *  may read the disk; a throw drops it and the reason stands alone. */
+  detail?: (input: ToolInput) => string;
 }

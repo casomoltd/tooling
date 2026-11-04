@@ -11,6 +11,11 @@ const config = {
     // The rules' own tests hold invented values in every shape they catch.
     allow: [/^bin\/check-personal-data\.test\.mjs$/],
   },
+  privateRefs: {
+    // Stated rather than asked of `gh`, which has no login in CI: there the
+    // lookup fails and the check would skip, on the publish run above all.
+    visibility: 'public',
+  },
 };
 
 export default config;
