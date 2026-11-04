@@ -48,6 +48,14 @@ it("a rule's detail that throws leaves the reason alone", () => {
   assert.equal(reasonFor(rule, {}), "Confirm.");
 });
 
+it("a rule with no detail to add leaves the reason alone", () => {
+  const rule: Rule = {
+    id: "r", verdict: VERDICTS.Ask, reason: "Confirm.", matches: () => true,
+    detail: () => undefined,
+  };
+  assert.equal(reasonFor(rule, {}), "Confirm.");
+});
+
 it("a rule whose match throws is no match, and says so", () => {
   const rule: Rule = {
     id: "broken", verdict: VERDICTS.Deny, reason: "No.",

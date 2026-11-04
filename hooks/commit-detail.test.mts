@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// What a commit's confirmation prompt shows: the one form it reads, and what
+// What a commit's confirmation prompt shows: the commit form it reads, and what
 // it says of a commit in that form.
 import {strict as assert} from "node:assert";
 import {describe, it} from "node:test";

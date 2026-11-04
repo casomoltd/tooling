@@ -46,8 +46,7 @@ Confirm it's the intended repo and take its absolute path with
 recognised toolchain (e.g. you're at a multi-repo workspace root with no
 `package.json` / `pyproject.toml`), **stop and ask which repo** — never
 guess. `<repo>` below is that absolute path. Every git command runs as
-`cd <repo> && git …` ([why](../../docs/commit.md#the-command)); npm and uv
-take the repo as an option, which the guards don't read.
+`cd <repo> && git …` ([why](../../docs/commit.md#the-command)).
 
 ## 1. Run checks
 
@@ -60,11 +59,9 @@ Pick the command by toolchain, detected from the repo root:
   `pyright` and `pytest`
 
 **Detect on the `check` script, not on `package.json` existing.** A non-npm
-repo may carry a dev-only `package.json` whose sole purpose is hosting the
-husky commit gate — `private: true`, `prepare: husky`, no `version`, and
-deliberately **no `check`**. Seeing the file and running `npm run check` there
-fails with "missing script". The README's [dev-only npm
-layer](../../README.md#a-repo-whose-toolchain-is-not-npm) is this shape.
+repo may carry a [dev-only `package.json` with no
+`check`](../../README.md#a-repo-whose-toolchain-is-not-npm), and running
+`npm run check` there fails with "missing script".
 
 If checks fail, fix the issues and re-run until they pass. Do NOT
 proceed until they pass.
@@ -82,9 +79,9 @@ Stage files explicitly by name, `cd <repo> && git add <file>…`. **Never**
 
 ## 3. Check for remaining unstaged changes
 
-After staging, run `cd <repo> && git diff --stat` again. If there are related changes
-that should ship together, make **multiple commits** (repeat steps 2–6
-per batch) rather than lumping unrelated work into one commit.
+After staging, run `cd <repo> && git diff --stat` again. If what remains is
+unrelated to what is staged, commit it separately (repeat steps 2–6 per
+batch) rather than lumping unrelated work into one commit.
 
 ## 4. Review the staged changes
 
@@ -143,8 +140,9 @@ the commit itself then raises its own confirmation prompt (step 6).
    [ ! -x "$hook/commit-msg" ] || "$hook/commit-msg" <absolute message file>
    ```
 
-3. **Commit in [the one form](../../docs/commit.md#the-command), not
-   chained with another step:**
+3. **Commit in [the commit form](../../docs/commit.md#the-command), not
+   chained with another step,** so the confirmation prompt shows the repo, the
+   staged files and the message:
 
    ```bash
    cd <repo> && git commit -F <absolute message file>

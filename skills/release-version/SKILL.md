@@ -13,6 +13,7 @@ allowed-tools:
   - Bash(git *)
   - Bash(gh *)
   - Bash(cd *)
+  - Bash(cd * && git *)
   - Read
   - Glob
   - Grep
@@ -39,10 +40,11 @@ Decide which repo to release:
   dir, git-style; e.g. `-C tooling` from a multi-repo workspace root).
 - otherwise → the current directory.
 
-`cd` there and confirm it's the intended repo with
-`git rev-parse --show-toplevel`. If it isn't a git repo with a recognised
-toolchain, **stop and ask** — guessing here is exactly how a bump lands
-in the wrong directory. Every step below runs in this repo.
+Confirm it's the intended repo and take its absolute path with
+`cd <path> && git rev-parse --show-toplevel`. If it isn't a git repo with a
+recognised toolchain, **stop and ask** — guessing here is exactly how a bump
+lands in the wrong directory. `<repo>` below is that absolute path, and every
+command runs in it as `cd <repo> && …`.
 
 ## 1. Precondition — clean working tree
 
@@ -71,8 +73,8 @@ Common shapes:
 
 - **Publish on tag push** (`on: push: tags: ['v*']`) — pushing the
   annotated version tag publishes the package (e.g. via OIDC trusted
-  publishing). `git push --follow-tags` carries the tag, so the push
-  itself triggers the release; no separate GitHub Release is needed.
+  publishing). The step 5 push carries the tag, so the push itself
+  triggers the release; no separate GitHub Release is needed.
 - **Publish/deploy on branch push** (`on: push: branches: [main]`) — the
   push to the default branch is what publishes or deploys (e.g. a Vercel
   app). No tag trigger, no Release step.
@@ -89,6 +91,17 @@ major`) without explicit user approval.
 
 ## 4. Bump — with the repo's own tooling (never hand-edit)
 
+First fetch the remote's tags:
+
+```bash
+cd <repo> && git fetch origin --tags
+```
+
+A tag only the remote holds is otherwise invisible until the push collides;
+fetched, it makes `npm version` refuse that version. Then stop and report it
+to the user rather than bump past it: a version tag you didn't make is a
+release from another clone, or another repo's history reaching this one.
+
 - **npm repo** — atomic: `npm version patch` (or `minor`) edits
   `package.json`, commits, and creates an **annotated** tag in one step.
 - **Python/uv repo** — `uv version` only edits files; commit and tag by
@@ -99,8 +112,8 @@ major`) without explicit user approval.
   git commit -m "v<new-version>"
   git tag -a "v<new-version>" -m "v<new-version>"
   ```
-  The tag **must be annotated** (`-a`) — `git push --follow-tags`
-  silently skips lightweight tags.
+  The tag **must be annotated** (`-a`) — `--follow-tags` silently skips
+  lightweight tags.
 
 ## 5. Stop before pushing — push is outward-facing
 
@@ -108,8 +121,15 @@ Pushing is **never** automatic. After the bump, report the local state
 (new commit + tag) and show the command:
 
 ```bash
-git push --follow-tags
+cd <repo> && git push --atomic --follow-tags origin <default branch>
 ```
+
+`<default branch>` is the branch step 2's workflow publishes or deploys from
+(`main` in a repo on this package's gates).
+
+`--atomic` makes the remote take the branch and its tags together or not at
+all, so a push the remote refuses (the wrong repo, a branch behind) carries no
+tag with it. Push one repo at a time, never in parallel with another push.
 
 Push **only on an explicit request** ("push", "ship it"). Invoking this
 skill is not push permission. **Flag the consequence first**, from the
@@ -122,12 +142,13 @@ When the user asks, push, then confirm the tag landed and (for packages)
 wait for the run:
 
 ```bash
-git ls-remote --tags origin | grep "v<new-version>"
+cd <repo> && git ls-remote --tags origin | grep "v<new-version>"
 gh run list -L 1
 ```
 
 If a tag didn't reach the remote (created lightweight), push it
-explicitly — `git push origin v<new-version>` — don't delete/recreate.
+explicitly — `cd <repo> && git push origin v<new-version>` —
+don't delete/recreate.
 
 ## Boundaries
 

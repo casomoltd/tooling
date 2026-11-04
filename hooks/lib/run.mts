@@ -62,7 +62,8 @@ export function evaluate(rules: readonly Rule[], input: ToolInput): Rule | null 
 export function reasonFor(rule: Rule, input: ToolInput): string {
   if (!rule.detail) return rule.reason;
   try {
-    return `${rule.reason}\n\n${rule.detail(input)}`;
+    const detail = rule.detail(input);
+    return detail === undefined ? rule.reason : `${rule.reason}\n\n${detail}`;
   } catch (err) {
     log(`${rule.id}: its detail failed (${err instanceof Error ? err.message : err})`);
     return rule.reason;

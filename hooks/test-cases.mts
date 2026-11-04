@@ -24,324 +24,161 @@ export interface EditCase {
 }
 
 export const bashCases: BashCase[] = [
+  // A push is asked about wherever it goes: a remote's name or an address.
   {
-    command: "git push origin main",
-    verdict: "ask",
-    id: "git-push-confirm",
+    command: "git push https://github.com/org/repo.git main",
+    verdict: "ask", id: "git-push-confirm",
   },
   {
-    command: "git push --follow-tags",
-    verdict: "ask",
-    id: "git-push-confirm",
+    command: "git push --follow-tags origin main",
+    verdict: "ask", id: "git-push-confirm",
   },
   {
-    command: "git push --force origin main",
-    verdict: "deny",
-    id: "git-force-push",
+    command: "git push origin main > /tmp/push.log 2> /dev/null",
+    verdict: "ask", id: "git-push-confirm",
   },
   {
-    command: "git push -f",
-    verdict: "deny",
-    id: "git-force-push",
+    command: "git push origin feature/x && ls /tmp",
+    verdict: "ask", id: "git-push-confirm",
   },
   {
-    command: "git push origin +main",
-    verdict: "deny",
-    id: "git-force-push",
+    command: "git push origin HEAD:refs/heads/main",
+    verdict: "ask", id: "git-push-confirm",
   },
+  {command: "git push origin main", verdict: "ask", id: "git-push-confirm"},
+  {command: "git push --follow-tags", verdict: "ask", id: "git-push-confirm"},
+  {command: "git push --force origin main", verdict: "deny", id: "git-force-push"},
+  {command: "git push -f", verdict: "deny", id: "git-force-push"},
+  {command: "git push origin +main", verdict: "deny", id: "git-force-push"},
   // --force-with-lease is the safe variant: confirm, don't hard-block.
-  {
-    command: "git push --force-with-lease",
-    verdict: "ask",
-    id: "git-push-confirm",
-  },
-  {
-    command: "git reset --hard HEAD~3",
-    verdict: "deny",
-    id: "git-reset-hard",
-  },
-  {
-    command: "git rebase -i HEAD~2",
-    verdict: "deny",
-    id: "git-rebase-interactive",
-  },
-  {
-    command: "git tag -d v1.0.0",
-    verdict: "deny",
-    id: "git-tag-delete",
-  },
+  {command: "git push --force-with-lease", verdict: "ask", id: "git-push-confirm"},
+  {command: "git reset --hard HEAD~3", verdict: "deny", id: "git-reset-hard"},
+  {command: "git rebase -i HEAD~2", verdict: "deny", id: "git-rebase-interactive"},
+  {command: "git tag -d v1.0.0", verdict: "deny", id: "git-tag-delete"},
   {
     command: "git filter-branch --tree-filter x",
-    verdict: "deny",
-    id: "git-filter-branch",
+    verdict: "deny", id: "git-filter-branch",
   },
-  {
-    command: "npm version major",
-    verdict: "deny",
-    id: "version-major",
-  },
-  {
-    command: "uv version --bump major",
-    verdict: "deny",
-    id: "version-major",
-  },
-  {
-    command: "npm i -g typescript",
-    verdict: "deny",
-    id: "npm-global-install",
-  },
-  {
-    command: "npm install --global eslint",
-    verdict: "deny",
-    id: "npm-global-install",
-  },
+  {command: "npm version major", verdict: "deny", id: "version-major"},
+  {command: "uv version --bump major", verdict: "deny", id: "version-major"},
+  {command: "npm i -g typescript", verdict: "deny", id: "npm-global-install"},
+  {command: "npm install --global eslint", verdict: "deny", id: "npm-global-install"},
   // Bumping is the release tail — confirm patch/minor (major stays denied).
-  {
-    command: "npm version patch",
-    verdict: "ask",
-    id: "version-bump-confirm",
-  },
-  {
-    command: "npm version minor",
-    verdict: "ask",
-    id: "version-bump-confirm",
-  },
-  {
-    command: "uv version --bump patch",
-    verdict: "ask",
-    id: "version-bump-confirm",
-  },
+  {command: "npm version patch", verdict: "ask", id: "version-bump-confirm"},
+  {command: "npm version minor", verdict: "ask", id: "version-bump-confirm"},
+  {command: "uv version --bump patch", verdict: "ask", id: "version-bump-confirm"},
   // Allowed — no rule should fire.
-  {
-    command: "git status",
-    verdict: null,
-  },
+  {command: "git status", verdict: null},
   // still a push token; confirm
-  {
-    command: "git push --help",
-    verdict: "ask",
-    id: "git-push-confirm",
-  },
+  {command: "git push --help", verdict: "ask", id: "git-push-confirm"},
   // bare — prints, doesn't bump
-  {
-    command: "npm version",
-    verdict: null,
-  },
-  {
-    command: "npm i -D eslint",
-    verdict: null,
-  },
-  // A commit in the one form asks for confirmation (git-commit-confirm);
-  // AI-attribution stays commitlint's job. Any other form is refused.
+  {command: "npm version", verdict: null},
+  {command: "npm i -D eslint", verdict: null},
+  // Every commit is asked about, in any form; AI-attribution stays
+  // commitlint's job. Options between git and its verb are seen through.
   {
     command: "cd /r/app && git commit -F /msgs/m.txt",
-    verdict: "ask",
-    id: "git-commit-confirm",
+    verdict: "ask", id: "git-commit-confirm",
   },
   {
     command: "git -C /r/app commit -F /msgs/m.txt",
-    verdict: "deny",
-    id: "git-option-before-verb",
+    verdict: "ask", id: "git-commit-confirm",
   },
-  {
-    command: 'git commit -m "feat: x"',
-    verdict: "deny",
-    id: "git-commit-form",
-  },
-  {
-    command: "git commit --amend",
-    verdict: "deny",
-    id: "git-commit-form",
-  },
-  {
-    command: 'git -C tooling commit -m "feat: x"',
-    verdict: "deny",
-    id: "git-option-before-verb",
-  },
-  {
-    command: "cd a && git commit -F /m",
-    verdict: "deny",
-    id: "git-commit-form",
-  },
-  {
-    command: "cd /a && git commit -F m",
-    verdict: "deny",
-    id: "git-commit-form",
-  },
-  {
-    command: "git add a && git -C /a commit -F /m",
-    verdict: "deny",
-    id: "git-option-before-verb",
-  },
+  {command: 'git commit -m "feat: x"', verdict: "ask", id: "git-commit-confirm"},
+  {command: "git commit --amend", verdict: "ask", id: "git-commit-confirm"},
   {
     command: "git status; git commit -am x",
-    verdict: "deny",
-    id: "git-commit-form",
+    verdict: "ask", id: "git-commit-confirm",
   },
-  {
-    command: "(cd /a && git commit -m x)",
-    verdict: "deny",
-    id: "git-commit-form",
-  },
-  // git's options before the verb, in every spelling, are refused.
-  {
-    command: "git -C/r commit -m x",
-    verdict: "deny",
-    id: "git-option-before-verb",
-  },
+  {command: "(cd /a && git commit -m x)", verdict: "ask", id: "git-commit-confirm"},
   {
     command: "git --work-tree /r commit -m x",
-    verdict: "deny",
-    id: "git-option-before-verb",
-  },
-  {
-    command: "git -P commit -m x",
-    verdict: "deny",
-    id: "git-option-before-verb",
-  },
-  // A path word carrying a second command is not the form.
-  {
-    command: "cd /r && git commit -F /m;git${IFS}push",
-    verdict: "deny",
-    id: "git-commit-form",
+    verdict: "ask", id: "git-commit-confirm",
   },
   // A mention inside an argument counts, erring towards caution.
   {
     command: "grep -rn 'git commit' docs",
-    verdict: "deny",
-    id: "git-commit-form",
+    verdict: "ask", id: "git-commit-confirm",
   },
   // Plumbing/maintenance verbs that start with "commit" are not commits.
-  {
-    command: "git commit-graph write",
-    verdict: null,
-  },
-  {
-    command: "git commit-tree abc123",
-    verdict: null,
-  },
-  {
-    command: "git tag -a v1.0.0 -m v1.0.0",
-    verdict: null,
-  },
+  {command: "git commit-graph write", verdict: null},
+  {command: "git commit-tree abc123", verdict: null},
+  {command: "git tag -a v1.0.0 -m v1.0.0", verdict: null},
 
-  // An option before git's verb is refused: the rules read the verb as the
-  // word after `git`, so this rule is the only one that sees the command.
+  // Skipping git's hooks is refused; `-n` means it only on a commit.
+  {
+    command: "git commit --no-verify -F /m",
+    verdict: "deny", id: "git-no-verify",
+  },
+  {command: "git commit -n -m x", verdict: "deny", id: "git-no-verify"},
+  {command: "git commit -anm x", verdict: "deny", id: "git-no-verify"},
+  {
+    command: "git push --no-verify origin main",
+    verdict: "deny", id: "git-no-verify",
+  },
+  {
+    command: "cd /r && git -C /r merge --no-verify feature",
+    verdict: "deny", id: "git-no-verify",
+  },
+  {command: "git push -n origin main", verdict: "ask", id: "git-push-confirm"},
+  // Options before git's verb don't hide it from any rule.
+  // A quoted option holding a separator is one word, not the command's end.
+  {
+    command: "git -c 'alias.x=a;b' push --force origin main",
+    verdict: "deny", id: "git-force-push",
+  },
+  {command: 'git -c "a=b|c" reset --hard', verdict: "deny", id: "git-reset-hard"},
+  {command: "git -C '/a&b' push -f", verdict: "deny", id: "git-force-push"},
+  // A newline ends a command, so a later line's words aren't git's.
+  {command: "git log --oneline\necho reset --hard", verdict: null},
+  {command: "git status\necho push", verdict: null},
+  // A rule's words stay inside its command, so a later one isn't read as git's.
+  {command: "git push origin main && rm -f x", verdict: "ask", id: "git-push-confirm"},
+  // A quoted message is one word, so a verb inside it isn't read as git's.
+  {
+    command: 'git commit -m "undo reset --hard"',
+    verdict: "ask", id: "git-commit-confirm",
+  },
+  // A flag-shaped word after the verb, even in a message, errs towards
+  // caution: refused on purpose.
+  {command: 'git commit -m "fix -n flag"', verdict: "deny", id: "git-no-verify"},
   {
     command: "git -C /r push --force origin main",
-    verdict: "deny",
-    id: "git-option-before-verb",
+    verdict: "deny", id: "git-force-push",
   },
-  {
-    command: "git -C /r push origin main",
-    verdict: "deny",
-    id: "git-option-before-verb",
-  },
-  {
-    command: "git -C /r status",
-    verdict: "deny",
-    id: "git-option-before-verb",
-  },
-  {
-    command: "ls .git -la",
-    verdict: null,
-  },
+  {command: "git -C /r push origin main", verdict: "ask", id: "git-push-confirm"},
+  {command: "git -C /r status", verdict: null},
+  {command: "ls .git -la", verdict: null},
   {
     command: "git -C /r reset --hard HEAD~1",
-    verdict: "deny",
-    id: "git-option-before-verb",
+    verdict: "deny", id: "git-reset-hard",
   },
-  {
-    command: "git -c core.x=y tag -d v1.0.0",
-    verdict: "deny",
-    id: "git-option-before-verb",
-  },
+  {command: "git -c core.x=y tag -d v1.0.0", verdict: "deny", id: "git-tag-delete"},
   {
     command: "git --git-dir /r/.git rebase -i HEAD~2",
-    verdict: "deny",
-    id: "git-option-before-verb",
+    verdict: "deny", id: "git-rebase-interactive",
   },
-  {
-    command: "npm --prefix /r version major",
-    verdict: "deny",
-    id: "version-major",
-  },
+  {command: "npm --prefix /r version major", verdict: "deny", id: "version-major"},
   {
     command: "npm --prefix /r version minor",
-    verdict: "ask",
-    id: "version-bump-confirm",
+    verdict: "ask", id: "version-bump-confirm",
   },
-  {
-    command: "npm -g install eslint",
-    verdict: "deny",
-    id: "npm-global-install",
-  },
+  {command: "npm -g install eslint", verdict: "deny", id: "npm-global-install"},
   ...wrappedCases,
 
-  // ---- dependency-sweep carve-out ----
-  // An unattended sweep can't answer an `ask`, so its two branch-side shapes
-  // inside a `worktrees/dep-sweep-*` checkout must fall through cleanly, the
-  // commit allowed though it isn't the one form.
+  // A dependency sweep's commit and push are asked about like any other.
   {
     command: "cd /w/worktrees/dep-sweep-lib && git commit -F /tmp/msg.txt",
-    verdict: null,
-  },
-  {
-    command: 'cd "/w/my repo/worktrees/dep-sweep-lib"'
-      + " && git commit -F /tmp/msg.txt",
-    verdict: null,
+    verdict: "ask", id: "git-commit-confirm",
   },
   {
     command: "cd /w/worktrees/dep-sweep-lib"
       + " && git push --force-with-lease -u origin dep-sweep",
-    verdict: null,
+    verdict: "ask", id: "git-push-confirm",
   },
-  // ...and everything else stays guarded. The exemption is the exact shape,
-  // not the directory: being in a sweep worktree licenses nothing on its own.
-  {
-    command: 'cd /w/worktrees/dep-sweep-lib && git commit -m "feat: x"',
-    verdict: "deny",
-    id: "git-commit-form",
-  },
-  // A path word carrying a second command is not the sweep's shape.
-  {
-    command: "cd /w/worktrees/dep-sweep-lib && git commit -F /m;git${IFS}push",
-    verdict: "deny",
-    id: "git-commit-form",
-  },
-  {
-    command: 'cd "/w/$(touch x)/worktrees/dep-sweep-lib" && git commit -F /m',
-    verdict: "deny",
-    id: "git-commit-form",
-  },
-  {
-    command: "cd /w/worktrees/dep-sweep-lib && git push -u origin main",
-    verdict: "ask",
-    id: "git-push-confirm",
-  },
-  // A compound tail must not ride in under the carve-out.
-  {
-    command: "cd /w/worktrees/dep-sweep-lib"
-      + " && git commit -F /tmp/msg.txt && npm publish",
-    verdict: "deny",
-    id: "git-commit-form",
-  },
-  // A non-sweep worktree is an ordinary checkout: its commit is confirmed.
-  {
-    command: "cd /w/worktrees/feature-x && git commit -F /tmp/msg.txt",
-    verdict: "ask",
-    id: "git-commit-confirm",
-  },
-  // Every other `deny` is absolute — the carve-out never reaches them.
   {
     command: "cd /w/worktrees/dep-sweep-lib && git push --force -u origin dep-sweep",
-    verdict: "deny",
-    id: "git-force-push",
-  },
-  {
-    command: "cd /w/worktrees/dep-sweep-lib && git reset --hard HEAD~1",
-    verdict: "deny",
-    id: "git-reset-hard",
+    verdict: "deny", id: "git-force-push",
   },
 ];
 

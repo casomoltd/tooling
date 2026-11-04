@@ -1,6 +1,6 @@
 // What a commit is about to record, for its confirmation prompt: the repo it
 // lands in, the files staged and the message, which the command alone
-// doesn't show. The commit is one in the one form (`COMMIT_FORM` in
+// doesn't show. The commit is one in the commit form (`COMMIT_FORM` in
 // command-shapes.mjs; the tooling package's docs/commit.md § The command).
 import {execFileSync} from "node:child_process";
 import {readFileSync} from "node:fs";

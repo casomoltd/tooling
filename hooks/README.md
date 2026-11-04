@@ -14,27 +14,25 @@ executes and can confirm, hard-block, or wave it through. All rules are generic
 | `guard-edit.mts` | Edit/Write rule registry (don't weaken type-checking) |
 | `lib/run.mts` | The engine — `evaluate()` (registry → verdict) + `runGuard()` (stdin → decision, the rule's reason plus its `detail`); **asks** when the input can't be read, allows what matches nothing |
 | `lib/rule.mts` | The rule model — `Rule`, `ToolInput`, `VERDICTS` |
-| `lib/command-shapes.mjs` | The command shapes matched on their exact form, the one commit form and the dependency sweep's two, built from one `cd <dir> && <action>` template, and the plain-path class that keeps them exact |
-| `lib/shapes.mjs` | Re-exports them as `@casomoltd/tooling/hooks/shapes`, for a repo's own hook |
+| `lib/command-shapes.mjs` | The commit form, matched whole so the commit prompt can read its repo and message file, and the plain-path class that keeps them exact |
+| `lib/shapes.d.mts` | Their declaration |
 | `lib/commit-detail.mts` | What a commit is about to record — repo, staged files, message — for its confirmation prompt |
 | `lib/contract.mts` | The harness wire types (**vendored**) + `preToolUseDecision()` constructor |
 | `test-cases.mts` | Each guard's cases: a tool input and the verdict it should get |
 | `wrapped-cases.mts` | The Bash guard's cases for a command wrapped or quoted: behind a prefix, in a subshell or `bash -c`, or with its flag quoted |
 | `test.mts` | The cases run against the registries, plus end-to-end runs and the ask-on-unreadable checks |
-| `commit-detail.test.mts` | The commit prompt's reading of the one form, and its text |
+| `commit-detail.test.mts` | The commit prompt's reading of the commit form, and its text |
 | `tsconfig.json` | Strict `tsc --noEmit` config for the type gate |
 
 ## What the guards enforce
 
 | Rule | Verdict | |
 |---|---|---|
-| `git commit` in [the one form](../docs/commit.md#the-command) | **ask** | deliberate, not automatic; the prompt shows what the commit will record |
-| `git commit` in any other form | **deny** | its prompt couldn't show what it holds; names the form to use |
-| `git push` | **ask** | never automatic — confirm; nudges `--follow-tags` |
-| `git` with an option before its verb (`git -C <dir> …`) | **deny** | the rules read the verb as the word after `git`; run `cd <dir> && git …` |
-| an unattended dependency sweep's own commit and branch push | none | exempt from the commit and push rules above ([the exemption](#the-dependency-sweeps-exemption)) |
+| `git commit` | **ask** | deliberate, not automatic; a commit in [the commit form](../docs/commit.md#the-command) also shows what it will record |
+| `git push` | **ask** | never automatic — confirm; names the release push, `--atomic --follow-tags` |
 | `npm version patch\|minor` / `uv version --bump patch\|minor` | **ask** | the release tail, not a mid-work step |
 | force-push / `reset --hard` / `rebase -i` / `tag -d` / `filter-branch` | **deny** | rewrites/loses history |
+| `--no-verify` on any git command, or a commit's `-n` | **deny** | skips the repo's checks and message gate; the person runs it themselves if it's really needed |
 | `npm version major` / `uv version --bump major` | **deny** | needs explicit human approval |
 | global install (`npm i -g` / `--global`) | **deny** | project-local only |
 | `tsconfig` strict-weakening (`strict:false`, `skipLibCheck:true`, …) | **deny** | fix code, not the config |
@@ -42,24 +40,9 @@ executes and can confirm, hard-block, or wave it through. All rules are generic
 
 `ask` forces a user confirmation dialog; `deny` hard-blocks. Each rule
 searches the whole command text, so a command is caught however it is wrapped:
-behind `sudo` or an env prefix, in a subshell, a substitution or `bash -c`.
-A mention inside an argument is caught too, which errs towards caution. The
-one shape a text search can't see through is an option between `git` and its
-verb, so that is refused outright.
-
-### The dependency sweep's exemption
-
-An unattended job that prepares dependency fixes on its own branch, inside a
-`worktrees/dep-sweep-*` checkout, has no one to answer a confirmation. Its two
-commands, exactly `cd <worktree> && git commit -F <file>` and
-`cd <worktree> && git push --force-with-lease -u origin dep-sweep`, with a
-plain (or double-quoted) worktree path and a plain message file, are let
-through the commit and push rules; every other `deny` still applies. The shape
-lives in `lib/command-shapes.mjs`, published as
-`@casomoltd/tooling/hooks/shapes`, which a repo's own auto-approving hook
-imports rather than re-spells. It trusts the path's text: any directory whose path
-ends in `worktrees/dep-sweep-*`, a symlink to another checkout included, gets
-the unconfirmed commit, on whatever branch is checked out there.
+behind `sudo` or an env prefix, in a subshell, a substitution or `bash -c`,
+and with options between `git` and its verb (`git -C <dir> push`). A mention
+inside an argument is caught too, which errs towards caution.
 
 The bulk of these are **command/shell intent** — git/npm safety that no linter
 or commit hook can see (it isn't a file, and the commit hasn't happened yet).

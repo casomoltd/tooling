@@ -8,17 +8,27 @@
 // this ships in the public tooling plugin.
 //
 // Every rule searches the whole command text, so a command is caught however
-// it is wrapped: behind `sudo`, an env prefix, a subshell or `bash -c`. A
-// mention inside an argument is caught too, which errs towards caution. git
-// takes no option before its verb (`cd <dir> && git <verb>` instead), since
-// `git -C <dir> push` would put a word between the two a rule looks for.
+// it is wrapped: behind `sudo`, an env prefix, a subshell or `bash -c`, and
+// with options between `git` and its verb. A mention inside an argument is
+// caught too, which errs towards caution.
 import {commitDetail} from "./lib/commit-detail.mts";
 import {isEntryPoint, runGuard} from "./lib/run.mts";
 import {VERDICTS, type Rule, type ToolInput} from "./lib/rule.mts";
-import {COMMIT_FORM, isSweepCommand, matchCommitForm} from "./lib/command-shapes.mjs";
+import {matchCommitForm} from "./lib/command-shapes.mjs";
 
 /** `git` as a word of its own: not the end of `.git` or `my-git`. */
 const GIT = String.raw`(?<![\w.-])git`;
+
+/** The space between two words of one command: never a newline, which ends
+ *  the command. */
+const GAP = String.raw`[^\S\n]+`;
+
+/** One shell word: plain characters and quoted parts, so a separator inside
+ *  quotes is part of the word rather than the end of the command. */
+const WORD = String.raw`(?:"[^"\n]*"|'[^'\n]*'|[^\s;&|'"])+`;
+
+/** The rest of one command after a verb: up to a newline, `;`, `&` or `|`. */
+const REST = String.raw`[^\n;&|]*`;
 
 /** A flag after a verb and, where it takes one, its value: a word or a
  *  quoted string, as in `version -m "Release" major`. */
@@ -37,30 +47,18 @@ const NPM_INSTALL = `(?:${[
 // git history + remote safety.
 const gitRules = [
   {
-    id: "git-commit-form",
-    verdict: VERDICTS.Deny,
-    reason:
-      `Commit in the one form, run alone: \`${COMMIT_FORM}\`, after staging by `
-      + "name and running the commit-msg hook on the file (the tooling "
-      + "package's docs/commit.md).",
-    // The one form is the commit whose prompt can show what it holds; the
-    // sweep's own commit is the other form allowed.
-    matches: (i) =>
-      gitRuns(i, "commit") && !matchCommitForm(text(i)) && !isSweep(i),
-  },
-  {
     id: "git-commit-confirm",
     verdict: VERDICTS.Ask,
     reason:
       "Committing is deliberate, not automatic — stage and review first, then " +
       "confirm this commit is intended before it lands.",
-    // The command alone shows neither what the commit holds nor its message,
-    // so the detail shows both.
-    matches: (i) => !isSweep(i) && matchCommitForm(text(i)) !== undefined,
+    // A commit in the commit form (tooling's docs/commit.md) names its repo and
+    // message file, so the prompt can show what it will record; any other
+    // commit is asked about with the reason alone.
+    matches: (i) => gitRuns(i, "commit"),
     detail: (i) => {
       const commit = matchCommitForm(text(i));
-      if (!commit) throw new Error("not a commit in the form");
-      return commitDetail(commit);
+      return commit && commitDetail(commit);
     },
   },
   {
@@ -68,8 +66,9 @@ const gitRules = [
     verdict: VERDICTS.Ask,
     reason:
       "git push is never automatic — confirm it's intended. " +
-      "Prefer `git push --follow-tags` so annotated version tags ship too.",
-    matches: (i) => !isSweep(i) && gitRuns(i, "push"),
+      "A release pushes `git push --atomic --follow-tags origin <branch>`, so "
+      + "its tags ship with it, or nothing does.",
+    matches: (i) => gitRuns(i, "push"),
   },
   {
     id: "git-force-push",
@@ -78,28 +77,28 @@ const gitRules = [
       "Force-pushing rewrites published history. Blocked — if a remote " +
       "rewrite is genuinely required, ask the user to run it themselves.",
     // `--force` (not the lease form), `-f`, or a `+` refspec such as `+main`.
-    matches: (i) => gitRuns(i, "push", String.raw`[^\n]*(?:--force(?!-with-lease)\b`
+    matches: (i) => gitRuns(i, "push", String.raw`${REST}(?:--force(?!-with-lease)\b`
       + String.raw`|${shortFlag("f")}|\s\+\S)`),
   },
   {
     id: "git-reset-hard",
     verdict: VERDICTS.Deny,
     reason: "`git reset --hard` discards work irrecoverably. Blocked.",
-    matches: (i) => gitRuns(i, "reset", String.raw`[^\n]*--hard\b`),
+    matches: (i) => gitRuns(i, "reset", String.raw`${REST}--hard\b`),
   },
   {
     id: "git-rebase-interactive",
     verdict: VERDICTS.Deny,
     reason: "Interactive rebase rewrites history. Blocked.",
     matches: (i) =>
-      gitRuns(i, "rebase", String.raw`[^\n]*(?:${shortFlag("i")}|--interactive\b)`),
+      gitRuns(i, "rebase", String.raw`${REST}(?:${shortFlag("i")}|--interactive\b)`),
   },
   {
     id: "git-tag-delete",
     verdict: VERDICTS.Deny,
     reason: "Deleting tags can desync published versions. Blocked.",
     matches: (i) =>
-      gitRuns(i, "tag", String.raw`[^\n]*(?:${shortFlag("d")}|--delete\b)`),
+      gitRuns(i, "tag", String.raw`${REST}(?:${shortFlag("d")}|--delete\b)`),
   },
   {
     id: "git-filter-branch",
@@ -107,16 +106,18 @@ const gitRules = [
     reason: "`git filter-branch` rewrites entire history. Blocked.",
     matches: (i) => gitRuns(i, "filter-branch"),
   },
-  // Last of the git denies, so a rule naming what the command does wins the
-  // tie and this one fires only where none does.
   {
-    id: "git-option-before-verb",
+    id: "git-no-verify",
     verdict: VERDICTS.Deny,
     reason:
-      "Run git from its repo, `cd <dir> && git <verb> …`, not with an option "
-      + "before the verb (`git -C <dir> …`): the guards read the verb as the "
-      + "word after `git`.",
-    matches: (i) => new RegExp(String.raw`${GIT}\s+-`).test(text(i)),
+      "Skipping git's hooks (`--no-verify`, or `git commit -n`) skips the "
+      + "repo's checks and message gate. Blocked — if it's genuinely needed, "
+      + "ask the user to run it themselves.",
+    // `-n` is --no-verify only for a commit; on a push it is a dry run.
+    // The verb doesn't matter to `--no-verify`, so it is matched as any word
+    // of the git command, in one linear pass.
+    matches: (i) => new RegExp(String.raw`${GIT}${REST}\s--no-verify\b`).test(text(i))
+      || gitRuns(i, "commit", String.raw`${REST}${shortFlag("n")}`),
   },
 ] as const satisfies readonly Rule[];
 
@@ -169,13 +170,6 @@ function text(input: ToolInput): string {
   return String(input.command ?? "").replaceAll(/\\\r?\n/g, " ");
 }
 
-/** An unattended dependency sweep's own commit and branch push
- *  (lib/command-shapes.mjs): the confirmations step aside for them and the
- *  commit form allows them; every other `deny` stays absolute. */
-function isSweep(input: ToolInput): boolean {
-  return isSweepCommand(text(input));
-}
-
 /** A short flag with this letter, alone, bundled or quoted: `-f`, `-uf`,
  *  `'-f'`. */
 function shortFlag(letter: string): string {
@@ -187,10 +181,14 @@ function word(pattern: string): string {
   return String.raw`['"]?${pattern}['"]?(?![\w-])`;
 }
 
-/** Whether a command's text runs git with this verb, then these words
- *  somewhere after it on the same line. */
+/** Whether a command's text runs git with this verb, any options between
+ *  the two (each a word, quoted parts included, so `-c 'a;b'` is one word),
+ *  then these words after it. All of it stays inside one command: a newline,
+ *  `;`, `&` or `|` outside quotes ends it. */
 function gitRuns(input: ToolInput, verb: string, after = ""): boolean {
-  return new RegExp(String.raw`${GIT}\s+${verb}(?![\w-])${after}`).test(text(input));
+  return new RegExp(
+    String.raw`${GIT}(?:${GAP}${WORD})*?${GAP}${verb}(?![\w-])${after}`,
+  ).test(text(input));
 }
 
 /** Whether a command's text runs `npm version` or `uv version` naming one of
