@@ -591,6 +591,61 @@ dir. Neither catches "this *should* have been polymorphic" — that stays a
 design-review call (the `code-review` / `design-xray` agents apply this
 rubric).
 
+## One Concern, One Module
+
+A module answers one question, and that cuts both ways.
+
+- **Split** a module that answers several: IO, domain logic and presentation in
+  one file, or a function that fetches and parses and formats.
+- **Merge** modules that answer the same one. Before adding a file, search the
+  package's exports and module headers for the concept, and extend the module
+  that already answers it.
+
+```text
+Good: shipping/tiers.ts
+      "what does each shipping tier allow?"
+
+Bad:  free-threshold.ts, max-weight.ts, and a rate table in quote-basis.ts
+      one value or function each, and the same question
+```
+
+The second failure is invisible from inside each file: every module is small
+and tidy, and the size limits reward it. The cost lands on the reader, who has
+to know several names to find one concept, and on the next rule of the same
+kind, which takes a third file because two set the pattern. A value also drifts
+into whichever module first read it, so within its layer, place it by the
+question it answers.
+
+**The test:** give each module a one-line header stating its question. A header
+that needs "and" to join two subjects is two modules, and two headers stating
+one question are one module. Read the exports as well as the header, since a
+header can be reworded to pass.
+
+**Keep them apart** only for one of these reasons, named in the module's header:
+
+- they sit in different layers or have different owners, and a merge never
+  crosses that edge: *A Fact Belongs to the Layer That Owns Its Meaning* and
+  *A Calculation Package Holds No Presentation* decide first;
+- the file mirrors one external document, one transcription per instrument. The
+  transcriptions stay apart, and the module that reads them is the one to merge;
+- merging would form an import cycle or point a dependency the wrong way;
+- one is public and the other package-private;
+- the merged module passes the file limit with sections that share nothing.
+  That makes it a directory, whose modules still answer the one question.
+
+A different source is not a reason: cite each rule beside its data. Nor is a
+different change cadence, which is where this rule departs from the principle
+below.
+
+**Enforcement:** review only, by `code-review` and `design-xray`. No lint can tell
+that two questions are the same.
+
+**Source:** proposed here, with no external source; it carries out
+[design rubric](../../docs/design-rubric.md) Q7. The split takes after the
+single-responsibility principle (Robert C. Martin, *Clean Architecture*, 2017,
+ch. 7). The merge is this rule's own: read as one reason to change, that
+principle can argue against it.
+
 ## Lay Out a Module Top-Down
 
 Below the imports, order every module the same way, so a reader

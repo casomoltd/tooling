@@ -349,6 +349,12 @@ finding; this is for a responsibility: a process, a rule, an enforcement.
   order.service.tier)`. Do not extend this to back-pointers: the fix is where
   the accessor lives, not storing the relationship twice.
 
+- **A new module for an old question** (`typescript` standard, § One Concern,
+  One Module): a file added beside a module that already answers the same
+  question, or a value added to the module that reads it rather than the one
+  whose question it answers. Name the module to extend, unless one of that
+  section's reasons to keep them apart holds.
+
 - **A function past one screen** (`typescript` standard, § Keep a Function
   to One Screen): a function, parameter list or file over the house limits in
   a file lint skips because it is listed in `eslint-suppressions.json`. Name

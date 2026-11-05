@@ -49,7 +49,10 @@ any code is written.
 
 - **Separation of concerns.** Keep IO, domain logic, and presentation in
   separate units. A function that fetches *and* parses *and* formats is
-  three responsibilities — split them.
+  three responsibilities — split them. The converse holds too: modules that
+  answer the same question are one concern, so merge them. The test and the
+  reasons to keep them apart hold in any language:
+  [One Concern, One Module](../typescript/SKILL.md#one-concern-one-module).
 
 - **Depend on abstractions, not implementations (ports & adapters).**
   Define the interface the logic needs (a `Protocol` / type alias) in its

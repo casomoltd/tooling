@@ -41,6 +41,8 @@ Before proposing a type, an interface, or a module, ask:
    for a value. (Single-responsibility principle: Robert C. Martin, *Clean
    Architecture*, 2017, ch. 7; the extension across files and repos is this
    rubric's own.)
+7. **Does a module already answer this question?** Extend it rather than adding
+   a file.
 
 Plus one sequencing rule: **foundations first, features on top** — land the
 domain / library correctness before the features that consume it, not the reverse.
@@ -69,6 +71,8 @@ the next number.
   [`code-review`](../agents/code-review.md) and
   [`doc-review`](../agents/doc-review.md) briefs trace each responsibility a
   change touches beyond its own files.
+- **Q7 — one question per module** → `typescript`: *One Concern, One Module*.
+  `python-style`: **Design** (SoC).
 - **Unifying two paths** — when you must temporarily keep two, `typescript`:
   *Guard Cross-Path Invariants with a Test* (retire it once unified).
 

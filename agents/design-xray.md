@@ -89,6 +89,9 @@ standard:
 - Flag any function that **fetches AND parses AND formats**.
 - Flag **anaemic** types (data with no behaviour where behaviour belongs on it)
   and **god modules** (many unrelated concerns in one file).
+- Flag **modules answering one question**, however small, and a value held by
+  whichever module first read it (`typescript`, § One Concern, One Module). Say
+  what merges, or which of that section's reasons keeps them apart.
 - Flag **N near-identical functions/classes** — copy-paste variants differing
   only in constants (a key, a URL, a field name), or dispatched by a `kind`/enum
   type-code. That repetition is the trigger to collapse them into **one type +
