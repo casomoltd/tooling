@@ -115,6 +115,11 @@ release from another clone, or another repo's history reaching this one.
   The tag **must be annotated** (`-a`) — `--follow-tags` silently skips
   lightweight tags.
 
+**Run the bump alone.** Run it as a command of its own, as every commit step is
+([`commit.md`](../../docs/commit.md#the-steps)), and never in a parallel tool
+call beside any other command: sent in parallel, it can run in another repo's
+working directory and tag the wrong package.
+
 ## 5. Stop before pushing — push is outward-facing
 
 Pushing is **never** automatic. After the bump, report the local state

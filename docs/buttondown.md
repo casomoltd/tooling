@@ -145,6 +145,10 @@ in `@casomoltd/tooling/buttondown` declares it.
 in the repo it is run from. A problem fails the post; a warning is printed and
 doesn't. There is no override.
 
+- **Shape:** the post is read by the one parser `draft` uses
+  ([`post.mjs`](../buttondown/post.mjs)), so whatever `draft` would refuse
+  fails here first: a body that doesn't open on `# Subject`, an empty `id:` or
+  `image:`, or an `image:` that isn't an absolute URL.
 - **Readability:** the body's paragraphs, scored with the
   [readability](../readability/index.mjs) formulas, must reach no higher than
   the repo's `readability.config.mjs` `maxGrade`, else the readability
@@ -158,9 +162,10 @@ doesn't. There is no override.
   `@casomoltd/tooling/banned-words`. Its `inContext` words are wrong in one
   sense only ("leverage" as a verb), which a word match can't tell, so they are
   listed and not checked.
-- **Spelling:** the repo's own cspell, with the config its `spell` script names
-  (`-c` or `--config`), else the first one cspell's own search finds. A repo
-  without cspell fails.
+- **Spelling:** the repo's own cspell reads the subject, description and body,
+  not the front matter, with the config the repo's `spell` script names (`-c`
+  or `--config`), else the first one cspell's own search finds. A repo without
+  cspell fails.
 - **Personal data:** [`check-personal-data`](../bin/check-personal-data.mjs)'s
   rules, with the repo's `personalData` settings and local denylist.
 - **Links:** every `http(s)` link and image is fetched. A 404 or 410 fails. A

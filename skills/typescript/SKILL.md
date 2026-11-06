@@ -646,6 +646,32 @@ single-responsibility principle (Robert C. Martin, *Clean Architecture*, 2017,
 ch. 7). The merge is this rule's own: read as one reason to change, that
 principle can argue against it.
 
+## An Index Is a Door
+
+A directory's `index` module (`index.ts`, `index.mjs`) only re-exports. It names
+what the directory offers and defines nothing: every function, class and
+constant lives in a named module whose header states its question, so the door
+reads as the directory's contents list and a reader finds a definition by the
+name of its file.
+
+```text
+Good: shipping/index.ts    export {quoteShipping} from './quote.js';
+      shipping/quote.ts    "what does it cost to ship this order?"
+
+Bad:  shipping/index.ts    export {TIERS} from './tiers.js';
+                           export function quoteShipping(order: Order) { … }
+```
+
+This holds for a directory with one concern too. The door is where its public
+surface is read, and an index that also holds the implementation hides that
+surface among the workings. A package's root `index` is the same rule.
+
+**Enforcement:** review only, by `code-review`.
+
+**Source:** proposed here, with no external source. It follows the common
+re-exporting ("barrel") module, so that the directories *One Concern, One
+Module* makes stay readable.
+
 ## Lay Out a Module Top-Down
 
 Below the imports, order every module the same way, so a reader
@@ -1117,6 +1143,26 @@ disclosure.
 This is the provenance rule (*cite the source at the data*, above)
 applied to temporary code: the "source" of a stopgap is the decision to
 remove it, so the link belongs at the code, not only in the tracker.
+
+### A tracking link is a comment, never a value
+
+A tracking link lives in a comment or a doc, never in a constant, a string
+or an error message. The program never reads it, so as a value it only adds
+code to follow, and ships in every bundle, log and message. Put it beside the
+code it explains. It is not a [magic literal](#no-magic-literals) that wants
+a name: the program never branches on it. A source URL in a cited fixture's
+`source` column is different: there the citation is the data the fixture
+pins ([Pin Transcribed Reference Data](#pin-transcribed-reference-data-to-a-cited-fixture)).
+
+```ts
+// Bad: the link promoted to a value and carried in the error
+const MODELLING_TASK = '<tracking task URL>';
+if (over) throw new NotModelled(`${year} is over: ${MODELLING_TASK}`);
+
+// Good: the link beside the code it explains
+// Lift this once the allowance is modelled: <tracking task URL>
+if (over) throw new NotModelled(`${year} is over`);
+```
 
 ## A Fact Belongs to the Layer That Owns Its Meaning
 

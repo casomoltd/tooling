@@ -1,42 +1,5 @@
-import {HOUSE_RULES, TEST_FILES_EXEMPT, TYPED_RULES} from "./house-rules.mjs";
-
 /**
- * Creates the shared ESLint base config.
- *
- * Consumers must pass the resolved imports since this package
- * has no dependencies of its own.
- *
- * @param {{ defineConfig, globalIgnores }} eslintConfig - from "eslint/config"
- * @param {Array} nextVitals - from "eslint-config-next/core-web-vitals"
- * @param {Array} nextTs - from "eslint-config-next/typescript"
- * @param {{ configs: { recommended: object } }} sonarjs - from "eslint-plugin-sonarjs"
+ * The package's `./eslint` export: the shared base config. The house rules
+ * it applies are in `house-rules.mjs`.
  */
-export function createBaseConfig({
-  defineConfig,
-  globalIgnores,
-  nextVitals,
-  nextTs,
-  sonarjs,
-}) {
-  return defineConfig([
-    ...nextVitals,
-    ...nextTs,
-    sonarjs.configs.recommended,
-    globalIgnores([
-      ".next/**",
-      "out/**",
-      "build/**",
-      "next-env.d.ts",
-      ".prettierrc.js",
-    ]),
-    {
-      files: ["**/*.cjs"],
-      rules: {
-        "@typescript-eslint/no-require-imports": "off",
-      },
-    },
-    HOUSE_RULES,
-    TYPED_RULES,
-    TEST_FILES_EXEMPT,
-  ]);
-}
+export {createBaseConfig} from "./base-config.mjs";

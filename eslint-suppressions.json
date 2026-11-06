@@ -21,17 +21,6 @@
       "count": 1
     }
   },
-  "bin/readability.mjs": {
-    "@typescript-eslint/no-magic-numbers": {
-      "count": 1
-    },
-    "complexity": {
-      "count": 1
-    },
-    "max-lines-per-function": {
-      "count": 1
-    }
-  },
   "bin/render-report.mjs": {
     "@typescript-eslint/no-magic-numbers": {
       "count": 1
@@ -58,54 +47,6 @@
   },
   "buttondown/email-blocks.mjs": {
     "max-lines-per-function": {
-      "count": 1
-    }
-  },
-  "buttondown/engine.mjs": {
-    "@typescript-eslint/no-magic-numbers": {
-      "count": 3
-    },
-    "complexity": {
-      "count": 5
-    },
-    "max-depth": {
-      "count": 1
-    },
-    "max-lines": {
-      "count": 1
-    },
-    "max-lines-per-function": {
-      "count": 2
-    },
-    "sonarjs/cognitive-complexity": {
-      "count": 3
-    },
-    "sonarjs/no-nested-template-literals": {
-      "count": 1
-    },
-    "sonarjs/regex-complexity": {
-      "count": 1
-    },
-    "sonarjs/super-linear-regex": {
-      "count": 2
-    }
-  },
-  "commitlint/index.cjs": {
-    "@typescript-eslint/no-magic-numbers": {
-      "count": 5
-    },
-    "sonarjs/super-linear-regex": {
-      "count": 1
-    }
-  },
-  "readability/index.mjs": {
-    "@typescript-eslint/no-magic-numbers": {
-      "count": 9
-    },
-    "max-lines-per-function": {
-      "count": 1
-    },
-    "sonarjs/super-linear-regex": {
       "count": 1
     }
   }

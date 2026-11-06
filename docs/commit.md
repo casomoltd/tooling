@@ -30,7 +30,10 @@ Each step is a command of its own, never chained with another step, so each
 one that asks for permission asks for itself alone.
 
 A commit never bumps the version or pushes; that is the release, a separate
-step ([`release-version`](../skills/release-version/SKILL.md)).
+step ([`release-version`](../skills/release-version/SKILL.md)), whose bump
+[never runs in parallel][bump] with another command.
+
+[bump]: ../skills/release-version/SKILL.md#4-bump--with-the-repos-own-tooling-never-hand-edit
 
 ## The command
 

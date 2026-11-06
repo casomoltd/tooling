@@ -1,8 +1,9 @@
 /**
  * The copy gate for one newsletter post, behind `buttondown check
  * <file.md>`; `draft` runs it before it uploads anything. A problem fails
- * the post, a warning is printed and doesn't. The checks and their
- * thresholds are in `docs/buttondown.md`, *What `check` refuses in a post*.
+ * the post, a warning is printed and doesn't. The post is read by
+ * `readPost`, the parser `draft` uses too. The checks and their thresholds
+ * are in `docs/buttondown.md`, *What `check` refuses in a post*.
  */
 import {execFile} from "node:child_process";
 import {existsSync, readFileSync} from "node:fs";
@@ -16,15 +17,12 @@ import {
 import {
   DEFAULT_MAX_GRADE, DEFAULT_WORD_SUBS, scoreText,
 } from "../readability/index.mjs";
+import {readerParts, readerText, readPost} from "./post.mjs";
 
 /** The banned-word list: `words` are checked, `inContext` words are wrong
  *  in one sense only, which a word match can't tell, so they are not. */
 export const BANNED = JSON.parse(readFileSync(
   new URL("banned-words.json", import.meta.url), "utf8"));
-
-const FRONT_MATTER = /^---\n([\s\S]*?)\n---\n/;
-/** The line that opens a post's body names its subject. */
-const HEADING = "# ";
 
 /** An em dash, as the character or as any HTML entity for it. */
 const EM_DASH = /—|&mdash;|&#8212;|&#x2014;/i;
@@ -69,8 +67,7 @@ const LINK_TIMEOUT_MS = 10_000;
  */
 export async function checkPost(file, {root, fetchImpl = fetch}) {
   if (!root) throw new Error("checkPost needs the repo root to check against");
-  const raw = readFileSync(file, "utf8");
-  const post = parsePost(raw);
+  const post = await readPost(file);
   const config = await loadConfig("readability.config.mjs", root);
   return merge([
     readabilityProblems(post, {
@@ -79,32 +76,11 @@ export async function checkPost(file, {root, fetchImpl = fetch}) {
     }),
     emDashProblems(post),
     bannedProblems(post),
-    await personalDataProblems(raw, root),
-    await spellingProblems(raw, root),
+    // All of `raw`, front matter too, as an address could sit anywhere.
+    await personalDataProblems(post.raw, root),
+    await spellingProblems(readerText(post), root),
     await linkProblems(post, fetchImpl),
   ]);
-}
-
-/** A post split into the fields the gate reads. Like `draft`, it refuses a
- *  post whose body doesn't open on `# Subject`. */
-export function parsePost(raw) {
-  const m = raw.match(FRONT_MATTER);
-  const fields = Object.fromEntries((m?.[1] ?? "").split("\n")
-    .filter((line) => line.includes(":"))
-    .map((line) => {
-      const at = line.indexOf(":");
-      return [line.slice(0, at).trim(), line.slice(at + 1).trim()];
-    }));
-  const lines = (m ? raw.slice(m[0].length) : raw).trimStart().split("\n");
-  if (!lines[0]?.startsWith(HEADING)) {
-    throw new Error("after any front matter, the first line must be `# Subject`");
-  }
-  return {
-    subject: lines[0].slice(HEADING.length).trim(),
-    description: fields.description ?? "",
-    image: fields.image ?? "",
-    body: lines.slice(1).join("\n"),
-  };
 }
 
 /** The words a reader reads: markup, code and URLs taken out, link text
@@ -194,10 +170,9 @@ function readabilityProblems(post, {maxGrade, wordSubs}) {
 
 /** Checked on the text as written, code aside, so an entity counts too. */
 function emDashProblems(post) {
-  const where = [
-    ["subject", post.subject], ["description", post.description],
-    ["body", withoutCode(post.body)],
-  ].filter(([, text]) => EM_DASH.test(text)).map(([field]) => field);
+  const where = readerParts(post)
+    .filter(([, text]) => EM_DASH.test(withoutCode(text)))
+    .map(([name]) => name);
   return where.length
     ? {problems: [`em dash in the ${where.join(", ")}: use a full stop, colon, `
       + "semicolon, comma or brackets"]}
@@ -205,8 +180,7 @@ function emDashProblems(post) {
 }
 
 function bannedProblems(post) {
-  const used = bannedIn(proseOf(
-    [post.subject, post.description, post.body].join("\n")));
+  const used = bannedIn(proseOf(readerText(post)));
   return used.length ? {problems: [`banned words: ${used.join(", ")}`]} : {};
 }
 
@@ -281,7 +255,8 @@ const outputOf = (bin, args, {cwd, input}) => new Promise((resolve) => {
  *  said once rather than per link. */
 async function linkProblems(post, fetchImpl) {
   const urls = [...new Set([
-    ...linksOf(post.body), ...(/^https?:\/\//.test(post.image) ? [post.image] : []),
+    ...linksOf(post.body),
+    ...(/^https?:\/\//.test(post.fields.image ?? "") ? [post.fields.image] : []),
   ])];
   const outcomes = await Promise.all(urls.map((url) => linkOutcome(url, fetchImpl)));
   if (urls.length && outcomes.every((o) => o.transient)) {

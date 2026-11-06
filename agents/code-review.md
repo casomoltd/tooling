@@ -229,6 +229,9 @@ finding; this is for a responsibility: a process, a rule, an enforcement.
   dead link and discloses what the team is working on. Apply it to
   **standards and skills** in a public repo too: naming the internal systems
   the authors use turns a generic standard into a disclosure.
+- **A tracking link is a comment, never a value** (`typescript` standard,
+  § Link a Stopgap to Its Tracking Task): an issue or task URL held in a
+  constant, a string or an error message. Name the comment it moves to.
 - **Cross-path invariants** (both standards): when a change makes two paths that
   must agree produce a value two ways — a consumer's computation vs the
   library's, a fast path vs a reference path, a transform newly consolidated onto
@@ -354,6 +357,10 @@ finding; this is for a responsibility: a process, a rule, an enforcement.
   question, or a value added to the module that reads it rather than the one
   whose question it answers. Name the module to extend, unless one of that
   section's reasons to keep them apart holds.
+
+- **An index that defines** (`typescript` standard, § An Index Is a Door): an
+  `index` module holding a function, class or constant rather than only
+  re-exports. Name the module the definition moves to.
 
 - **A function past one screen** (`typescript` standard, § Keep a Function
   to One Screen): a function, parameter list or file over the house limits in

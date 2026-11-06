@@ -6,7 +6,8 @@ import {readFileSync} from "node:fs";
 import {
   BODY_SIZE, PARAGRAPH_MARGIN, requireTheme,
 } from "./email-blocks.mjs";
-import {EMAIL_CHROME_HIDES, preludeEnd, WEB_CHROME_HIDES} from "./engine.mjs";
+import {EMAIL_CHROME_HIDES, WEB_CHROME_HIDES} from "./engine.mjs";
+import {preludeEnd} from "./skin-check.mjs";
 
 /** The shared web rules: base-web.css, which reads every value from the
  *  variables the site's TOKENS block defines. */

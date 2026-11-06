@@ -1,0 +1,46 @@
+/**
+ * The shared ESLint base config a Next.js repo builds its own on: Next's
+ * presets, sonarjs and the house rules, in the order they must apply.
+ */
+import {HOUSE_RULES, TEST_FILES_EXEMPT, TYPED_RULES} from "./house-rules.mjs";
+
+/**
+ * Creates the shared ESLint base config.
+ *
+ * Consumers pass the ESLint packages in, resolved from their own install: they
+ * are this package's peer dependencies, so it never imports them itself.
+ *
+ * @param {{ defineConfig, globalIgnores }} eslintConfig - from "eslint/config"
+ * @param {Array} nextVitals - from "eslint-config-next/core-web-vitals"
+ * @param {Array} nextTs - from "eslint-config-next/typescript"
+ * @param {{ configs: { recommended: object } }} sonarjs - from "eslint-plugin-sonarjs"
+ */
+export function createBaseConfig({
+  defineConfig,
+  globalIgnores,
+  nextVitals,
+  nextTs,
+  sonarjs,
+}) {
+  return defineConfig([
+    ...nextVitals,
+    ...nextTs,
+    sonarjs.configs.recommended,
+    globalIgnores([
+      ".next/**",
+      "out/**",
+      "build/**",
+      "next-env.d.ts",
+      ".prettierrc.js",
+    ]),
+    {
+      files: ["**/*.cjs"],
+      rules: {
+        "@typescript-eslint/no-require-imports": "off",
+      },
+    },
+    HOUSE_RULES,
+    TYPED_RULES,
+    TEST_FILES_EXEMPT,
+  ]);
+}

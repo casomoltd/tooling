@@ -11,8 +11,9 @@ import {
 import {tmpdir} from "node:os";
 import {join} from "node:path";
 import {
-  BANNED, bannedIn, checkPost, linksOf, paragraphsOf, parsePost, proseOf,
+  BANNED, bannedIn, checkPost, linksOf, paragraphsOf, proseOf,
 } from "./post-check.mjs";
+import {parsePost} from "./post.mjs";
 
 let failures = 0;
 async function test(name, fn) {
@@ -40,7 +41,8 @@ function repo({unknown = [], crash, config = {}, denylist = "", pkg} = {}) {
   const lines = unknown.map((w) => `echo "stdin:1:1 - Unknown word (${w})"`);
   const status = crash ?? (unknown.length ? 1 : 0);
   writeFileSync(join(bin, "cspell"), "#!/bin/sh\n"
-    + `echo "$@" > "${join(root, "cspell.args")}"\ncat > /dev/null\n`
+    + `echo "$@" > "${join(root, "cspell.args")}"\n`
+    + `cat > "${join(root, "cspell.stdin")}"\n`
     + `${lines.join("\n")}\nexit ${status}\n`);
   chmodSync(join(bin, "cspell"), 0o755);
   writeFileSync(join(root, "casomo.config.mjs"),
@@ -76,10 +78,24 @@ await test("parsePost reads the fields and refuses a post with no subject", () =
   const p = parsePost("---\ndescription: A line.\nimage: https://i.test/a.png\n---\n"
     + "# Subject\n\nBody.\n");
   assert.equal(p.subject, "Subject");
-  assert.equal(p.description, "A line.");
-  assert.equal(p.image, "https://i.test/a.png");
+  assert.equal(p.fields.description, "A line.");
+  assert.equal(p.fields.image, "https://i.test/a.png");
   assert.equal(p.body.trim(), "Body.");
   assert.throws(() => parsePost("No heading.\n"), /# Subject/);
+});
+
+await test("parsePost refuses the front matter `draft` would refuse", () => {
+  const head = (fm) => `---\n${fm}\n---\n# Subject\n\nBody.\n`;
+  assert.throws(() => parsePost(head("image:")), /empty `image:`/);
+  assert.throws(() => parsePost(head("id:")), /empty `id:`/);
+  assert.throws(() => parsePost(head("image: og.png")),
+    /image must be an absolute URL/);
+});
+
+await test("checkPost refuses an empty `image:`, as draft does", async () => {
+  const root = repo();
+  await assert.rejects(check(root, `---\nimage:\n---\n# Subject\n\n${PLAIN}\n`),
+    /empty `image:`/);
 });
 
 await test("checkPost refuses to guess the repo", async () => {
@@ -170,6 +186,19 @@ await test("an unknown word fails, and cspell gets the spell script's config",
     const args = readFileSync(join(root, "cspell.args"), "utf8");
     assert.ok(args.includes(`--config ${join(root, "words.json")}`), args);
     assert.match(args, /--language-id markdown stdin/);
+  });
+
+await test("cspell reads the subject, description and body, not the front matter",
+  async () => {
+    const root = repo();
+    await check(root, "---\nid: em_6jhrgmha3w\ndescription: Notes on work.\n"
+      + `image: https://example.com/og.png\n---\n# Subject line\n\n${PLAIN}\n`);
+    const read = readFileSync(join(root, "cspell.stdin"), "utf8");
+    assert.ok(!read.includes("em_6jhrgmha3w"), read);
+    assert.ok(!read.includes("example.com/og.png"), read);
+    for (const kept of ["Subject line", "Notes on work.", PLAIN]) {
+      assert.ok(read.includes(kept), kept);
+    }
   });
 
 await test("without a named config, cspell gets the first one its search finds",
