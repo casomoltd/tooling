@@ -59,9 +59,11 @@ the next number.
   Lives in the Library, on Every Path*. `python-style`: **Design** (SoC,
   framework-first, no re-implemented domain logic).
 - **Q3 — thinnest interface, typed returns** → `typescript`: *Pass Value Objects,
-  Not Loose Fields* · *Separate Static from Varying*.
+  Not Loose Fields* · *Separate Static from Varying* · *A Library Takes Only What
+  Its Rule Needs*.
 - **Q4 — a concern per layer, presentation-agnostic core** → `typescript`: *Keep
-  Shared Modules Presentation-Agnostic*.
+  Shared Modules Presentation-Agnostic* · *A Library Takes Only What Its Rule
+  Needs*.
 - **Q5 + fail-loud — no silent default, polymorphism, EAFP** → `typescript`: *No
   Silent Default for a Domain-Selecting Input* · *Variants over Mode Flags* ·
   *Once Dispatched, Don't Re-Ask the Type* · *Don't Swallow Exceptions*.
@@ -71,7 +73,8 @@ the next number.
   [`code-review`](../agents/code-review.md) and
   [`doc-review`](../agents/doc-review.md) briefs trace each responsibility a
   change touches beyond its own files.
-- **Q7 — one question per module** → `typescript`: *One Concern, One Module*.
+- **Q7 — one question per module** → `typescript`: *One Concern, One Module* ·
+  *A Generic Helper Lives in the Utility Module*.
   `python-style`: **Design** (SoC).
 - **Unifying two paths** — when you must temporarily keep two, `typescript`:
   *Guard Cross-Path Invariants with a Test* (retire it once unified).

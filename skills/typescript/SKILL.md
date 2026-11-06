@@ -155,6 +155,34 @@ Why this is not covered by
 that rule is one value answering two questions; this one is two values a
 single name could mean.
 
+## A Domain Term Cites Its Definition
+
+A term of art reads like plain English but means something narrower, and
+the gap is where a reader goes wrong. So a name taken from the domain's own
+vocabulary (a statute, a regulator's manual, a standard) carries a doc
+comment that cites where the term is defined, quoting it rather than
+paraphrasing, and says what it covers in this code. The citation lets the
+reader check the name against the definition instead of guessing at it.
+
+Cite once, at the type or function that introduces the term; the other names
+that use it link to that comment.
+
+```ts
+// Good: the term, its source quoted, and what it is here
+/** One holding's values over a settlement window. "Settlement window" is
+ *  defined in the Example Settlement Act, s.4 (<source URL>): "the period
+ *  in which a trade may be settled without a late fee". */
+export interface SettlementWindow { /* … */ }
+
+// Bad: a term of art with nothing to say it is one
+/** A holding's window. */
+export interface SettlementWindow { /* … */ }
+```
+
+The provenance rule ([Pin Transcribed Reference Data to a Cited
+Fixture](#pin-transcribed-reference-data-to-a-cited-fixture)) cites the
+source of a figure; this one cites the source of a word.
+
 ## Carry a Stated Answer; Don't Infer It
 
 Where the source states a fact (a yes/no on a form, a figure on a document),
@@ -446,6 +474,41 @@ Flag: a type relaxed in the same change that a compiler error appeared,
 with no note saying what the old shape was asserting and why that claim
 was wrong.
 
+## A Library Takes Only What Its Rule Needs
+
+A library's exported functions and types ask for the values its own rule
+needs, in its own domain's terms, and nothing else. The test: could a second
+consumer, with a different model of the same domain, call it without importing
+anything of the first's?
+
+Two failures:
+
+- **A consumer's concept leaks down.** A rate library that names a shop's
+  carts, baskets or customers has learned the caller's model, and the next
+  caller with a different model cannot use it. The rule needs a weight and a
+  distance, so its interface asks for exactly those, and the consumer
+  translates.
+- **An option for a caller that doesn't exist.** An extra parameter or
+  optional field added "so a caller could pass this" is interface with no
+  user: a branch to test, a conflict to refuse, a doc to keep true. Add the
+  option when its first caller arrives, not before.
+
+```ts
+// Bad: the rate rule asks for the shop's model, and an option nobody passes
+export function shippingCost(order: Order, opts?: {zones?: Zone[]}): number
+
+// Good: the rule's own inputs, in its own terms
+export function shippingCost(parcel: {weightKg: number; distanceKm: number}): number
+```
+
+Why this is not covered by
+[Pass Value Objects, Not Loose Fields](#pass-value-objects-not-loose-fields):
+that rule says pass the object rather than its fields; this one says which
+object a library may ask for, and a consumer's object is the wrong one. It is
+the domain-layer case of
+[Keep Shared Modules Presentation-Agnostic](#keep-shared-modules-presentation-agnostic),
+which keeps the presenter's concepts out the same way.
+
 ## Keep Shared Modules Presentation-Agnostic
 
 A module in a shared or `lib` layer holds data, domain logic, and
@@ -645,6 +708,43 @@ that two questions are the same.
 single-responsibility principle (Robert C. Martin, *Clean Architecture*, 2017,
 ch. 7). The merge is this rule's own: read as one reason to change, that
 principle can argue against it.
+
+## A Generic Helper Lives in the Utility Module
+
+Arithmetic that is not the domain's own (raise an amount by a rate, take a
+percentage, round to the penny) lives in the package's utility module (for
+example its `money` module) and every domain module reuses it from there.
+Before writing a helper, look in that module first; if it is generic and
+missing, add it there, not beside the rule that needed it. A generic step
+written in a domain module, named or inline, is a second copy waiting to
+happen, and it hides which part of the function is the rule.
+
+```ts
+// Bad: a domain file redefines what money.ts already exports
+// surcharge.ts
+function withRate(amount: number, rate: number): number {
+  return amount * (1 + rate);
+}
+export const surchargeOf = (base: number, rate: number, floor: number) =>
+  Math.max(floor, withRate(base, rate) - base);
+
+// Good: the utility does the arithmetic; the domain keeps its own floor
+// money.ts
+export function uplift(amount: number, rate: number): number {
+  return amount * (1 + rate);
+}
+// surcharge.ts
+export const surchargeOf = (base: number, rate: number, floor: number) =>
+  Math.max(floor, uplift(base, rate) - base);
+```
+
+A helper that encodes a domain rule (a regulated floor, a scheme's rounding)
+is not generic: it stays with its rule, and calls the utility for the
+arithmetic inside it. This is
+[One Concern, One Module](#one-concern-one-module) applied to helpers.
+[Reuse the Library's Types and Values](#reuse-the-librarys-types-and-values)
+asks whether another library already has it; this rule asks where in your own
+package it lives.
 
 ## An Index Is a Door
 

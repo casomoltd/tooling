@@ -358,6 +358,20 @@ finding; this is for a responsibility: a process, a rule, an enforcement.
   whose question it answers. Name the module to extend, unless one of that
   section's reasons to keep them apart holds.
 
+- **A generic helper outside the utility module** (`typescript` standard, § A
+  Generic Helper Lives in the Utility Module): arithmetic that is not the
+  domain's own (an uplift, a percentage, rounding) written in a domain module,
+  as a named function or an inline expression such as `x * (1 + r)`, or
+  redefined where the package's utility module (`money`, `units`, `math` or the
+  like) has it. Search that module first, and name the utility it should call
+  or become. A value another library owns is the "Reuse the library's types
+  and values" bullet's, not this one's.
+- **A library asking for more than its rule needs** (`typescript` standard,
+  § A Library Takes Only What Its Rule Needs): an exported function or type
+  that names a consumer's concepts, or an option no current caller passes.
+  Check each new export and option against its callers across the sibling
+  repos, and flag an option with no caller; for a leaked concept apply the
+  rule's test, whether a consumer with a different model could call it.
 - **An index that defines** (`typescript` standard, § An Index Is a Door): an
   `index` module holding a function, class or constant rather than only
   re-exports. Name the module the definition moves to.
@@ -370,6 +384,12 @@ finding; this is for a responsibility: a process, a rule, an enforcement.
 - **A name that does not say whose value it is** (`typescript` standard,
   § Name a Value for Whose It Is): two same-unit values that differ in owner
   or source, where one name fits both.
+
+- **A domain term with no definition cited** (`typescript` standard, § A
+  Domain Term Cites Its Definition): a type, function or field named with a
+  term of art from a statute, regulator's manual or standard, where neither
+  its doc comment nor the comment that introduces the term cites where the term
+  is defined. Name the citation it needs.
 
 - **A stated answer inferred** (`typescript` standard, § Carry a Stated
   Answer; Don't Infer It): a fact the source states that the code derives
