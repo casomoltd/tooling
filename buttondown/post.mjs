@@ -8,11 +8,7 @@
  * `# Subject`. The front matter is `key: value` lines between `---` fences.
  */
 import {readFile} from "node:fs/promises";
-
-/** The fence that opens and closes the front matter, with its newline. */
-const FENCE = "---\n";
-
-const FRONT_MATTER = new RegExp(`^${FENCE}([\\s\\S]*?)\\n${FENCE}`);
+import {FENCE, FRONT_MATTER} from "../readability/markdown.mjs";
 
 /** The line that opens a post's body names its subject. */
 const HEADING = "# ";

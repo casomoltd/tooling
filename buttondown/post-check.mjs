@@ -17,6 +17,9 @@ import {
 import {
   DEFAULT_MAX_GRADE, DEFAULT_WORD_SUBS, scoreText,
 } from "../readability/index.mjs";
+import {
+  paragraphsOf, proseOf, withoutCode,
+} from "../readability/markdown.mjs";
 import {readerParts, readerText, readPost} from "./post.mjs";
 
 /** The banned-word list: `words` are checked, `inContext` words are wrong
@@ -26,16 +29,6 @@ export const BANNED = JSON.parse(readFileSync(
 
 /** An em dash, as the character or as any HTML entity for it. */
 const EM_DASH = /—|&mdash;|&#8212;|&#x2014;/i;
-
-/** The HTML elements a reader takes as a unit of their own. */
-const BLOCK_END = /<\/(?:p|li|h[1-6]|figcaption|td|th|div|blockquote)>/gi;
-/** A markdown line that stands alone: a heading, list item or table row. */
-const BLOCK_LINE = /^[ \t]*(?:#+ |[-*+] |\d+\. |\|)/;
-/** How a sentence ends, for the readability formulas. */
-const ENDS_SENTENCE = /[.!?:;]\s*$/;
-/** A block that isn't running prose: a heading, list, table, quote,
- *  caption or emphasis line, image or HTML block. */
-const NOT_PARAGRAPH = /^(?:[#\-*+>|<!]|\d+\.)/;
 
 /** The names cspell looks for its config under, in its own order. */
 const CSPELL_CONFIGS = [
@@ -83,28 +76,6 @@ export async function checkPost(file, {root, fetchImpl = fetch}) {
   ]);
 }
 
-/** The words a reader reads: markup, code and URLs taken out, link text
- *  and alt text kept. */
-export function proseOf(markdown) {
-  const blocks = endBlocks(withoutCode(stripSpans(markdown, "<!--", "-->")));
-  return stripSpans(blocks, "<", ">")
-    .replace(/\]\([^)\s]*\)/g, " ")
-    .replace(/!?\[/g, " ")
-    .replace(/https?:\/\/\S+/g, " ")
-    .replace(/&[a-z]+;/g, " ")
-    .replace(/^[ \t]*(?:#+|>|[-*+]|\d+\.|\|)/gm, "")
-    .replace(/[*_|]/g, " ");
-}
-
-/** The body's paragraphs: the blank-line-separated blocks of running text.
- *  The formulas score sentences, and a caption or list item dense with
- *  figures and titles reads as a hard sentence when it isn't one. */
-export function paragraphsOf(body) {
-  return body.split(/\n[ \t]*\n/).map((block) => block.trim())
-    .filter((block) => block && !NOT_PARAGRAPH.test(block))
-    .join("\n\n");
-}
-
 /** Every http(s) URL the post links to or loads, once each; an example in
  *  code is not a link. */
 export function linksOf(markdown) {
@@ -130,33 +101,6 @@ const merge = (parts) => ({
   problems: parts.flatMap((p) => p.problems ?? []),
   warnings: parts.flatMap((p) => p.warnings ?? []),
 });
-
-/** `text` with every span from `open` to the next `close` taken out. A
- *  scan rather than a lazy regex, which backtracks on an unclosed span. */
-function stripSpans(text, open, close) {
-  let out = "";
-  let at = 0;
-  for (let start = text.indexOf(open); start !== -1;
-    start = text.indexOf(open, at)) {
-    const end = text.indexOf(close, start + open.length);
-    if (end === -1) break;
-    out += `${text.slice(at, start)} `;
-    at = end + close.length;
-  }
-  return out + text.slice(at);
-}
-
-/** `text` with fenced and inline code taken out. */
-const withoutCode = (text) => stripSpans(stripSpans(text, "```", "```"), "`", "`");
-
-/** Each block ended as a sentence, so the formulas don't read a list or a
- *  run of headings as one long sentence; a reader takes each on its own. */
-function endBlocks(text) {
-  return text.replace(BLOCK_END, ". ").split("\n")
-    .map((line) => BLOCK_LINE.test(line) && !ENDS_SENTENCE.test(line)
-      ? `${line}.` : line)
-    .join("\n");
-}
 
 function readabilityProblems(post, {maxGrade, wordSubs}) {
   const result = scoreText(proseOf(paragraphsOf(post.body)), wordSubs);

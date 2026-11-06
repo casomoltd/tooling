@@ -11,8 +11,9 @@ import {
 import {tmpdir} from "node:os";
 import {join} from "node:path";
 import {
-  BANNED, bannedIn, checkPost, linksOf, paragraphsOf, proseOf,
+  BANNED, bannedIn, checkPost, linksOf,
 } from "./post-check.mjs";
+import {paragraphsOf, proseOf} from "../readability/markdown.mjs";
 import {parsePost} from "./post.mjs";
 
 let failures = 0;

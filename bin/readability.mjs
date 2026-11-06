@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
 /**
- * Measure reading difficulty of site pages from source files.
+ * Measure reading difficulty of site pages from source files: each route's
+ * `page.tsx`, with its `content.mdx` where it has one.
  *
  * Usage:
  *   npm run readability [-- slug] [-- --pretty] [-- --max-grade <n>]
@@ -29,7 +30,7 @@ import {
   FORMULAS,
   MIN_SCORABLE_WORDS,
   discoverSlugs,
-  extractText,
+  routeText,
   scoreText,
   DEFAULT_MAX_GRADE,
   DEFAULT_WORD_SUBS,
@@ -93,7 +94,7 @@ async function readOptions() {
 function scorePage(slug, {wordSubs, maxGrade}) {
   try {
     const rel = slug === "/" ? "" : slug.slice(1);
-    const text = extractText(path.join(SRC_APP, rel, "page.tsx"));
+    const text = routeText(path.join(SRC_APP, rel));
     const result = scoreText(text, wordSubs);
     const pass =
       result.consensusGrade == null || result.consensusGrade <= maxGrade;

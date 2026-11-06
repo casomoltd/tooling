@@ -2,8 +2,9 @@
 name: typescript
 description: >-
   TypeScript data, type, and component-variant design — typed
-  identifiers, clean domain data, variants over mode flags, and the
-  environment resolved once into a closed set
+  identifiers, clean domain data, variants over mode flags, the
+  environment resolved once into a closed set, and keeping a content
+  document (MDX) to words
 user-invocable: false
 ---
 
@@ -12,20 +13,24 @@ user-invocable: false
 ## Intent
 
 Govern TypeScript data, type, and component-variant design — typed identifiers,
-clean domain data, variants over mode flags, and where the program is running
-resolved once into a closed set of shapes.
+clean domain data, variants over mode flags, where the program is running
+resolved once into a closed set of shapes, and a content document kept to
+words.
 
 ## Applies-to
 
-`.ts` / `.tsx` — data, type, and component-API design. Preloaded as the rubric
-wherever TS is written or reviewed (e.g. the `code-review` / `design-xray` agents
-for `.ts/.tsx`). General formatting (line length, file naming) is out of scope.
+`.ts` / `.tsx` — data, type, and component-API design — and a content
+document (`.mdx`) that places those components. Preloaded as the rubric
+wherever TS is written or reviewed (e.g. the `code-review` / `design-xray`
+agents for `.ts/.tsx`, and `code-review` alone for `.mdx`). General formatting
+(line length, file naming) is out of scope.
 
 ## Owns-vs-defers
 
 Owns the **design half** — data modelling, typed identifiers, value objects,
 variants over mode flags, crawlable-navigation design (a real `<a>`/`<Link>`,
-not a JS-only handler), and the size limits wherever lint is suppressed.
+not a JS-only handler), the size limits wherever lint is suppressed, and a
+content document kept to words.
 **Defers** mechanical rules to `eslint` (max-len, import order,
 `@typescript-eslint`, sonarjs), and anchor *phrasing/flow* to the prose
 reviewer — this rubric owns the element, not the wording.
@@ -653,6 +658,44 @@ selector can ban `switch`/`.kind ===` inside a `variants/` or `families/`
 dir. Neither catches "this *should* have been polymorphic" — that stays a
 design-review call (the `code-review` / `design-xray` agents apply this
 rubric).
+
+## A Content Document Holds Words, Not Logic
+
+Where a repo writes pages as documents (MDX, or any markup a build compiles
+into components), the document holds the words and places components; it
+decides nothing. A reader opens it to read prose, and a branch in it is a
+sentence they have to run in their head.
+
+- **No conditional wording.** A document says the same thing to every
+  reader; a page that seems to need a branch is two pages, or the varying part
+  is a component.
+- **A component is placed, not configured.** Its props are literal words,
+  links, named figures and appearance values; its behaviour stays inside it
+  (*Keep Shared Modules Presentation-Agnostic*), and its doc comment says a
+  document may place it.
+- **A figure is named, never typed** (*No Magic Literals*, *Reuse the
+  Library's Types and Values*): imported by name and rendered by a component.
+
+```text
+Good:  Orders over <Fact of={FREE_SHIPPING_THRESHOLD} /> ship free.
+       <ShippingQuote heading="Price your order" href="/quote" />
+
+Bad:   Orders over £50 ship free.
+       {region === 'eu' ? <p>…</p> : <p>…</p>}
+       <Chart data={orders.filter((o) => o.total > 50)} />
+```
+
+Where the repo's docs name a document format for its content pages, a large
+change to a page still written as code (a rewrite, a new section, a
+restructure) is the moment to move it to that format first; a small fix is
+just a fix. The repo's docs say which pages are content pages.
+
+**Principle:** a concern per layer ([`design-rubric`](../../docs/design-rubric.md)).
+
+**Enforcement:** review only, by `code-review`; the move is a suggestion, never
+a block.
+
+**Source:** proposed here, with no external source.
 
 ## One Concern, One Module
 

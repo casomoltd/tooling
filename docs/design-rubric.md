@@ -63,7 +63,7 @@ the next number.
   Its Rule Needs*.
 - **Q4 — a concern per layer, presentation-agnostic core** → `typescript`: *Keep
   Shared Modules Presentation-Agnostic* · *A Library Takes Only What Its Rule
-  Needs*.
+  Needs* · *A Content Document Holds Words, Not Logic*.
 - **Q5 + fail-loud — no silent default, polymorphism, EAFP** → `typescript`: *No
   Silent Default for a Domain-Selecting Input* · *Variants over Mode Flags* ·
   *Once Dispatched, Don't Re-Ask the Type* · *Don't Swallow Exceptions*.

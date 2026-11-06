@@ -1,11 +1,15 @@
 /**
  * The prose a reader sees on a Next.js page, read out of its JSX source and
- * the components it imports. Scoring that prose is `score.mjs`'s.
+ * the components it imports; a route with an MDX document joins its page's
+ * prose with the document's, read through `markdown.mjs`. Scoring that prose
+ * is `score.mjs`'s.
  */
 
 import ts from "typescript";
 import fs from "node:fs";
 import path from "node:path";
+import {extractMdxText} from "./markdown.mjs";
+import {FIGURE} from "./score.mjs";
 
 /** Elements that sit inside a sentence rather than starting one: their
  *  text joins the block around them. Everything else is a block, whose
@@ -15,9 +19,6 @@ const INLINE_TAGS = new Set([
   "a", "Link", "strong", "em", "b", "i", "u", "span", "code", "abbr",
   "sup", "sub", "small", "mark", "time", "br", "wbr",
 ]);
-
-/** What an interpolated value reads as inside a sentence: a figure. */
-const FIGURE = "1";
 
 /** The shortest string literal read as prose: shorter ones are labels. */
 const MIN_PROSE_CHARS = 20;
@@ -104,6 +105,15 @@ export function discoverSlugs(srcAppDir) {
       return dir === "." ? "/" : `/${dir}`;
     })
     .sort();
+}
+
+/** A route's prose: its `page.tsx`, and its `content.mdx` beside it where it
+ *  has one. Both are on the page a reader sees, so a thin route file's own
+ *  words are scored with the document's. */
+export function routeText(dir) {
+  const page = extractText(path.join(dir, "page.tsx"));
+  const mdx = path.join(dir, "content.mdx");
+  return fs.existsSync(mdx) ? `${page} ${extractMdxText(mdx)}`.trim() : page;
 }
 
 // -------------------------------------------------------------------

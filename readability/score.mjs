@@ -5,6 +5,10 @@
 
 import rs from "text-readability";
 
+/** What a computed figure reads as inside a sentence, from either
+ *  extractor: one short word. */
+export const FIGURE = "1";
+
 export const DEFAULT_MAX_GRADE = 12;
 
 export const DEFAULT_WORD_SUBS = {

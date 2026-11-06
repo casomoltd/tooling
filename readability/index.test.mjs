@@ -7,7 +7,7 @@ import {mkdirSync, mkdtempSync, writeFileSync} from "node:fs";
 import {tmpdir} from "node:os";
 import {dirname, join} from "node:path";
 
-import {extractText, scoreText} from "./index.mjs";
+import {extractMdxText, extractText, routeText, scoreText} from "./index.mjs";
 
 /** A site with `files` under its src/, returning the page's path. */
 function site(files) {
@@ -102,5 +102,61 @@ assert.match(edgeText, /Your pension grows with every year you work\./);
 
 // Scoring stays wired to the extracted text.
 assert.equal(scoreText(text, {}).wordCount, text.split(/\s+/).length);
+
+// An MDX page reads as its paragraphs: front matter, imports, comments,
+// headings, list items and a component's own text are left out, and each
+// <Fact /> reads as one short word, as a computed figure does on a TSX page.
+const mdxFile = join(mkdtempSync(join(tmpdir(), "readability-mdx-")), "content.mdx");
+writeFileSync(mdxFile, `---
+title: A title the reader sees elsewhere
+description: >-
+  A description with {fact:TAPER_START} in it.
+---
+
+import {TAPER_START} from '@/lib/facts'
+import {CalculatorCta} from '@/components/calculator-cta'
+
+{/* A note to the author. */}
+
+Once your income passes <Fact of={TAPER_START} />, you lose the
+[allowance](https://www.gov.uk/x).
+
+## A heading
+
+- A list item.
+
+export const meta = {note: "an export block"};
+
+import "./style.css";
+
+<CalculatorCta heading="Model it" href="/calc">
+  Island text.
+</CalculatorCta>
+`);
+const mdxText = extractMdxText(mdxFile);
+assert.match(mdxText, /Once your income passes 1, you lose the\s+allowance/);
+for (const gone of ["title", "description", "TAPER_START", "import", "note",
+  "heading", "list item", "Island", "Model it", "gov.uk", "export",
+  "an export block", "style.css"]) {
+  assert.ok(!mdxText.includes(gone), `${gone} is not prose`);
+}
+
+// Front matter is found with Windows line endings too.
+const crlf = join(mkdtempSync(join(tmpdir(), "readability-crlf-")), "content.mdx");
+writeFileSync(crlf, "---\r\ntitle: Hidden title\r\n---\r\n\r\nA plain sentence.\r\n");
+assert.equal(extractMdxText(crlf).trim(), "A plain sentence.");
+
+// A route is scored on its page.tsx and its content.mdx together, and on its
+// page.tsx alone where it has no document.
+const routeDir = mkdtempSync(join(tmpdir(), "readability-route-"));
+writeFileSync(join(routeDir, "page.tsx"), `export default function Page() {
+  return <p>The route file says one thing here.</p>;
+}
+`);
+assert.match(routeText(routeDir), /The route file says one thing here\./);
+assert.ok(!routeText(routeDir).includes("The document says"));
+writeFileSync(join(routeDir, "content.mdx"), "The document says another thing.\n");
+assert.match(routeText(routeDir), /The route file says one thing here\./);
+assert.match(routeText(routeDir), /The document says another thing\./);
 
 console.log("readability tests OK");

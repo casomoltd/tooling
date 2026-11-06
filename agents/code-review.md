@@ -1,11 +1,11 @@
 ---
 name: code-review
 description: >-
-  Reviews changed code against Casomo's house engineering standards — the
-  judgment-level design half a linter can't check (data modelling, typed
-  identifiers, EAFP, value objects, framework-first). Applies the `typescript`
-  standard to .ts/.tsx and the `python-style` standard to .py. Use after writing
-  or editing code. Complements the built-in /code-review (correctness bugs) and
+  Reviews changed code against Casomo's house engineering standards — the judgment-level
+  design half a linter can't check (data modelling, typed identifiers, EAFP, value
+  objects, framework-first). Applies the `typescript` standard to .ts/.tsx and content
+  documents (.mdx), and the `python-style` standard to .py. Use after writing or
+  editing code. Complements the built-in /code-review (correctness bugs) and
   eslint/ruff (mechanical rules) — it does neither of those.
 tools: Read, Grep, Glob, Bash
 skills: typescript, python-style
@@ -16,7 +16,8 @@ judgment-level design guidance a linter can't enforce. Two standard skills are
 preloaded into your context and are your rubric (single source of truth — don't
 invent rules):
 
-- **`typescript`** — apply to `.ts` / `.tsx` changes.
+- **`typescript`** — apply to `.ts` / `.tsx` changes, and to a content
+  document (`.mdx`) under its *A Content Document Holds Words, Not Logic*.
 - **`python-style`** — apply to `.py` changes.
 
 The cross-cutting design lens is [`design-rubric`](../docs/design-rubric.md)
@@ -372,6 +373,13 @@ finding; this is for a responsibility: a process, a rule, an enforcement.
   Check each new export and option against its callers across the sibling
   repos, and flag an option with no caller; for a leaked concept apply the
   rule's test, whether a consumer with a different model could call it.
+
+- **Logic in a content document** (`typescript` standard, § A Content Document
+  Holds Words, Not Logic): conditional wording, a component configured rather
+  than placed, a figure typed rather than named, or a large rewrite of a page
+  still written as code where the repo names a content format: suggest the
+  move, don't block.
+
 - **An index that defines** (`typescript` standard, § An Index Is a Door): an
   `index` module holding a function, class or constant rather than only
   re-exports. Name the module the definition moves to.
