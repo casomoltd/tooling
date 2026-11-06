@@ -75,12 +75,21 @@ it("a rule whose match throws is no match, and says so", () => {
   assert.match(logged.join(""), /broken: its match failed \(bad regex\)/);
 });
 
+/** The environment without git's own variables. Run from a git hook (the
+ *  pre-commit `npm run check`), git exports GIT_INDEX_FILE and the like, and a
+ *  worktree's is an absolute path: a child git that inherits it reads and
+ *  writes the repo being committed, not the temporary one a test made. */
+const GIT_FREE_ENV = Object.fromEntries(
+  Object.entries(process.env).filter(([name]) => !name.startsWith("GIT_")),
+);
+
 /** A guard run with a piped payload, its output as strings: by its path, or
  *  by any other, a symlink to it say. */
 const run = (script: string, payload: unknown, path = join(HERE, script)) => {
   const r = spawnSync("node", [path], {
     input: typeof payload === "string" ? payload : JSON.stringify(payload),
     encoding: "utf8",
+    env: GIT_FREE_ENV,
   });
   return {status: r.status, stdout: r.stdout ?? "", stderr: r.stderr ?? ""};
 };
@@ -144,9 +153,9 @@ describe("a guard, run end to end", () => {
 describe("a commit's prompt, run end to end", () => {
   // A real repo with a staged file and a message file.
   const repo = mkdtempSync(join(tmpdir(), "commit-prompt-"));
-  spawnSync("git", ["init", "-q", repo]);
+  spawnSync("git", ["init", "-q", repo], {env: GIT_FREE_ENV});
   writeFileSync(join(repo, "a.txt"), "a\n");
-  spawnSync("git", ["-C", repo, "add", "a.txt"]);
+  spawnSync("git", ["-C", repo, "add", "a.txt"], {env: GIT_FREE_ENV});
   writeFileSync(join(repo, "msg.txt"), "Add a\n\nBecause a.\n");
   after(() => rmSync(repo, {recursive: true, force: true}));
 
