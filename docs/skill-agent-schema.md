@@ -1,54 +1,26 @@
 # Skill / agent authoring schema
 
-*The house standard for authoring a Claude Code skill or agent. Read this when
-creating or editing one. It is the interface vocabulary that lets units compose
-without colliding — and the decision table that says which shape a given unit
-should take.*
+*The house standard for authoring a Claude Code skill or agent. Read this when creating or editing one. It is the interface vocabulary that lets units compose without colliding — and the decision table that says which shape a given unit should take.*
 
-Author a skill or agent as a **modular unit with a declared interface**, so units
-compose without overlap. The vocabulary below is **soft, not a rigid template** —
-which sections carry weight depends on the unit's *profile* (see the decision
-table). Include the **interface** sections whenever the unit composes with others;
-a tiny standalone skill may carry only Intent + Method.
+Author a skill or agent as a **modular unit with a declared interface**, so units compose without overlap. The vocabulary below is **soft, not a rigid template** — which sections carry weight depends on the unit's *profile* (see the decision table). Include the **interface** sections whenever the unit composes with others; a tiny standalone skill may carry only Intent + Method.
 
 ## The interface vocabulary
 
-- **Identity** — `name` (verb-object) + `description` (3rd-person imperative;
-  **positive + negative** triggers — when to invoke *and* when NOT). *Dispatch.*
-  (interface)
-- **Intent** — the single job, one line, a **distinct verb**. The contract that
-  makes overlap visible. (interface)
-- **Principle** — where the unit carries out a principle written elsewhere (a
-  policy, a strategy page, a design rationale), one line naming it and a link to
-  where it is written. The principle keeps the *why*; the unit keeps the *how*
-  and does not restate the reasoning. When the two disagree, the principle wins
-  on intent and the unit on mechanics. In a public repo the link must be one a
-  public reader can open; where the principle is written somewhere private,
-  name it without linking. Optional: omit it when the unit applies nothing
-  beyond its own method. (interface)
+- **Identity** — `name` (verb-object) + `description` (3rd-person imperative; **positive + negative** triggers — when to invoke *and* when NOT). *Dispatch.* (interface)
+- **Intent** — the single job, one line, a **distinct verb**. The contract that makes overlap visible. (interface)
+- **Principle** — where the unit carries out a principle written elsewhere (a policy, a strategy page, a design rationale), one line naming it and a link to where it is written. The principle keeps the *why*; the unit keeps the *how* and does not restate the reasoning. When the two disagree, the principle wins on intent and the unit on mechanics. In a public repo the link must be one a public reader can open; where the principle is written somewhere private, name it without linking. Optional: omit it when the unit applies nothing beyond its own method. (interface)
 - **Scope** — in / out, plus a one-line seam to each sibling. (interface)
-- **Inputs** — data sources (IDs/schema), files, prior artefacts, params, plus
-  **validation** (required/optional, limits, reject rules) — what it reads.
-  (interface)
-- **Outputs** — artefacts/files, **which fields/artefacts it OWNS vs merely
-  reads**, hand-offs, and **post-conditions** (what the output must satisfy before
-  done). *Where write-ownership is declared.* (interface)
-- **Method** — numbered steps or rules; keep it **slim + procedural** — push heavy
-  reference (ID tables, schemas, rubrics) into a Reference section/file loaded
-  just-in-time, off the spine (progressive disclosure).
+- **Inputs** — data sources (IDs/schema), files, prior artefacts, params, plus **validation** (required/optional, limits, reject rules) — what it reads. (interface)
+- **Outputs** — artefacts/files, **which fields/artefacts it OWNS vs merely reads**, hand-offs, and **post-conditions** (what the output must satisfy before done). *Where write-ownership is declared.* (interface)
+- **Method** — numbered steps or rules; keep it **slim + procedural** — push heavy reference (ID tables, schemas, rubrics) into a Reference section/file loaded just-in-time, off the spine (progressive disclosure).
 - **Guardrails** — invariants ("never X").
 - **Boundaries** — "vs `<sibling>` → use `<Y>`" (the composition graph).
 
-**Name units verb-object** (a capability, like `play-piano`, not `piano`); a tight
-`description` gates auto-invocation.
+**Name units verb-object** (a capability, like `play-piano`, not `piano`); a tight `description` gates auto-invocation.
 
 ## Three profiles — pick by frontmatter
 
-A unit is one of three kinds, and the kind is **inferable from its frontmatter**.
-Use this table to pick the profile deterministically, then lean on the sections
-that are load-bearing for it. This is the trigger that keeps the schema applied to
-the *right* unit — an agent shouldn't be judged for lacking a numbered Method, and
-a style guide shouldn't be forced to fake `## Inputs`.
+A unit is one of three kinds, and the kind is **inferable from its frontmatter**. Use this table to pick the profile deterministically, then lean on the sections that are load-bearing for it. This is the trigger that keeps the schema applied to the *right* unit — an agent shouldn't be judged for lacking a numbered Method, and a style guide shouldn't be forced to fake `## Inputs`.
 
 | If the unit… | Profile | Load-bearing sections |
 |---|---|---|
@@ -58,24 +30,14 @@ a style guide shouldn't be forced to fake `## Inputs`.
 
 ### agent — Inputs → Output
 
-An agent is *called as a function*: its `description` is a capability + when-to-use
-(with `tools` / `model` / `skills` in frontmatter), its **Inputs** read as a
-near-signature ("the caller provides: …"), and its **Output** is a defined return
-shape the caller parses. It leans on **Inputs → Output**. Declare Inputs
-explicitly rather than burying them in Scope — the caller is coding against them.
-`design-xray` and `code-review` model this: each opens with `## Inputs` (the target
+An agent is *called as a function*: its `description` is a capability + when-to-use (with `tools` / `model` / `skills` in frontmatter), its **Inputs** read as a near-signature ("the caller provides: …"), and its **Output** is a defined return shape the caller parses. It leans on **Inputs → Output**. Declare Inputs explicitly rather than burying them in Scope — the caller is coding against them. `design-xray` and `code-review` model this: each opens with `## Inputs` (the target
 + the rubrics it preloads) and ends with a fixed `## Output` shape.
 
 ### An agent that persists a report
 
-An agent that returns a rendered report
-([`design-xray`](../agents/design-xray.md), [`docs-xray`](../agents/docs-xray.md))
-writes it and names it; the caller publishes it. The agent states only which
-sections it writes and what `<target>` is, and follows this contract:
+An agent that returns a rendered report ([`design-xray`](../agents/design-xray.md), [`docs-xray`](../agents/docs-xray.md)) writes it and names it; the caller publishes it. The agent states only which sections it writes and what `<target>` is, and follows this contract:
 
-1. After the last section, without waiting to be asked, write the sections
-   verbatim to `<work-dir>/<target>.md` with a quoted heredoc (`<<'EOF'`), so
-   backticks and `$` survive.
+1. After the last section, without waiting to be asked, write the sections verbatim to `<work-dir>/<target>.md` with a quoted heredoc (`<<'EOF'`), so backticks and `$` survive.
 2. Render `<target>.html` beside it:
 
    ```bash
@@ -83,90 +45,47 @@ sections it writes and what `<target>` is, and follows this contract:
    ```
 
    If the renderer isn't found, keep the `.md` and say HTML was skipped.
-3. Report both paths as the final lines, plainly, so the caller can act on them
-   without re-deriving anything.
+3. Report both paths as the final lines, plainly, so the caller can act on them without re-deriving anything.
 
-`<work-dir>` is the working directory the caller gave, else a scratchpad or temp
-directory: **never a tracked tree**, so no gitignore line is needed and nothing is
-left behind in the repo. **Never publish the artifact, hand-roll the HTML, or open
-a browser**: the agent has no artifact tool, and the caller publishes the `.html`
-it names.
+`<work-dir>` is the working directory the caller gave, else a scratchpad or temp directory: **never a tracked tree**, so no gitignore line is needed and nothing is left behind in the repo. **Never publish the artifact, hand-roll the HTML, or open a browser**: the agent has no artifact tool, and the caller publishes the `.html` it names.
 
-`render-report.mjs` converts the markdown in node and ships **no mermaid
-runtime**, because the artifact host renders every `pre.mermaid` block itself and
-a second runtime races it into black boxes. A page that builds its body at load
-time has no diagram blocks in it when the host looks.
+`render-report.mjs` converts the markdown in node and ships **no mermaid runtime**, because the artifact host renders every `pre.mermaid` block itself and a second runtime races it into black boxes. A page that builds its body at load time has no diagram blocks in it when the host looks.
 
 ### standard / rubric — the inverted interface
 
-A rubric (`python-style`, `typescript`, `frontend-design`) is not invoked to
-produce an artefact; it is **preloaded as a rubric** by a consumer (an agent's
-`skills:` list, or an editor loading it before writing code). Its interface is
-therefore *inverted* — declare it with three short lines above the ruleset body:
+A rubric (`python-style`, `typescript`, `frontend-design`) is not invoked to produce an artefact; it is **preloaded as a rubric** by a consumer (an agent's `skills:` list, or an editor loading it before writing code). Its interface is therefore *inverted* — declare it with three short lines above the ruleset body:
 
 - **Intent** — one distinct verb ("govern TypeScript data/type/variant design").
-- **Applies-to** — the surface it governs (`**/*.py`; `.ts` / `.tsx`). Often
-  already encoded as the `paths:` frontmatter.
-- **Owns-vs-defers** — the rules this rubric owns vs those a sibling or linter
-  owns. This is the rubric's analogue of Outputs-with-ownership: it stops two
-  rubrics (or a rubric and a linter) from double-flagging the same thing. E.g.
-  `typescript` owns data/type/variant + crawlable-navigation design; `eslint` owns
-  the mechanical rules; a prose reviewer owns anchor *phrasing*.
+- **Applies-to** — the surface it governs (`**/*.py`; `.ts` / `.tsx`). Often already encoded as the `paths:` frontmatter.
+- **Owns-vs-defers** — the rules this rubric owns vs those a sibling or linter owns. This is the rubric's analogue of Outputs-with-ownership: it stops two rubrics (or a rubric and a linter) from double-flagging the same thing. E.g. `typescript` owns data/type/variant + crawlable-navigation design; `eslint` owns the mechanical rules; a prose reviewer owns anchor *phrasing*.
 
-The body remains the ruleset itself — that is the rubric's Method; don't add a
-second procedural Method on top of it.
+The body remains the ruleset itself — that is the rubric's Method; don't add a second procedural Method on top of it.
 
 ### procedural skill — Intent + Method + Boundaries
 
 A skill is *dispatched by intent* — its `description` is a router (trigger phrases
-+ when-NOT + sibling redirect). It leans on **Intent + Scope**, a numbered
-**Method**, and explicit **Boundaries**. Push heavy reference off the spine.
++ when-NOT + sibling redirect). It leans on **Intent + Scope**, a numbered **Method**, and explicit **Boundaries**. Push heavy reference off the spine.
 
 ## Composition — Outputs-with-ownership
 
-**Declaring Outputs-with-ownership makes a write-collision self-evident:** two
-units that both write the same field/artefact each list it, so you assign one
-owner. The same move works across all three profiles — a procedural skill's
-Outputs, an agent's Output shape, a rubric's Owns-vs-defers.
+**Declaring Outputs-with-ownership makes a write-collision self-evident:** two units that both write the same field/artefact each list it, so you assign one owner. The same move works across all three profiles — a procedural skill's Outputs, an agent's Output shape, a rubric's Owns-vs-defers.
 
 The composition graph is the point. Some `tooling`-native seams:
 
-- **`commit` ↔ `release-version`** — `commit` runs checks, stages, and commits, and
-  *stops*; the release tail (bump → push → publish/deploy) is `release-version`.
-  Each states the seam in its Boundaries so neither drifts into the other's lane.
-- **`design-pass` → `design-xray` → `code-review`** — the `design-pass` skill
-  orchestrates two agents: `design-xray` returns a structural map + a ranked
-  refactor-target handoff, which `code-review` then judges file-by-file. The
-  handoff table *is* the interface between them.
-- **`python-style` / `typescript` vs `eslint` / `ruff`** — the rubrics own the
-  design-judgment half; the linters own the mechanical half. `code-review`'s
-  "Ignore — owned elsewhere" section names that seam so it never re-flags a lint
-  rule.
+- **`commit` ↔ `release-version`** — `commit` runs checks, stages, and commits, and *stops*; the release tail (bump → push → publish/deploy) is `release-version`. Each states the seam in its Boundaries so neither drifts into the other's lane.
+- **`design-pass` → `design-xray` → `code-review`** — the `design-pass` skill orchestrates two agents: `design-xray` returns a structural map + a ranked refactor-target handoff, which `code-review` then judges file-by-file. The handoff table *is* the interface between them.
+- **`python-style` / `typescript` vs `eslint` / `ruff`** — the rubrics own the design-judgment half; the linters own the mechanical half. `code-review`'s "Ignore — owned elsewhere" section names that seam so it never re-flags a lint rule.
 
-**Reference material lives in interface docs, not always-loaded context.** When a
-unit's Inputs/Outputs reference a schema, a data layout, or an ID table, point at a
-canonical interface doc (like this one) loaded just-in-time — don't inline the heavy
-reference onto the unit's spine, and don't duplicate it into always-on context.
+**Reference material lives in interface docs, not always-loaded context.** When a unit's Inputs/Outputs reference a schema, a data layout, or an ID table, point at a canonical interface doc (like this one) loaded just-in-time — don't inline the heavy reference onto the unit's spine, and don't duplicate it into always-on context.
 
 ## Enforcement
 
-The **mechanical** half of this schema is linted, not just trusted:
-`bin/skills-lint.config.mjs` runs stock remark (`remark-frontmatter` +
-`remark-validate-links` + `remark-lint-frontmatter-schema`) to verify every
-skill/agent's frontmatter parses and carries `name` + `description`, and that every
-cross-link and `#anchor` resolves. `npm run check` runs it as `lint:md`, over
-the paths that script names in [`package.json`](../package.json), so a rename or
-hand-edit that breaks a link — the kind Claude Code's loader silently swallows —
-fails the build.
+The **mechanical** half of this schema is linted, not just trusted: `bin/skills-lint.config.mjs` runs stock remark (`remark-frontmatter` + `remark-validate-links` + `remark-lint-frontmatter-schema`) to verify every skill/agent's frontmatter parses and carries `name` + `description`, and that every cross-link and `#anchor` resolves. `npm run check` runs it as `lint:md`, over the paths that script names in [`package.json`](../package.json), so a rename or hand-edit that breaks a link — the kind Claude Code's loader silently swallows — fails the build.
 
 The **judgment** half stays human-reviewed — a linter can't check it:
 
-- **profile fit** — is each unit shaped to the right profile (the decision table
-  routes it, but a human confirms the load-bearing sections are actually there)?
-- **Intent distinctness** — does each unit have one distinct verb, or do two units
-  overlap?
+- **profile fit** — is each unit shaped to the right profile (the decision table routes it, but a human confirms the load-bearing sections are actually there)?
+- **Intent distinctness** — does each unit have one distinct verb, or do two units overlap?
 - **Outputs-ownership** — does exactly one unit own each field/artefact/rule?
 - **sibling seams** — does every Boundaries line point at a real sibling?
-- **principle named** — does a unit that carries out a principle name it and
-  link where it is written, does that source still say what the unit claims,
-  and in a public repo can a public reader open the link?
+- **principle named** — does a unit that carries out a principle name it and link where it is written, does that source still say what the unit claims, and in a public repo can a public reader open the link?

@@ -12,34 +12,19 @@ user-invocable: false
 
 ## Intent
 
-Govern TypeScript data, type, and component-variant design — typed identifiers,
-clean domain data, variants over mode flags, where the program is running
-resolved once into a closed set of shapes, and a content document kept to
-words.
+Govern TypeScript data, type, and component-variant design — typed identifiers, clean domain data, variants over mode flags, where the program is running resolved once into a closed set of shapes, and a content document kept to words.
 
 ## Applies-to
 
-`.ts` / `.tsx` — data, type, and component-API design — and a content
-document (`.mdx`) that places those components. Preloaded as the rubric
-wherever TS is written or reviewed (e.g. the `code-review` / `design-xray`
-agents for `.ts/.tsx`, and `code-review` alone for `.mdx`). General formatting
-(line length, file naming) is out of scope.
+`.ts` / `.tsx` — data, type, and component-API design — and a content document (`.mdx`) that places those components. Preloaded as the rubric wherever TS is written or reviewed (e.g. the `code-review` / `design-xray` agents for `.ts/.tsx`, and `code-review` alone for `.mdx`). General formatting (line length, file naming) is out of scope.
 
 ## Owns-vs-defers
 
-Owns the **design half** — data modelling, typed identifiers, value objects,
-variants over mode flags, crawlable-navigation design (a real `<a>`/`<Link>`,
-not a JS-only handler), the size limits wherever lint is suppressed, and a
-content document kept to words.
-**Defers** mechanical rules to `eslint` (max-len, import order,
-`@typescript-eslint`, sonarjs), and anchor *phrasing/flow* to the prose
-reviewer — this rubric owns the element, not the wording.
+Owns the **design half** — data modelling, typed identifiers, value objects, variants over mode flags, crawlable-navigation design (a real `<a>`/`<Link>`, not a JS-only handler), the size limits wherever lint is suppressed, and a content document kept to words. **Defers** mechanical rules to `eslint` (max-len, import order, `@typescript-eslint`, sonarjs), and anchor *phrasing/flow* to the prose reviewer — this rubric owns the element, not the wording.
 
 ## Typed Identifiers
 
-Use an `as const` object for domain keys, then derive the
-union type from it — never pass bare `string` between
-modules.
+Use an `as const` object for domain keys, then derive the union type from it — never pass bare `string` between modules.
 
 ```ts
 // Const object: human-readable keys, literal values
@@ -62,24 +47,11 @@ type StatusId = 'draft' | 'published' | 'archived';
 const STATUS_IDS = ['draft', 'published', 'archived'];
 ```
 
-Call sites reference the const object for individual
-lookups (`STATUSES.Draft`) and the derived array for
-iteration.
+Call sites reference the const object for individual lookups (`STATUSES.Draft`) and the derived array for iteration.
 
 ## No Magic Literals
 
-A literal needs a name when its meaning is not visible where it is
-used. That covers a literal that repeats — route and page paths,
-storage keys, query params, event names — and equally one used once
-that stands for something defined elsewhere: a rule's threshold, a
-code from another system's document, a position in another structure.
-Where a library owns the value, import its constant (see
-[Reuse the Library's Types and Values](#reuse-the-librarys-types-and-values));
-otherwise give it a named constant, exported where it is shared, and use
-it at every site. Keep the literal as the value, so a reader can still
-check it against its source; where it is transcribed from a published
-source, cite it per
-[Pin Transcribed Reference Data](#pin-transcribed-reference-data-to-a-cited-fixture).
+A literal needs a name when its meaning is not visible where it is used. That covers a literal that repeats — route and page paths, storage keys, query params, event names — and equally one used once that stands for something defined elsewhere: a rule's threshold, a code from another system's document, a position in another structure. Where a library owns the value, import its constant (see [Reuse the Library's Types and Values](#reuse-the-librarys-types-and-values)); otherwise give it a named constant, exported where it is shared, and use it at every site. Keep the literal as the value, so a reader can still check it against its source; where it is transcribed from a published source, cite it per [Pin Transcribed Reference Data](#pin-transcribed-reference-data-to-a-cited-fixture).
 
 ```ts
 // Good: the name carries the meaning, the value stays checkable
@@ -94,13 +66,7 @@ export const RETIREMENT_AGE = 60;
 
 ## Name the Condition, Not the Branch
 
-When a reader needs a comment to know what a branch tests, bind the
-condition to a `const` whose name states the case, and branch on that.
-The name sits at the test, so it cannot drift from it the way a comment
-above it can. TypeScript narrows through a `const` condition as it does
-through the expression, provided the value it narrows is itself a
-`const`, a readonly property or an unreassigned parameter. Keep a
-comment only for *why* the branch exists.
+When a reader needs a comment to know what a branch tests, bind the condition to a `const` whose name states the case, and branch on that. The name sits at the test, so it cannot drift from it the way a comment above it can. TypeScript narrows through a `const` condition as it does through the expression, provided the value it narrows is itself a `const`, a readonly property or an unreassigned parameter. Keep a comment only for *why* the branch exists.
 
 ```ts
 // Good: the name states the case, and `order.coupon` still narrows
@@ -117,14 +83,7 @@ if (order.coupon !== undefined && customer.orderCount === 0) {
 
 ## Keep a Function to One Screen
 
-The house limits on a function's length, its parameters and a file's length
-are lint errors, set once in
-[`eslint/house-rules.mjs`](../../eslint/house-rules.mjs). A file that broke one
-when it came in is listed in `eslint-suppressions.json`, which lint then
-skips, so this rubric holds the same limits there. A function past the limit
-is doing more than one thing: give each thing a name and a doc comment. A
-parameter list past it is a value object passed in pieces
-([Pass Value Objects, Not Loose Fields](#pass-value-objects-not-loose-fields)).
+The house limits on a function's length, its parameters and a file's length are lint errors, set once in [`eslint/house-rules.mjs`](../../eslint/house-rules.mjs). A file that broke one when it came in is listed in `eslint-suppressions.json`, which lint then skips, so this rubric holds the same limits there. A function past the limit is doing more than one thing: give each thing a name and a doc comment. A parameter list past it is a value object passed in pieces ([Pass Value Objects, Not Loose Fields](#pass-value-objects-not-loose-fields)).
 
 ```ts
 // Good: the entry assembles; each part is a named, documented function
@@ -143,9 +102,7 @@ function checkout(cart: Cart): Receipt {
 
 ## Name a Value for Whose It Is
 
-When two values of the same unit sit side by side, each name says whose it
-is or which it is. A per-record figure named like a shared default reads as
-one, and the reader cannot tell which to change.
+When two values of the same unit sit side by side, each name says whose it is or which it is. A per-record figure named like a shared default reads as one, and the reader cannot tell which to change.
 
 ```ts
 // Good: the customer's own limit and the shop's default are told apart
@@ -155,22 +112,13 @@ const customerCreditLimit = account.override ?? defaultCreditLimit;
 const limit = account.override ?? defaultCreditLimit;
 ```
 
-Why this is not covered by
-[One Value for Two Facts That Usually Agree](#one-value-for-two-facts-that-usually-agree):
-that rule is one value answering two questions; this one is two values a
-single name could mean.
+Why this is not covered by [One Value for Two Facts That Usually Agree](#one-value-for-two-facts-that-usually-agree): that rule is one value answering two questions; this one is two values a single name could mean.
 
 ## A Domain Term Cites Its Definition
 
-A term of art reads like plain English but means something narrower, and
-the gap is where a reader goes wrong. So a name taken from the domain's own
-vocabulary (a statute, a regulator's manual, a standard) carries a doc
-comment that cites where the term is defined, quoting it rather than
-paraphrasing, and says what it covers in this code. The citation lets the
-reader check the name against the definition instead of guessing at it.
+A term of art reads like plain English but means something narrower, and the gap is where a reader goes wrong. So a name taken from the domain's own vocabulary (a statute, a regulator's manual, a standard) carries a doc comment that cites where the term is defined, quoting it rather than paraphrasing, and says what it covers in this code. The citation lets the reader check the name against the definition instead of guessing at it.
 
-Cite once, at the type or function that introduces the term; the other names
-that use it link to that comment.
+Cite once, at the type or function that introduces the term; the other names that use it link to that comment.
 
 ```ts
 // Good: the term, its source quoted, and what it is here
@@ -184,16 +132,11 @@ export interface SettlementWindow { /* … */ }
 export interface SettlementWindow { /* … */ }
 ```
 
-The provenance rule ([Pin Transcribed Reference Data to a Cited
-Fixture](#pin-transcribed-reference-data-to-a-cited-fixture)) cites the
-source of a figure; this one cites the source of a word.
+The provenance rule ([Pin Transcribed Reference Data to a Cited Fixture](#pin-transcribed-reference-data-to-a-cited-fixture)) cites the source of a figure; this one cites the source of a word.
 
 ## Carry a Stated Answer; Don't Infer It
 
-Where the source states a fact (a yes/no on a form, a figure on a document),
-the input carries it as given and the code reads it. Deriving it from another
-field by a threshold or a proxy guesses what was never in doubt, and guesses
-wrong at the edge.
+Where the source states a fact (a yes/no on a form, a figure on a document), the input carries it as given and the code reads it. Deriving it from another field by a threshold or a proxy guesses what was never in doubt, and guesses wrong at the edge.
 
 ```ts
 // Good: the answer the customer gave decides the rate
@@ -206,13 +149,7 @@ const rate = signup.vatNumber !== undefined ? BUSINESS_RATE : CONSUMER_RATE;
 
 ## Pass Value Objects, Not Loose Fields
 
-When a function or component needs several fields a domain value
-object already carries, accept the **object**, not its unpacked
-fields. Spreading a rich type into a bag of `string`/`number`
-parameters at the call boundary throws away the type system's
-help, lets callers pass mismatched or stale values, and bloats
-every call site. If a sibling helper already takes the object,
-the new one should too — keep their interfaces parallel.
+When a function or component needs several fields a domain value object already carries, accept the **object**, not its unpacked fields. Spreading a rich type into a bag of `string`/`number` parameters at the call boundary throws away the type system's help, lets callers pass mismatched or stale values, and bloats every call site. If a sibling helper already takes the object, the new one should too — keep their interfaces parallel.
 
 ```ts
 // Bad: a rich `Product` re-accepted as loose primitives
@@ -229,19 +166,9 @@ function priceSchema(product: Product) { /* product.name … */ }
 priceSchema(product);
 ```
 
-The call site shrinks to one typed argument, and a field rename
-on `Product` is caught by the compiler instead of silently
-threading the wrong primitive through. Flag any helper whose
-parameters duplicate the fields of a domain type already in
-scope at every call site.
+The call site shrinks to one typed argument, and a field rename on `Product` is caught by the compiler instead of silently threading the wrong primitive through. Flag any helper whose parameters duplicate the fields of a domain type already in scope at every call site.
 
-A list of parallel `min`/`max` (or other obviously-paired)
-primitives **is** a value object you haven't named yet. Collapse
-each pair into a small `Range`-style type and pass one argument per
-span — even if you must define that type locally because no library
-owns it yet. Repeated loose pairs are the smell; "the fields are
-flat, so flat props are fine" is not a defence — the shape is the
-unit, and a six-number parameter list hides three.
+A list of parallel `min`/`max` (or other obviously-paired) primitives **is** a value object you haven't named yet. Collapse each pair into a small `Range`-style type and pass one argument per span — even if you must define that type locally because no library owns it yet. Repeated loose pairs are the smell; "the fields are flat, so flat props are fine" is not a defence — the shape is the unit, and a six-number parameter list hides three.
 
 ```ts
 // Bad: three spans flattened into six parallel primitives
@@ -260,36 +187,17 @@ function forecast(opts: {
 
 ## Kill the Bug Class, Don't Guard the Instance
 
-When a defect comes from two values being **independently settable**,
-the fix is not a validator. Remove the state that can disagree.
+When a defect comes from two values being **independently settable**, the fix is not a validator. Remove the state that can disagree.
 
-A measurement and the date it was taken at, held as separate fields,
-let a caller pair a fresh figure with a stale date — a shape a guard
-can catch and a type can forbid. Ask for the two **together**, as one
-value that lands or doesn't, and the broken state has nowhere to live:
-the guard becomes unnecessary rather than merely present.
+A measurement and the date it was taken at, held as separate fields, let a caller pair a fresh figure with a stale date — a shape a guard can catch and a type can forbid. Ask for the two **together**, as one value that lands or doesn't, and the broken state has nowhere to live: the guard becomes unnecessary rather than merely present.
 
-The same move applies to a value **derived twice**. Two producers of
-one number agree by luck, not construction, and drift the moment
-either side's arithmetic changes. Watch for one quantity rounded,
-floored or converted independently at several call sites — a display,
-a table, that table's own comparison, a summary, a control. It only
-takes one of them to be wrong for the rest to be waiting to disagree,
-and the count of sites is the count of future defects. **One exported
-producer fixes all of them and makes the next one impossible.**
+The same move applies to a value **derived twice**. Two producers of one number agree by luck, not construction, and drift the moment either side's arithmetic changes. Watch for one quantity rounded, floored or converted independently at several call sites — a display, a table, that table's own comparison, a summary, a control. It only takes one of them to be wrong for the rest to be waiting to disagree, and the count of sites is the count of future defects. **One exported producer fixes all of them and makes the next one impossible.**
 
 Before writing a check that two things match, ask why there are two.
 
 ## Reuse the Library's Types and Values
 
-Before defining a consumer-side type for a domain concept, check
-whether the owning library already exports one — and use it, even
-if it carries fields you don't need. A parallel interface that
-mirrors a published type duplicates the contract and drifts from
-it. The same goes for values: if the library exposes a function
-or constant for a derivation, call it rather than recomputing the
-formula inline, and reach for the library's named key/constant
-instead of a bare literal.
+Before defining a consumer-side type for a domain concept, check whether the owning library already exports one — and use it, even if it carries fields you don't need. A parallel interface that mirrors a published type duplicates the contract and drifts from it. The same goes for values: if the library exposes a function or constant for a derivation, call it rather than recomputing the formula inline, and reach for the library's named key/constant instead of a bare literal.
 
 ```ts
 // Bad: a parallel shape + a re-derived value the library owns
@@ -304,23 +212,11 @@ const tier: ShippingTier = upperTier(cfg);   // library type
 const floor = tierFloor(cfg);                // library fn
 ```
 
-When the library's function is wrong or incomplete for your case,
-fix it upstream rather than shipping a corrected copy in the
-consumer. If you genuinely must bypass it, leave a comment saying
-why — so the next reader doesn't "simplify" your code back into
-the bug.
+When the library's function is wrong or incomplete for your case, fix it upstream rather than shipping a corrected copy in the consumer. If you genuinely must bypass it, leave a comment saying why — so the next reader doesn't "simplify" your code back into the bug.
 
 ## Don't Wrap a Domain Object to Decorate It
 
-When a caller needs a library's domain object *plus* a small
-consumer-side extra — a display string, a presentation flag — pass the
-object **as-is** and let the extra ride alongside in a thin sidecar (a
-separate argument, or a small companion type). Don't envelope the
-domain object in a consumer wrapper (`{ entity, label, … }`), and don't
-stand up an "adapter" whose only job is to build that wrapper. A
-wrapper re-boxes an object the library already models; an adapter is
-ceremony around what is usually a one- or two-line compose against
-accessors that already exist.
+When a caller needs a library's domain object *plus* a small consumer-side extra — a display string, a presentation flag — pass the object **as-is** and let the extra ride alongside in a thin sidecar (a separate argument, or a small companion type). Don't envelope the domain object in a consumer wrapper (`{ entity, label, … }`), and don't stand up an "adapter" whose only job is to build that wrapper. A wrapper re-boxes an object the library already models; an adapter is ceremony around what is usually a one- or two-line compose against accessors that already exist.
 
 ```ts
 // Bad: a consumer wrapper around a good domain object, plus an
@@ -335,25 +231,11 @@ interface EntityBadge { badge: string }         // the only new type
 render(entity, { badge: badgeFor(entity) });
 ```
 
-A new consumer type earns its place only when it carries a field the
-domain object genuinely lacks — never when it merely re-describes one
-the library owns. And model transient UI state (a selected index, an
-open flag) as local state, not a named domain type: a small "selection"
-type that only names which control is active is not a domain model.
+A new consumer type earns its place only when it carries a field the domain object genuinely lacks — never when it merely re-describes one the library owns. And model transient UI state (a selected index, an open flag) as local state, not a named domain type: a small "selection" type that only names which control is active is not a domain model.
 
 ## A Domain Rule Lives in the Library, on Every Path
 
-A rule the domain owns — a regulatory minimum, a rounding
-convention, a region-specific adjustment — belongs in the library
-that owns the data, applied wherever that library produces the
-affected value, never re-implemented or patched at a call site.
-When a consumer appears to need the rule, the fix is upstream —
-and it must cover **every** path the library exposes for that
-value, not one. The trap is consolidating a shared transform into
-a single path (a table build, one accessor) and dropping it from
-another: a second path that still takes the raw value silently
-skips the rule, and every consumer that reaches the value that way
-is quietly wrong.
+A rule the domain owns — a regulatory minimum, a rounding convention, a region-specific adjustment — belongs in the library that owns the data, applied wherever that library produces the affected value, never re-implemented or patched at a call site. When a consumer appears to need the rule, the fix is upstream — and it must cover **every** path the library exposes for that value, not one. The trap is consolidating a shared transform into a single path (a table build, one accessor) and dropping it from another: a second path that still takes the raw value silently skips the rule, and every consumer that reaches the value that way is quietly wrong.
 
 ```ts
 // Bad: the floor lives only in the table build; a second path
@@ -366,22 +248,11 @@ const gross = regionalise(rawBase, region); // …but not here
 const gross = regionalise(rawBase, region); // floors + adjusts
 ```
 
-So "one floor site, not two" is only safe if every consumer flows
-through that one site. Before removing a transform from a path
-because "another path already does it," confirm no caller reaches
-the value the first way — otherwise keep it on both (idempotent
-transforms compose safely) and guard the pair with a test (below).
+So "one floor site, not two" is only safe if every consumer flows through that one site. Before removing a transform from a path because "another path already does it," confirm no caller reaches the value the first way — otherwise keep it on both (idempotent transforms compose safely) and guard the pair with a test (below).
 
 ## No Silent Default for a Domain-Selecting Input
 
-A parameter that selects **which** answer you get — a locale, region,
-country, period, currency, price list — must be **required**. A default
-(`= 'gb'`, `?? firstOption`, silently taking `[0]`) returns a
-*plausible-but-wrong* value when a caller forgets it: no error, no type
-failure, no failing test, so the mistake ships — and every future call
-site can make it too. Make the input required so an omission is a
-**compile error**; if it genuinely can't be a required type parameter
-(it's derived at runtime), **throw** rather than fall back.
+A parameter that selects **which** answer you get — a locale, region, country, period, currency, price list — must be **required**. A default (`= 'gb'`, `?? firstOption`, silently taking `[0]`) returns a *plausible-but-wrong* value when a caller forgets it: no error, no type failure, no failing test, so the mistake ships — and every future call site can make it too. Make the input required so an omission is a **compile error**; if it genuinely can't be a required type parameter (it's derived at runtime), **throw** rather than fall back.
 
 ```ts
 // Bad: an optional selector with a silent default. Forget it and you
@@ -395,32 +266,15 @@ priceList(2026);            // ✗ compile error: region is required
 priceList(2026, region);    // ✓ caller must say which
 ```
 
-The distinction is *which* vs *how*: a default is fine for a **tuning**
-parameter that changes how a result is computed or presented (page size,
-timeout, precision, sort order) — never for one that changes **which**
-result you get. Test: would two different values return *different data*
-(not just different formatting or performance)? If yes, it selects the
-domain — require it.
+The distinction is *which* vs *how*: a default is fine for a **tuning** parameter that changes how a result is computed or presented (page size, timeout, precision, sort order) — never for one that changes **which** result you get. Test: would two different values return *different data* (not just different formatting or performance)? If yes, it selects the domain — require it.
 
-One convenience default is uniquely dangerous because it *scales*: a
-single `region = 'gb'` fallback can silently produce the wrong answer
-across a server page, a client widget, and a dedicated regional page —
-three incarnations of one bug, none caught by types or tests, because each
-call site independently "forgot" the argument the API let them omit.
+One convenience default is uniquely dangerous because it *scales*: a single `region = 'gb'` fallback can silently produce the wrong answer across a server page, a client widget, and a dedicated regional page — three incarnations of one bug, none caught by types or tests, because each call site independently "forgot" the argument the API let them omit.
 
-This pairs with *A Domain Rule Lives in the Library, on Every Path* — a
-required selector is how you stop a path silently taking the wrong locale's
-data. Enforcement is a design-review call (the `code-review` agent applies
-this rubric): a lint rule can ban a default on a locale-typed parameter,
-but "this default hides a wrong answer" is the reviewer's judgment.
+This pairs with *A Domain Rule Lives in the Library, on Every Path* — a required selector is how you stop a path silently taking the wrong locale's data. Enforcement is a design-review call (the `code-review` agent applies this rubric): a lint rule can ban a default on a locale-typed parameter, but "this default hides a wrong answer" is the reviewer's judgment.
 
 ### The same failure on the way out
 
-The rule is usually read as being about inputs, and that reading misses
-half of it. A **defaulted result** hides a wrong answer exactly as well
-as a defaulted parameter: an empty array where data was expected, a
-`?? 0`, a silently skipped element. No error, no type failure, no failing
-test — the same three absences, reached from the other end.
+The rule is usually read as being about inputs, and that reading misses half of it. A **defaulted result** hides a wrong answer exactly as well as a defaulted parameter: an empty array where data was expected, a `?? 0`, a silently skipped element. No error, no type failure, no failing test — the same three absences, reached from the other end.
 
 ```ts
 // Bad: a missing entry becomes a shorter list. The caller cannot tell
@@ -439,64 +293,30 @@ type Listing = Variant[] | {carried: false; reason: string};
 const catalogue: Record<ItemId, Listing> = { /* every item answered */ };
 ```
 
-Skipping on a declaration is fine; skipping on a missing key is not.
-The test is whether the code can tell a deliberate absence from a
-mistake — if it cannot, neither can the caller.
+Skipping on a declaration is fine; skipping on a missing key is not. The test is whether the code can tell a deliberate absence from a mistake — if it cannot, neither can the caller.
 
-Flag: an optional parameter — or a `??`/`||` fallback, or a `[0]` pick —
-that selects locale/region/country/period/currency/price list; a function that
-returns data for a "default" locale when the caller passed none; and a
-function that answers a domain question with an empty or truncated
-result where the honest answer is to fail loud.
+Flag: an optional parameter — or a `??`/`||` fallback, or a `[0]` pick — that selects locale/region/country/period/currency/price list; a function that returns data for a "default" locale when the caller passed none; and a function that answers a domain question with an empty or truncated result where the honest answer is to fail loud.
 
 ## Don't Weaken a Type to Silence the Compiler
 
-`Record<K, V>` relaxed to `Partial<Record<K, V>>`, a union widened, a
-field made optional, a non-null assertion added — each is legitimate
-when it models something real, and each is also the fastest way to make
-an error go away. They are not distinguishable by looking at the diff:
-both arrive as a small type edit that turns the build green.
+`Record<K, V>` relaxed to `Partial<Record<K, V>>`, a union widened, a field made optional, a non-null assertion added — each is legitimate when it models something real, and each is also the fastest way to make an error go away. They are not distinguishable by looking at the diff: both arrive as a small type edit that turns the build green.
 
-The rule [*fix issues, don't disable
-checks*](../../docs/quality-gates.md#fix-issues-dont-disable-checks) is usually
-read as being about config — `strict: false`, `skipLibCheck`. It applies with
-equal force one level down. Relaxing a type is disabling a check; the
-check is just narrower and the config file is untouched.
+The rule [*fix issues, don't disable checks*](../../docs/quality-gates.md#fix-issues-dont-disable-checks) is usually read as being about config — `strict: false`, `skipLibCheck`. It applies with equal force one level down. Relaxing a type is disabling a check; the check is just narrower and the config file is untouched.
 
-Ask what the compiler was protecting. A total `Record` was asserting
-that every key has an answer — genuinely useful, because it makes a
-forgotten key a build error. If reality is that some keys have no value,
-say so **in the type** rather than by removing the guarantee: a union
-with an explicit "none, and here is why" arm keeps the record total and
-keeps the error.
+Ask what the compiler was protecting. A total `Record` was asserting that every key has an answer — genuinely useful, because it makes a forgotten key a build error. If reality is that some keys have no value, say so **in the type** rather than by removing the guarantee: a union with an explicit "none, and here is why" arm keeps the record total and keeps the error.
 
-Weakening is right when the old type was lying — when it forced a value
-that does not exist, and code was inventing one to satisfy it. That is a
-real argument, and it belongs in a comment at the site, so the next
-reader can tell it from a build-green edit.
+Weakening is right when the old type was lying — when it forced a value that does not exist, and code was inventing one to satisfy it. That is a real argument, and it belongs in a comment at the site, so the next reader can tell it from a build-green edit.
 
-Flag: a type relaxed in the same change that a compiler error appeared,
-with no note saying what the old shape was asserting and why that claim
-was wrong.
+Flag: a type relaxed in the same change that a compiler error appeared, with no note saying what the old shape was asserting and why that claim was wrong.
 
 ## A Library Takes Only What Its Rule Needs
 
-A library's exported functions and types ask for the values its own rule
-needs, in its own domain's terms, and nothing else. The test: could a second
-consumer, with a different model of the same domain, call it without importing
-anything of the first's?
+A library's exported functions and types ask for the values its own rule needs, in its own domain's terms, and nothing else. The test: could a second consumer, with a different model of the same domain, call it without importing anything of the first's?
 
 Two failures:
 
-- **A consumer's concept leaks down.** A rate library that names a shop's
-  carts, baskets or customers has learned the caller's model, and the next
-  caller with a different model cannot use it. The rule needs a weight and a
-  distance, so its interface asks for exactly those, and the consumer
-  translates.
-- **An option for a caller that doesn't exist.** An extra parameter or
-  optional field added "so a caller could pass this" is interface with no
-  user: a branch to test, a conflict to refuse, a doc to keep true. Add the
-  option when its first caller arrives, not before.
+- **A consumer's concept leaks down.** A rate library that names a shop's carts, baskets or customers has learned the caller's model, and the next caller with a different model cannot use it. The rule needs a weight and a distance, so its interface asks for exactly those, and the consumer translates.
+- **An option for a caller that doesn't exist.** An extra parameter or optional field added "so a caller could pass this" is interface with no user: a branch to test, a conflict to refuse, a doc to keep true. Add the option when its first caller arrives, not before.
 
 ```ts
 // Bad: the rate rule asks for the shop's model, and an option nobody passes
@@ -506,35 +326,15 @@ export function shippingCost(order: Order, opts?: {zones?: Zone[]}): number
 export function shippingCost(parcel: {weightKg: number; distanceKm: number}): number
 ```
 
-Why this is not covered by
-[Pass Value Objects, Not Loose Fields](#pass-value-objects-not-loose-fields):
-that rule says pass the object rather than its fields; this one says which
-object a library may ask for, and a consumer's object is the wrong one. It is
-the domain-layer case of
-[Keep Shared Modules Presentation-Agnostic](#keep-shared-modules-presentation-agnostic),
-which keeps the presenter's concepts out the same way.
+Why this is not covered by [Pass Value Objects, Not Loose Fields](#pass-value-objects-not-loose-fields): that rule says pass the object rather than its fields; this one says which object a library may ask for, and a consumer's object is the wrong one. It is the domain-layer case of [Keep Shared Modules Presentation-Agnostic](#keep-shared-modules-presentation-agnostic), which keeps the presenter's concepts out the same way.
 
 ## Keep Shared Modules Presentation-Agnostic
 
-A module in a shared or `lib` layer holds data, domain logic, and
-pure transforms — not user-facing copy or framework concerns.
-Display strings (labels, prompts, headings), markup, and the
-assembly of a component's props belong in the presentation layer.
-A lib function that returns a sentence a user will read, or builds
-view props, has crossed the boundary: return plain data and let
-the presentation layer render it. This keeps the shared module
-reusable and the copy where designers expect it.
+A module in a shared or `lib` layer holds data, domain logic, and pure transforms — not user-facing copy or framework concerns. Display strings (labels, prompts, headings), markup, and the assembly of a component's props belong in the presentation layer. A lib function that returns a sentence a user will read, or builds view props, has crossed the boundary: return plain data and let the presentation layer render it. This keeps the shared module reusable and the copy where designers expect it.
 
 ## Variants over Mode Flags
 
-When a unit varies along a small fixed axis of behaviour,
-model each variant explicitly — don't thread a stringly-typed
-`mode` flag through the body. A `mode: 'a' | 'b'` string pushes
-a runtime branch into the body, duplicates logic across
-branches, and leaks an untyped contract callers must decode.
-Prefer distinct named variants (or a typed-constant-keyed
-config) so callers select intent **by type, not a magic
-string**.
+When a unit varies along a small fixed axis of behaviour, model each variant explicitly — don't thread a stringly-typed `mode` flag through the body. A `mode: 'a' | 'b'` string pushes a runtime branch into the body, duplicates logic across branches, and leaks an untyped contract callers must decode. Prefer distinct named variants (or a typed-constant-keyed config) so callers select intent **by type, not a magic string**.
 
 ```ts
 // Bad: a magic-string mode + an internal branch
@@ -547,34 +347,16 @@ export const shortLabel = (id: ItemId) => SHORT[id];
 export const longLabel = (id: ItemId) => LONG[id];
 ```
 
-When variants share structure, keep the shared part in one
-place and let each variant carry only its *difference*. For
-React components, the Server→Client boundary adds a constraint
-— see the next section.
+When variants share structure, keep the shared part in one place and let each variant carry only its *difference*. For React components, the Server→Client boundary adds a constraint — see the next section.
 
 ## Component Variants & the Server/Client Boundary
 
-The same rule applies to React components, with a runtime
-twist: you **cannot pass a function** (event handler, render
-prop) from a Server Component to a Client Component —
-non-serializable props are rejected at that boundary, and it
-fails late. So when a client component's behaviour varies and
-its host is a server component, you can't inject a callback
-from the page. Two correct options:
+The same rule applies to React components, with a runtime twist: you **cannot pass a function** (event handler, render prop) from a Server Component to a Client Component — non-serializable props are rejected at that boundary, and it fails late. So when a client component's behaviour varies and its host is a server component, you can't inject a callback from the page. Two correct options:
 
-1. a **serializable discriminator** (a typed constant, never a
-   bare string) the client switches on internally; or
-2. **(preferred when variants are cohesive)** distinct client
-   **subtype components**, each injecting its behaviour into a
-   shared client **shell**. Function injection is fine
-   client→client, so the shell stays DRY and the server page
-   imports the variant it needs.
+1. a **serializable discriminator** (a typed constant, never a bare string) the client switches on internally; or
+2. **(preferred when variants are cohesive)** distinct client **subtype components**, each injecting its behaviour into a shared client **shell**. Function injection is fine client→client, so the shell stays DRY and the server page imports the variant it needs.
 
-Choose (2) when the variants render genuinely **different
-elements** — e.g. a `<button onClick>` vs a crawlable
-`<a href>`; a single mode-switch can't unify those without
-losing one's semantics (you'd downgrade the link to a JS
-click).
+Choose (2) when the variants render genuinely **different elements** — e.g. a `<button onClick>` vs a crawlable `<a href>`; a single mode-switch can't unify those without losing one's semantics (you'd downgrade the link to a JS click).
 
 ```tsx
 // Bad: magic-string mode + branch + duplicated styling
@@ -603,24 +385,11 @@ export function ActionWidget(props: Props) {
 }
 ```
 
-`CTA` is one shared class constant — each variant carries only
-its difference (element + behaviour), never a copy of the
-styling. Flag: a `mode`/`variant` string prop with an
-`if (mode === …)` branch; a callback passed to a client
-component from a server component; duplicated markup across
-branches instead of one shared shell.
+`CTA` is one shared class constant — each variant carries only its difference (element + behaviour), never a copy of the styling. Flag: a `mode`/`variant` string prop with an `if (mode === …)` branch; a callback passed to a client component from a server component; duplicated markup across branches instead of one shared shell.
 
 ## Once Dispatched, Don't Re-Ask the Type
 
-Choosing distinct variants (above) is only half of polymorphism; the
-other half is that an implementation must not re-interrogate the
-discriminant it was chosen by. A variant typed to the **whole union**,
-then narrowing a `kind`/`type` tag with `if`/`switch` to reach a field,
-has rebuilt the branch the interface was meant to remove — it asks the
-duck to quack before telling it to fly. Type each implementation to its
-**own case** so the field is known without a guard; the tag selects the
-implementation (the caller passing one by type, or a `Record<Kind, Impl>`
-lookup), it is never a branch inside one.
+Choosing distinct variants (above) is only half of polymorphism; the other half is that an implementation must not re-interrogate the discriminant it was chosen by. A variant typed to the **whole union**, then narrowing a `kind`/`type` tag with `if`/`switch` to reach a field, has rebuilt the branch the interface was meant to remove — it asks the duck to quack before telling it to fly. Type each implementation to its **own case** so the field is known without a guard; the tag selects the implementation (the caller passing one by type, or a `Record<Kind, Impl>` lookup), it is never a branch inside one.
 
 ```ts
 type Circle = { kind: 'circle'; radius: number };
@@ -644,37 +413,17 @@ const squareArea: AreaOf<Square> = (s) => s.side ** 2;
 // never a switch (shape.kind) inside a handler.
 ```
 
-Ordinary conditionals are fine — this is specifically a **type-tag**
-conditional that redoes dispatch the interface already models. Flag: an
-`if (x.kind === …)` / `switch (x.kind)` **inside** a variant method; a
-variant that takes the full union and immediately narrows it; a
-discriminant field on the *implementation* object (the tag belongs on the
-data and as the registry key, not on the impl).
+Ordinary conditionals are fine — this is specifically a **type-tag** conditional that redoes dispatch the interface already models. Flag: an `if (x.kind === …)` / `switch (x.kind)` **inside** a variant method; a variant that takes the full union and immediately narrows it; a discriminant field on the *implementation* object (the tag belongs on the data and as the registry key, not on the impl).
 
-Enforcement: once each implementation is typed to its case,
-`@typescript-eslint/no-unnecessary-condition` flags the now-redundant tag
-check (a comparison the types prove can't vary), and a `no-restricted-syntax`
-selector can ban `switch`/`.kind ===` inside a `variants/` or `families/`
-dir. Neither catches "this *should* have been polymorphic" — that stays a
-design-review call (the `code-review` / `design-xray` agents apply this
-rubric).
+Enforcement: once each implementation is typed to its case, `@typescript-eslint/no-unnecessary-condition` flags the now-redundant tag check (a comparison the types prove can't vary), and a `no-restricted-syntax` selector can ban `switch`/`.kind ===` inside a `variants/` or `families/` dir. Neither catches "this *should* have been polymorphic" — that stays a design-review call (the `code-review` / `design-xray` agents apply this rubric).
 
 ## A Content Document Holds Words, Not Logic
 
-Where a repo writes pages as documents (MDX, or any markup a build compiles
-into components), the document holds the words and places components; it
-decides nothing. A reader opens it to read prose, and a branch in it is a
-sentence they have to run in their head.
+Where a repo writes pages as documents (MDX, or any markup a build compiles into components), the document holds the words and places components; it decides nothing. A reader opens it to read prose, and a branch in it is a sentence they have to run in their head.
 
-- **No conditional wording.** A document says the same thing to every
-  reader; a page that seems to need a branch is two pages, or the varying part
-  is a component.
-- **A component is placed, not configured.** Its props are literal words,
-  links, named figures and appearance values; its behaviour stays inside it
-  (*Keep Shared Modules Presentation-Agnostic*), and its doc comment says a
-  document may place it.
-- **A figure is named, never typed** (*No Magic Literals*, *Reuse the
-  Library's Types and Values*): imported by name and rendered by a component.
+- **No conditional wording.** A document says the same thing to every reader; a page that seems to need a branch is two pages, or the varying part is a component.
+- **A component is placed, not configured.** Its props are literal words, links, named figures and appearance values; its behaviour stays inside it (*Keep Shared Modules Presentation-Agnostic*), and its doc comment says a document may place it.
+- **A figure is named, never typed** (*No Magic Literals*, *Reuse the Library's Types and Values*): imported by name and rendered by a component.
 
 ```text
 Good:  Orders over <Fact of={FREE_SHIPPING_THRESHOLD} /> ship free.
@@ -685,15 +434,11 @@ Bad:   Orders over £50 ship free.
        <Chart data={orders.filter((o) => o.total > 50)} />
 ```
 
-Where the repo's docs name a document format for its content pages, a large
-change to a page still written as code (a rewrite, a new section, a
-restructure) is the moment to move it to that format first; a small fix is
-just a fix. The repo's docs say which pages are content pages.
+Where the repo's docs name a document format for its content pages, a large change to a page still written as code (a rewrite, a new section, a restructure) is the moment to move it to that format first; a small fix is just a fix. The repo's docs say which pages are content pages.
 
 **Principle:** a concern per layer ([`design-rubric`](../../docs/design-rubric.md)).
 
-**Enforcement:** review only, by `code-review`; the move is a suggestion, never
-a block.
+**Enforcement:** review only, by `code-review`; the move is a suggestion, never a block.
 
 **Source:** proposed here, with no external source.
 
@@ -701,11 +446,8 @@ a block.
 
 A module answers one question, and that cuts both ways.
 
-- **Split** a module that answers several: IO, domain logic and presentation in
-  one file, or a function that fetches and parses and formats.
-- **Merge** modules that answer the same one. Before adding a file, search the
-  package's exports and module headers for the concept, and extend the module
-  that already answers it.
+- **Split** a module that answers several: IO, domain logic and presentation in one file, or a function that fetches and parses and formats.
+- **Merge** modules that answer the same one. Before adding a file, search the package's exports and module headers for the concept, and extend the module that already answers it.
 
 ```text
 Good: shipping/tiers.ts
@@ -715,52 +457,27 @@ Bad:  free-threshold.ts, max-weight.ts, and a rate table in quote-basis.ts
       one value or function each, and the same question
 ```
 
-The second failure is invisible from inside each file: every module is small
-and tidy, and the size limits reward it. The cost lands on the reader, who has
-to know several names to find one concept, and on the next rule of the same
-kind, which takes a third file because two set the pattern. A value also drifts
-into whichever module first read it, so within its layer, place it by the
-question it answers.
+The second failure is invisible from inside each file: every module is small and tidy, and the size limits reward it. The cost lands on the reader, who has to know several names to find one concept, and on the next rule of the same kind, which takes a third file because two set the pattern. A value also drifts into whichever module first read it, so within its layer, place it by the question it answers.
 
-**The test:** give each module a one-line header stating its question. A header
-that needs "and" to join two subjects is two modules, and two headers stating
-one question are one module. Read the exports as well as the header, since a
-header can be reworded to pass.
+**The test:** give each module a one-line header stating its question. A header that needs "and" to join two subjects is two modules, and two headers stating one question are one module. Read the exports as well as the header, since a header can be reworded to pass.
 
 **Keep them apart** only for one of these reasons, named in the module's header:
 
-- they sit in different layers or have different owners, and a merge never
-  crosses that edge: *A Fact Belongs to the Layer That Owns Its Meaning* and
-  *A Calculation Package Holds No Presentation* decide first;
-- the file mirrors one external document, one transcription per instrument. The
-  transcriptions stay apart, and the module that reads them is the one to merge;
+- they sit in different layers or have different owners, and a merge never crosses that edge: *A Fact Belongs to the Layer That Owns Its Meaning* and *A Calculation Package Holds No Presentation* decide first;
+- the file mirrors one external document, one transcription per instrument. The transcriptions stay apart, and the module that reads them is the one to merge;
 - merging would form an import cycle or point a dependency the wrong way;
 - one is public and the other package-private;
-- the merged module passes the file limit with sections that share nothing.
-  That makes it a directory, whose modules still answer the one question.
+- the merged module passes the file limit with sections that share nothing. That makes it a directory, whose modules still answer the one question.
 
-A different source is not a reason: cite each rule beside its data. Nor is a
-different change cadence, which is where this rule departs from the principle
-below.
+A different source is not a reason: cite each rule beside its data. Nor is a different change cadence, which is where this rule departs from the principle below.
 
-**Enforcement:** review only, by `code-review` and `design-xray`. No lint can tell
-that two questions are the same.
+**Enforcement:** review only, by `code-review` and `design-xray`. No lint can tell that two questions are the same.
 
-**Source:** proposed here, with no external source; it carries out
-[design rubric](../../docs/design-rubric.md) Q7. The split takes after the
-single-responsibility principle (Robert C. Martin, *Clean Architecture*, 2017,
-ch. 7). The merge is this rule's own: read as one reason to change, that
-principle can argue against it.
+**Source:** proposed here, with no external source; it carries out [design rubric](../../docs/design-rubric.md) Q7. The split takes after the single-responsibility principle (Robert C. Martin, *Clean Architecture*, 2017, ch. 7). The merge is this rule's own: read as one reason to change, that principle can argue against it.
 
 ## A Generic Helper Lives in the Utility Module
 
-Arithmetic that is not the domain's own (raise an amount by a rate, take a
-percentage, round to the penny) lives in the package's utility module (for
-example its `money` module) and every domain module reuses it from there.
-Before writing a helper, look in that module first; if it is generic and
-missing, add it there, not beside the rule that needed it. A generic step
-written in a domain module, named or inline, is a second copy waiting to
-happen, and it hides which part of the function is the rule.
+Arithmetic that is not the domain's own (raise an amount by a rate, take a percentage, round to the penny) lives in the package's utility module (for example its `money` module) and every domain module reuses it from there. Before writing a helper, look in that module first; if it is generic and missing, add it there, not beside the rule that needed it. A generic step written in a domain module, named or inline, is a second copy waiting to happen, and it hides which part of the function is the rule.
 
 ```ts
 // Bad: a domain file redefines what money.ts already exports
@@ -781,21 +498,11 @@ export const surchargeOf = (base: number, rate: number, floor: number) =>
   Math.max(floor, uplift(base, rate) - base);
 ```
 
-A helper that encodes a domain rule (a regulated floor, a scheme's rounding)
-is not generic: it stays with its rule, and calls the utility for the
-arithmetic inside it. This is
-[One Concern, One Module](#one-concern-one-module) applied to helpers.
-[Reuse the Library's Types and Values](#reuse-the-librarys-types-and-values)
-asks whether another library already has it; this rule asks where in your own
-package it lives.
+A helper that encodes a domain rule (a regulated floor, a scheme's rounding) is not generic: it stays with its rule, and calls the utility for the arithmetic inside it. This is [One Concern, One Module](#one-concern-one-module) applied to helpers. [Reuse the Library's Types and Values](#reuse-the-librarys-types-and-values) asks whether another library already has it; this rule asks where in your own package it lives.
 
 ## An Index Is a Door
 
-A directory's `index` module (`index.ts`, `index.mjs`) only re-exports. It names
-what the directory offers and defines nothing: every function, class and
-constant lives in a named module whose header states its question, so the door
-reads as the directory's contents list and a reader finds a definition by the
-name of its file.
+A directory's `index` module (`index.ts`, `index.mjs`) only re-exports. It names what the directory offers and defines nothing: every function, class and constant lives in a named module whose header states its question, so the door reads as the directory's contents list and a reader finds a definition by the name of its file.
 
 ```text
 Good: shipping/index.ts    export {quoteShipping} from './quote.js';
@@ -805,41 +512,23 @@ Bad:  shipping/index.ts    export {TIERS} from './tiers.js';
                            export function quoteShipping(order: Order) { … }
 ```
 
-This holds for a directory with one concern too. The door is where its public
-surface is read, and an index that also holds the implementation hides that
-surface among the workings. A package's root `index` is the same rule.
+This holds for a directory with one concern too. The door is where its public surface is read, and an index that also holds the implementation hides that surface among the workings. A package's root `index` is the same rule.
 
 **Enforcement:** review only, by `code-review`.
 
-**Source:** proposed here, with no external source. It follows the common
-re-exporting ("barrel") module, so that the directories *One Concern, One
-Module* makes stay readable.
+**Source:** proposed here, with no external source. It follows the common re-exporting ("barrel") module, so that the directories *One Concern, One Module* makes stay readable.
 
 ## Lay Out a Module Top-Down
 
-Below the imports, order every module the same way, so a reader
-meets its surface before its workings:
+Below the imports, order every module the same way, so a reader meets its surface before its workings:
 
 1. Types, interfaces and classes.
 2. Constants, exported ones first.
 3. Functions, exported ones first, then the private helpers.
 
-TypeScript has no separate declarations to put first, and needs
-none: a consumer reads the generated `.d.ts` and the package's
-barrel, and a `function` declaration is hoisted, so an exported
-function can call a helper defined below it. Constants and classes
-are not hoisted: a module-level `const` whose initialiser reads
-another `const` defined below it throws at import (the temporal dead
-zone). That is why types and constants come before functions, and
-why a constant another constant reads comes first whatever its
-visibility, the one exception to exported-first.
+TypeScript has no separate declarations to put first, and needs none: a consumer reads the generated `.d.ts` and the package's barrel, and a `function` declaration is hoisted, so an exported function can call a helper defined below it. Constants and classes are not hoisted: a module-level `const` whose initialiser reads another `const` defined below it throws at import (the temporal dead zone). That is why types and constants come before functions, and why a constant another constant reads comes first whatever its visibility, the one exception to exported-first.
 
-Keep a private constant in the constants block even when one
-function alone reads it: a reader scanning for a module's constants
-finds it there without reading every function. A type derived from
-a constant (`(typeof X)[keyof typeof X]`) sits beside that constant
-rather than in the types block, so the two read as one definition,
-as [Typed Identifiers](#typed-identifiers) shows.
+Keep a private constant in the constants block even when one function alone reads it: a reader scanning for a module's constants finds it there without reading every function. A type derived from a constant (`(typeof X)[keyof typeof X]`) sits beside that constant rather than in the types block, so the two read as one definition, as [Typed Identifiers](#typed-identifiers) shows.
 
 ```ts
 // Good
@@ -867,10 +556,7 @@ export function fetchAll(): Page[] { /* ... */ }
 
 ## Separate Static from Varying
 
-Metadata that doesn't change per variant (labels, slugs,
-descriptions) belongs in one constant keyed by the typed
-ID. Data that varies (figures, rates, thresholds) goes in
-a separate structure, also keyed by the same typed ID.
+Metadata that doesn't change per variant (labels, slugs, descriptions) belongs in one constant keyed by the typed ID. Data that varies (figures, rates, thresholds) goes in a separate structure, also keyed by the same typed ID.
 
 ```ts
 // Static: one place, never duplicated across periods
@@ -881,26 +567,19 @@ const DATA_2025: Record<ItemId, DataPoint[]>;
 const DATA_2026: Record<ItemId, DataPoint[]>;
 ```
 
-Adding a new period means adding one data constant — not
-copying labels, slugs, and descriptions.
+Adding a new period means adding one data constant — not copying labels, slugs, and descriptions.
 
 ## No Legacy Shapes
 
-When migrating data from YAML, JSON, or CSV, design types
-for TypeScript consumers — don't mirror the source format.
-Ask: "How will call sites consume this?" not "What did the
-spreadsheet look like?"
+When migrating data from YAML, JSON, or CSV, design types for TypeScript consumers — don't mirror the source format. Ask: "How will call sites consume this?" not "What did the spreadsheet look like?"
 
-- Arrays of objects with redundant keys → `Record` keyed
-  by typed ID
+- Arrays of objects with redundant keys → `Record` keyed by typed ID
 - Wrapper objects with only one useful field → flatten
 - String enums matching column headers → domain union types
 
 ## Flat over Nested
 
-Prefer a typed `Record` over deeply nested wrapper objects
-unless nesting models real containment (e.g. a parent
-genuinely owns its children).
+Prefer a typed `Record` over deeply nested wrapper objects unless nesting models real containment (e.g. a parent genuinely owns its children).
 
 ```ts
 // Good: flat lookup, typed key
@@ -912,9 +591,7 @@ const data: { items: { id: string; details: ... }[] };
 
 ## Don't Swallow Exceptions
 
-A bare `catch {}` discards the error and hides real failures. A
-caught error is typed `unknown` — report it, then decide whether
-to recover or rethrow. Never leave an empty catch.
+A bare `catch {}` discards the error and hides real failures. A caught error is typed `unknown` — report it, then decide whether to recover or rethrow. Never leave an empty catch.
 
 ```ts
 // Good: surface the failure, then degrade
@@ -933,20 +610,11 @@ try {
 }
 ```
 
-Empty catches are acceptable only for expected, benign cases
-(e.g. `localStorage` in private mode) — and then add a comment
-saying why. Otherwise route caught errors to your app's error
-reporter rather than swallowing them.
+Empty catches are acceptable only for expected, benign cases (e.g. `localStorage` in private mode) — and then add a comment saying why. Otherwise route caught errors to your app's error reporter rather than swallowing them.
 
 ## Guard Cross-Path Invariants with a Test
 
-When two code paths must produce the same result — a value derived
-two ways, a fast path against a reference path, a consumer's
-computation against the library's — assert **path A equals path
-B**, not just each path against its own fixture. A fixture pins
-one path; only the equivalence test catches a refactor that
-changes one and leaves the other, which is exactly how a
-"consolidate into one site" change silently diverges the two.
+When two code paths must produce the same result — a value derived two ways, a fast path against a reference path, a consumer's computation against the library's — assert **path A equals path B**, not just each path against its own fixture. A fixture pins one path; only the equivalence test catches a refactor that changes one and leaves the other, which is exactly how a "consolidate into one site" change silently diverges the two.
 
 ```ts
 // A fixture pins the table path but never exercises the other:
@@ -957,12 +625,7 @@ expect(regionalise(rawBase, region))
   .toBe(scaleFor(region).points[0]);  // path A === path B
 ```
 
-Where the result is externally knowable, add an **oracle**
-assertion to the concrete figure with its source cited **inline
-at the assertion** — a test module is a verification document, so
-the reference belongs at the exact line it verifies, not in a
-header. That turns the test from "the code agrees with itself"
-into "the code agrees with the world".
+Where the result is externally knowable, add an **oracle** assertion to the concrete figure with its source cited **inline at the assertion** — a test module is a verification document, so the reference belongs at the exact line it verifies, not in a header. That turns the test from "the code agrees with itself" into "the code agrees with the world".
 
 ```ts
 // £X is the published minimum order, per <issuing body>,
@@ -972,14 +635,7 @@ expect(applyMinimum(belowMinimum, region)).toBe(MINIMUM_FIGURE);
 
 ## Pin Transcribed Reference Data to a Cited Fixture
 
-When you transcribe an external table into code — price lists,
-shipping rates, regulatory limits — commit a fixture that mirrors the
-authoritative table (one row per value, the **source cited**) and
-assert the code against it. A code-vs-code check (a value equals a
-recomputation, or a hardcoded `toBe`) proves internal consistency,
-not correctness: a whole table transcribed on a wrong factor is
-perfectly consistent and still wrong — only a fixture tied to the
-published source catches a bad transcription.
+When you transcribe an external table into code — price lists, shipping rates, regulatory limits — commit a fixture that mirrors the authoritative table (one row per value, the **source cited**) and assert the code against it. A code-vs-code check (a value equals a recomputation, or a hardcoded `toBe`) proves internal consistency, not correctness: a whole table transcribed on a wrong factor is perfectly consistent and still wrong — only a fixture tied to the published source catches a bad transcription.
 
 ```ts
 // Weak: the "expected" is transcribed from the same place as the
@@ -993,14 +649,7 @@ for (const row of parse(readFileSync('scales.csv'))) {
 }
 ```
 
-**Cite the primary source at the data, not only in the fixture.** The
-constant or table in the code carries its source in a doc comment right
-where the values live — the issuing body, the document, and its URL — so
-a reader re-verifying a figure finds the origin at the number, not only
-in a test file. The fixture proves the transcription is faithful; the
-inline citation makes the provenance discoverable and re-checkable. A
-transcribed table of statutory figures with no source link in the code is
-a finding even when a fixture exists.
+**Cite the primary source at the data, not only in the fixture.** The constant or table in the code carries its source in a doc comment right where the values live — the issuing body, the document, and its URL — so a reader re-verifying a figure finds the origin at the number, not only in a test file. The fixture proves the transcription is faithful; the inline citation makes the provenance discoverable and re-checkable. A transcribed table of statutory figures with no source link in the code is a finding even when a fixture exists.
 
 ```ts
 // Good: provenance lives at the data.
@@ -1009,25 +658,15 @@ a finding even when a fixture exists.
 const VAT_RATES: VatRate[] = [ /* … */ ];
 ```
 
-A **uniform offset across an entire table** — every value high by
-the same fraction — is the signature of a wrong transform: a
-mis-applied uplift, a rounding, a unit slip. Treat it as a data bug
-and re-check the factor against source, not as noise.
+A **uniform offset across an entire table** — every value high by the same fraction — is the signature of a wrong transform: a mis-applied uplift, a rounding, a unit slip. Treat it as a data bug and re-check the factor against source, not as noise.
 
-(Complements *Guard Cross-Path Invariants with a Test* above: that
-pins one externally-known figure with an inline oracle; this pins a
-whole transcribed table to a committed, cited fixture.)
+(Complements *Guard Cross-Path Invariants with a Test* above: that pins one externally-known figure with an inline oracle; this pins a whole transcribed table to a committed, cited fixture.)
 
 ## Point the Check at the Build Under Test
 
-The rules above govern the **expected value**. This one governs the
-other half: **what you actually measured.** A check can hold a
-perfectly good oracle and still be worthless because it was aimed
-at the wrong artefact — and that failure is quiet, because the
-wrong artefact answers in the right shape.
+The rules above govern the **expected value**. This one governs the other half: **what you actually measured.** A check can hold a perfectly good oracle and still be worthless because it was aimed at the wrong artefact — and that failure is quiet, because the wrong artefact answers in the right shape.
 
-The tell is a check that reads its targets from data carrying an
-**absolute** address:
+The tell is a check that reads its targets from data carrying an **absolute** address:
 
 ```ts
 // Bad: sitemap <loc> entries are absolute production URLs, so this
@@ -1045,39 +684,15 @@ for (const loc of locsFrom(sitemapXml)) {
 }
 ```
 
-Same shape wherever a target is inherited rather than chosen: a
-config naming a production database, a fixture holding a deployed
-endpoint, a snapshot path resolved against the package root instead
-of the temp build. Split the two concerns — the **address of the
-thing** comes from the data, the **environment** comes from the
-harness — and keep the site's canonical constant for *comparison*
-only, never for fetching. The program-side half of that split, resolving
-where the code itself is running, is
-[Resolve the Environment Once](#resolve-the-environment-once).
+Same shape wherever a target is inherited rather than chosen: a config naming a production database, a fixture holding a deployed endpoint, a snapshot path resolved against the package root instead of the temp build. Split the two concerns — the **address of the thing** comes from the data, the **environment** comes from the harness — and keep the site's canonical constant for *comparison* only, never for fetching. The program-side half of that split, resolving where the code itself is running, is [Resolve the Environment Once](#resolve-the-environment-once).
 
-**How you catch it without a rule: distrust a result that is too
-tidy.** A retargeted check reports the state of the untouched
-artefact, so it will happily tell you that nothing you just changed
-has changed. If a verification disagrees with an edit you know you
-made, suspect the target before the edit.
+**How you catch it without a rule: distrust a result that is too tidy.** A retargeted check reports the state of the untouched artefact, so it will happily tell you that nothing you just changed has changed. If a verification disagrees with an edit you know you made, suspect the target before the edit.
 
 ## Resolve the Environment Once
 
-Where the program is running is state it is given, not something each
-module infers. A module that reads an ambient signal — `NODE_ENV`, a
-hosting platform's variable, a CI flag — to decide where it is, then
-branches on the answer, is guessing. Two such modules guess
-differently, and a context nobody listed (a local production build, CI,
-a scheduled job's checkout) falls between them. `NODE_ENV ===
-'production'` is the usual culprit: a framework sets it for every
-optimised build, so a check meant to ask "is this a real deployment?"
-fires on a developer's machine.
+Where the program is running is state it is given, not something each module infers. A module that reads an ambient signal — `NODE_ENV`, a hosting platform's variable, a CI flag — to decide where it is, then branches on the answer, is guessing. Two such modules guess differently, and a context nobody listed (a local production build, CI, a scheduled job's checkout) falls between them. `NODE_ENV === 'production'` is the usual culprit: a framework sets it for every optimised build, so a check meant to ask "is this a real deployment?" fires on a developer's machine.
 
-Name the shapes the environment can take, resolve the raw variables
-into one of them in a single owner module, and throw on any combination
-that fits none (the same fail-loud reading as
-[No Silent Default for a Domain-Selecting Input](#no-silent-default-for-a-domain-selecting-input)).
-Every other module consumes the resolved value.
+Name the shapes the environment can take, resolve the raw variables into one of them in a single owner module, and throw on any combination that fits none (the same fail-loud reading as [No Silent Default for a Domain-Selecting Input](#no-silent-default-for-a-domain-selecting-input)). Every other module consumes the resolved value.
 
 ```ts
 // Bad: each module infers its own answer from an ambient signal
@@ -1106,38 +721,20 @@ const kind = resolveEnvironment(process.env);  // the one read
 if (isDeployed(kind)) requireAnalytics();
 ```
 
-- **Make the resolver pure** — a function of the variables it is given —
-  so a test covers every row of the table and every invalid combination.
-- **Let a shape carry what it requires.** A deployed shape that must have
-  a setting holds it, so resolving one proves the setting was present and
-  a missing one fails at resolution, not at first use.
-- **Resolve where the inputs are readable.** A browser bundle cannot read
-  server-side variables; resolve at build time and inline the resolved
-  name, rather than letting client code guess from what it can see.
-- **How it runs is a shape too.** The dev server and the test runner are
-  the `Dev` and `Test` members above, resolved from the same variables, so
-  no module reads `NODE_ENV` to ask either.
-- **Enforce the boundary.** A lint rule that bans raw environment reads
-  outside the owner module keeps the next module from inferring again.
+- **Make the resolver pure** — a function of the variables it is given — so a test covers every row of the table and every invalid combination.
+- **Let a shape carry what it requires.** A deployed shape that must have a setting holds it, so resolving one proves the setting was present and a missing one fails at resolution, not at first use.
+- **Resolve where the inputs are readable.** A browser bundle cannot read server-side variables; resolve at build time and inline the resolved name, rather than letting client code guess from what it can see.
+- **How it runs is a shape too.** The dev server and the test runner are the `Dev` and `Test` members above, resolved from the same variables, so no module reads `NODE_ENV` to ask either.
+- **Enforce the boundary.** A lint rule that bans raw environment reads outside the owner module keeps the next module from inferring again.
 
 ## Don't Pin a Computation to Its Own Output
 
-A test for a **computed model** — a projection, an amortisation, a
-forecast, any multi-step arithmetic — needs at least one assertion
-the implementation could not have produced. Two habits fail this,
-and both look like thorough tests:
+A test for a **computed model** — a projection, an amortisation, a forecast, any multi-step arithmetic — needs at least one assertion the implementation could not have produced. Two habits fail this, and both look like thorough tests:
 
-- **Recorded output.** Run the code, write the answer down as the
-  expected value. It now asserts the number hasn't *moved*. It
-  cannot assert the number is *right*, and it will happily pin a
-  wrong model for years.
-- **A re-spelled implementation.** Compute `expected` in the test
-  using the same formula the code uses. Two spellings of one
-  model agree by construction; the test catches drift between
-  them and nothing else.
+- **Recorded output.** Run the code, write the answer down as the expected value. It now asserts the number hasn't *moved*. It cannot assert the number is *right*, and it will happily pin a wrong model for years.
+- **A re-spelled implementation.** Compute `expected` in the test using the same formula the code uses. Two spellings of one model agree by construction; the test catches drift between them and nothing else.
 
-Add an **independent derivation** — one that reaches the figure by
-a different route:
+Add an **independent derivation** — one that reaches the figure by a different route:
 
 ```ts
 // Weak: whatever the loop produced, pinned. Regression only.
@@ -1151,85 +748,32 @@ const expected = slice * (Math.pow(1 + RATE, n) - 1) / RATE;
 expect(project(input).total).toBeCloseTo(expected, 6);
 ```
 
-Other independent routes: a **worked example from the source
-document** (cited inline), a hand-computed boundary case, or a
-**property** the model must satisfy however it is implemented (a
-figure that must not move when an unrelated input changes; an
-identity two outputs must obey). Properties are often the cheapest
-real oracle, because they need no external figure at all.
+Other independent routes: a **worked example from the source document** (cited inline), a hand-computed boundary case, or a **property** the model must satisfy however it is implemented (a figure that must not move when an unrelated input changes; an identity two outputs must obey). Properties are often the cheapest real oracle, because they need no external figure at all.
 
-**Choose the fixture so the two routes agree exactly**, then say
-why in a comment. A closed form and an iterative loop diverge on
-partial periods, unit conventions, or rounding for legitimate
-reasons; picking a span where they must agree turns a vague
-`toBeCloseTo` into an exact claim, and the comment stops a later
-reader "fixing" the tolerance.
+**Choose the fixture so the two routes agree exactly**, then say why in a comment. A closed form and an iterative loop diverge on partial periods, unit conventions, or rounding for legitimate reasons; picking a span where they must agree turns a vague `toBeCloseTo` into an exact claim, and the comment stops a later reader "fixing" the tolerance.
 
-**A constant re-typed in a test is deliberate — cite it.** Importing
-the implementation's own constant makes the test agree with whatever
-that constant is changed to, which is the one thing it exists to
-guard. Re-type the literal, and put its source at the assertion.
+**A constant re-typed in a test is deliberate — cite it.** Importing the implementation's own constant makes the test agree with whatever that constant is changed to, which is the one thing it exists to guard. Re-type the literal, and put its source at the assertion.
 
-**The strongest oracle predates the code.** A fixture whose expected
-values were derived by the same reasoning as the implementation
-agrees with whatever the implementation is changed to. One worked
-by hand from the source document *before* the code was written
-cannot. And a **wrong** oracle costs the same debugging time as a
-real defect and buys nothing, so read the source rather than
-recalling it — an assertion written from memory can fail a run
-against code that was right.
+**The strongest oracle predates the code.** A fixture whose expected values were derived by the same reasoning as the implementation agrees with whatever the implementation is changed to. One worked by hand from the source document *before* the code was written cannot. And a **wrong** oracle costs the same debugging time as a real defect and buys nothing, so read the source rather than recalling it — an assertion written from memory can fail a run against code that was right.
 
-Recorded output is still worth keeping as a **regression pin**; it
-is just not verification. Where a suite is pins-only, **label it as
-such in the module header** and name what would actually settle
-correctness (a real statement, a published worked example, a
-regulator's own calculator). An unlabelled pin reads as proof and
-quietly retires the question.
+Recorded output is still worth keeping as a **regression pin**; it is just not verification. Where a suite is pins-only, **label it as such in the module header** and name what would actually settle correctness (a real statement, a published worked example, a regulator's own calculator). An unlabelled pin reads as proof and quietly retires the question.
 
 ## Doubt the Harness Before the Product
 
-When an automated check reports the application is broken, suspect the
-check first. These present as product defects and are not:
+When an automated check reports the application is broken, suspect the check first. These present as product defects and are not:
 
-- **A controlled input needs the framework's own setter.** Assigning
-  `input.value` and dispatching an `input` event does not move a
-  React-controlled field: React holds its own value tracker and dedupes
-  the event as "no change". Take the setter from the element
-  prototype's property descriptor, call it against the node, then
-  dispatch. The tell is a "failure" whose captured screen still shows
-  the original value.
-- **Scope the selector to the block you mean.** A pattern loose enough
-  to match a value elsewhere on the page will report a working control
-  as broken, and "the button" can resolve to one inside an overlay that
-  happens to be open.
-- **Forcing state open changes what you measure.** Expanding every
-  collapsed section to read its text also expands the ones that were
-  never on screen, inventing content. Query for what actually reaches
-  the DOM — a class rather than a component name, since a hand-rolled
-  copy carries the classes and not the name.
-- **A synthetic `.click()` bypasses hit-testing.** Drive with real
-  pointer coordinates when the thing under test is whether a click
-  lands at all.
-- **Element screenshots round their clip box**, so a sub-pixel
-  "layout shift" can be an artefact of the capture, not the page.
-- **A responsive preview that resizes a CONTAINER is a lie.**
-  Breakpoints resolve against the viewport, so narrowing a wrapper
-  leaves the wide variants applied. Use an iframe.
+- **A controlled input needs the framework's own setter.** Assigning `input.value` and dispatching an `input` event does not move a React-controlled field: React holds its own value tracker and dedupes the event as "no change". Take the setter from the element prototype's property descriptor, call it against the node, then dispatch. The tell is a "failure" whose captured screen still shows the original value.
+- **Scope the selector to the block you mean.** A pattern loose enough to match a value elsewhere on the page will report a working control as broken, and "the button" can resolve to one inside an overlay that happens to be open.
+- **Forcing state open changes what you measure.** Expanding every collapsed section to read its text also expands the ones that were never on screen, inventing content. Query for what actually reaches the DOM — a class rather than a component name, since a hand-rolled copy carries the classes and not the name.
+- **A synthetic `.click()` bypasses hit-testing.** Drive with real pointer coordinates when the thing under test is whether a click lands at all.
+- **Element screenshots round their clip box**, so a sub-pixel "layout shift" can be an artefact of the capture, not the page.
+- **A responsive preview that resizes a CONTAINER is a lie.** Breakpoints resolve against the viewport, so narrowing a wrapper leaves the wide variants applied. Use an iframe.
 
-For anything visual and client-rendered, assert the **computed** value
-in a real browser. Confirming a rule was *served* proves nothing: a
-selector the vendor has moved still ships and matches nothing.
+For anything visual and client-rendered, assert the **computed** value in a real browser. Confirming a rule was *served* proves nothing: a selector the vendor has moved still ships and matches nothing.
 
 ## Link a Stopgap to Its Tracking Task
 
-A stopgap — a note that a figure is about to change, a workaround for
-an upstream gap, a value shown until a source updates — carries a
-comment linking the **issue/task that tracks its removal**, not a bare
-`temporary` or `TODO`. The link is what keeps the stopgap and its
-retirement connected: the tracking item's definition-of-done names the
-code to delete, and a reader who finds the comment sees why it is still
-here and when it goes. A `// temporary` with no pointer is how a stopgap
-quietly becomes permanent.
+A stopgap — a note that a figure is about to change, a workaround for an upstream gap, a value shown until a source updates — carries a comment linking the **issue/task that tracks its removal**, not a bare `temporary` or `TODO`. The link is what keeps the stopgap and its retirement connected: the tracking item's definition-of-done names the code to delete, and a reader who finds the comment sees why it is still here and when it goes. A `// temporary` with no pointer is how a stopgap quietly becomes permanent.
 
 ```ts
 // Bad: temporary, but nothing says when it goes or who owns that
@@ -1244,22 +788,11 @@ const note = incomingScaleNote(region);
 
 ### Only where the tracker is visible to the repo's readers
 
-This rule stops at the repository boundary. In a **public** repo — one
-published to a registry, or open on a public forge — the tracking link
-must be one every reader can open: that repo's own public issue
-tracker. A link into anything the reader cannot reach is useless to
-them, and it discloses that the item exists, what it is called, and
-what the team is working on.
+This rule stops at the repository boundary. In a **public** repo — one published to a registry, or open on a public forge — the tracking link must be one every reader can open: that repo's own public issue tracker. A link into anything the reader cannot reach is useless to them, and it discloses that the item exists, what it is called, and what the team is working on.
 
-The failure is easy to walk into precisely *because* the rule above is
-right: you write a stopgap, reach for its tracking item exactly as
-instructed, and the reference is correct in every way except that the
-repo is public and the tracker is not.
+The failure is easy to walk into precisely *because* the rule above is right: you write a stopgap, reach for its tracking item exactly as instructed, and the reference is correct in every way except that the repo is public and the tracker is not.
 
-Where no public issue exists, name the retirement **condition**
-instead. That is the more durable half anyway — a tracking item can be
-closed, moved or renamed, whereas "when the publisher issues the
-successor" stays true.
+Where no public issue exists, name the retirement **condition** instead. That is the more durable half anyway — a tracking item can be closed, moved or renamed, whereas "when the publisher issues the successor" stays true.
 
 ```ts
 // Bad, in a PUBLIC repo: a link only the team can open
@@ -1273,29 +806,15 @@ successor" stays true.
 // Stopgap until the upstream fix lands; retire with #412.
 ```
 
-The same applies to prose in a public repo — a README, a docs page, a
-manifest — and to internal identifiers generally: tracker ids, private
-repo names, internal hostnames, people's names. Keep those in the
-private system where the work is planned.
+The same applies to prose in a public repo — a README, a docs page, a manifest — and to internal identifiers generally: tracker ids, private repo names, internal hostnames, people's names. Keep those in the private system where the work is planned.
 
-Note this cuts both ways for a **standard**: a rule published in a
-public repo must not name the internal systems its authors happen to
-use, or it stops being a generic standard and starts being a
-disclosure.
+Note this cuts both ways for a **standard**: a rule published in a public repo must not name the internal systems its authors happen to use, or it stops being a generic standard and starts being a disclosure.
 
-This is the provenance rule (*cite the source at the data*, above)
-applied to temporary code: the "source" of a stopgap is the decision to
-remove it, so the link belongs at the code, not only in the tracker.
+This is the provenance rule (*cite the source at the data*, above) applied to temporary code: the "source" of a stopgap is the decision to remove it, so the link belongs at the code, not only in the tracker.
 
 ### A tracking link is a comment, never a value
 
-A tracking link lives in a comment or a doc, never in a constant, a string
-or an error message. The program never reads it, so as a value it only adds
-code to follow, and ships in every bundle, log and message. Put it beside the
-code it explains. It is not a [magic literal](#no-magic-literals) that wants
-a name: the program never branches on it. A source URL in a cited fixture's
-`source` column is different: there the citation is the data the fixture
-pins ([Pin Transcribed Reference Data](#pin-transcribed-reference-data-to-a-cited-fixture)).
+A tracking link lives in a comment or a doc, never in a constant, a string or an error message. The program never reads it, so as a value it only adds code to follow, and ships in every bundle, log and message. Put it beside the code it explains. It is not a [magic literal](#no-magic-literals) that wants a name: the program never branches on it. A source URL in a cited fixture's `source` column is different: there the citation is the data the fixture pins ([Pin Transcribed Reference Data](#pin-transcribed-reference-data-to-a-cited-fixture)).
 
 ```ts
 // Bad: the link promoted to a value and carried in the error
@@ -1309,13 +828,9 @@ if (over) throw new NotModelled(`${year} is over`);
 
 ## A Fact Belongs to the Layer That Owns Its Meaning
 
-A library that declares itself generic must not encode a fact that is
-only true inside one consumer's domain.
+A library that declares itself generic must not encode a fact that is only true inside one consumer's domain.
 
-The tell is in the justification, not the value. If explaining why a
-number is what it is requires naming a scheme, an employer, a contract
-or a published instrument, then the number belongs to whatever layer
-owns that scheme — not to the general-purpose library underneath it.
+The tell is in the justification, not the value. If explaining why a number is what it is requires naming a scheme, an employer, a contract or a published instrument, then the number belongs to whatever layer owns that scheme — not to the general-purpose library underneath it.
 
 ```ts
 // Bad, in a generic date library
@@ -1325,28 +840,15 @@ owns that scheme — not to the general-purpose library underneath it.
 openingHours: TimeRange;
 ```
 
-There are no universal opening hours. That value is one shop's terms,
-and the comment says so — which is the signal. The generic layer should
-take the hours from its caller; the domain layer above it holds the
-shop's hours and passes them in.
+There are no universal opening hours. That value is one shop's terms, and the comment says so — which is the signal. The generic layer should take the hours from its caller; the domain layer above it holds the shop's hours and passes them in.
 
-**The second tell is duplication across a dependency edge.** If the same
-named constant is defined in both a package and something that depends
-on it, ownership has never been decided — one of the two is a copy, and
-they will drift. Decide which layer owns it and delete the other.
+**The second tell is duplication across a dependency edge.** If the same named constant is defined in both a package and something that depends on it, ownership has never been decided — one of the two is a copy, and they will drift. Decide which layer owns it and delete the other.
 
-Why this needs saying at all: "import shared data from the library that
-owns it" assumes ownership is obvious. It is not when TWO libraries
-could plausibly own a fact, and it says nothing about a constant sitting
-at the wrong layer rather than duplicated at the right one. Reviews run
-one repo at a time, so nobody is asked *"does this fact belong here,
-given what depends on this repo?"* unless the rule asks it.
+Why this needs saying at all: "import shared data from the library that owns it" assumes ownership is obvious. It is not when TWO libraries could plausibly own a fact, and it says nothing about a constant sitting at the wrong layer rather than duplicated at the right one. Reviews run one repo at a time, so nobody is asked *"does this fact belong here, given what depends on this repo?"* unless the rule asks it.
 
 ## A Calculation Package Holds No Presentation
 
-The sibling of the rule above, on the other axis. That one asks *which
-domain* a fact belongs to; this one asks *which layer* — and a package
-whose job is computation must not carry what a thing looks like.
+The sibling of the rule above, on the other axis. That one asks *which domain* a fact belongs to; this one asks *which layer* — and a package whose job is computation must not carry what a thing looks like.
 
 ```ts
 // Bad, in a generic pricing library
@@ -1356,41 +858,19 @@ export const COUNTRIES = {
 } as const;
 ```
 
-The doc comment is the tell, and it is the loudest one available: *"for
-the region picker"* describes a control on a screen, from inside a
-package that has no screens. A calculation library cannot know what its
-caller renders — a CLI, a spreadsheet export and a web form all want a
-different answer, and only one of them wants an emoji.
+The doc comment is the tell, and it is the loudest one available: *"for the region picker"* describes a control on a screen, from inside a package that has no screens. A calculation library cannot know what its caller renders — a CLI, a spreadsheet export and a web form all want a different answer, and only one of them wants an emoji.
 
-**Check the consumers before recommending a move.** A display field that
-nothing reads is not misplaced, it is dead, and deleting beats relocating: it
-ships in every published bundle either way.
+**Check the consumers before recommending a move.** A display field that nothing reads is not misplaced, it is dead, and deleting beats relocating: it ships in every published bundle either way.
 
-**Do not apply this reflexively to labels.** A library may legitimately
-own the one correct wording for a value it defines, so that consumers
-cannot invent competing names for the same thing — a shipping class, a
-subscription tier. The test is whether the string is *the thing's own name*
-or *chrome around it*. `'Tier 2'` is a name. A flag is chrome. Where it is
-genuinely a name, keep it and say so at the declaration, because the
-next reader will ask.
+**Do not apply this reflexively to labels.** A library may legitimately own the one correct wording for a value it defines, so that consumers cannot invent competing names for the same thing — a shipping class, a subscription tier. The test is whether the string is *the thing's own name* or *chrome around it*. `'Tier 2'` is a name. A flag is chrome. Where it is genuinely a name, keep it and say so at the declaration, because the next reader will ask.
 
-**Where this gets in is extraction.** Code lifted from an app into a
-package brings the app's view model with it, and the carve-out commit is
-busy proving the maths still passes. So the offending lines are usually
-as old as the package and have survived every review since — which is
-why a review must read a touched file whole rather than only its changed
-lines. Diff-scoped review cannot see a defect that predates the diff.
+**Where this gets in is extraction.** Code lifted from an app into a package brings the app's view model with it, and the carve-out commit is busy proving the maths still passes. So the offending lines are usually as old as the package and have survived every review since — which is why a review must read a touched file whole rather than only its changed lines. Diff-scoped review cannot see a defect that predates the diff.
 
 ## One Value for Two Facts That Usually Agree
 
-When two facts share a representation because they almost always hold
-the same value, nothing fails until the day they differ — and on that
-day every call site is already wrong.
+When two facts share a representation because they almost always hold the same value, nothing fails until the day they differ — and on that day every call site is already wrong.
 
-The tell is a variable whose name answers one question while some of
-its readers are asking another. Look for a single field feeding two
-kinds of consumer: one that treats it as an identifier of a published
-thing, and one that treats it as a property of the present moment.
+The tell is a variable whose name answers one question while some of its readers are asking another. Look for a single field feeding two kinds of consumer: one that treats it as an identifier of a published thing, and one that treats it as a property of the present moment.
 
 ```ts
 // A year that answers two questions at once
@@ -1400,59 +880,30 @@ loadPriceList(CURRENT_YEAR, country); // which list was published
 computeVat(CURRENT_YEAR, country);    // which rates are in force now
 ```
 
-Those coincide for as long as every party publishes on schedule. They
-separate the moment one runs late — and then the second call prices
-someone against rates nobody is using, silently, because the value is
-still a perfectly legal year.
+Those coincide for as long as every party publishes on schedule. They separate the moment one runs late — and then the second call prices someone against rates nobody is using, silently, because the value is still a perfectly legal year.
 
-**Splitting the value is not enough.** Renaming one of them to
-`priceListYear` fixes today's call sites and leaves the next author free to
-pass either, because both are still the same type. Two facts that must
-not be substituted for one another want either distinct types, or a
-single constructor that takes both and is the only way to obtain the
-pair.
+**Splitting the value is not enough.** Renaming one of them to `priceListYear` fixes today's call sites and leaves the next author free to pass either, because both are still the same type. Two facts that must not be substituted for one another want either distinct types, or a single constructor that takes both and is the only way to obtain the pair.
 
-**Then state the relationship as a rule.** If the two may legitimately
-diverge, say by how much and why, and assert it — a drift of one
-publishing cycle is a real-world state, a drift of two is a gap in your
-own data. An assertion that names the legitimate range turns a silent
-wrong number into a build failure with an explanation.
+**Then state the relationship as a rule.** If the two may legitimately diverge, say by how much and why, and assert it — a drift of one publishing cycle is a real-world state, a drift of two is a gap in your own data. An assertion that names the legitimate range turns a silent wrong number into a build failure with an explanation.
 
-Why this is not covered by [No Magic Literals](#no-magic-literals): the constant here
-is fine, correctly named for one of its two uses, and has a single
-obvious home. The defect is that two questions were asked of it, and
-neither the name nor the type records which one a given caller meant.
+Why this is not covered by [No Magic Literals](#no-magic-literals): the constant here is fine, correctly named for one of its two uses, and has a single obvious home. The defect is that two questions were asked of it, and neither the name nor the type records which one a given caller meant.
 
 ## Model the Domain Before Extending the Neighbour
 
-When a change introduces a new domain type, or reshapes existing domain
-data, map the structure and settle the model BEFORE writing the code.
+When a change introduces a new domain type, or reshapes existing domain data, map the structure and settle the model BEFORE writing the code.
 
-The failure it prevents is invisible from the inside. Reaching for the
-shape of the adjacent module — this one is a country-by-year lookup, so
-the new one becomes a country-by-year-by-category lookup — produces
-something that reads as consistent and is not modelling anything. It
-pattern-matches a neighbour, and the result looks right precisely
-because it matches.
+The failure it prevents is invisible from the inside. Reaching for the shape of the adjacent module — this one is a country-by-year lookup, so the new one becomes a country-by-year-by-category lookup — produces something that reads as consistent and is not modelling anything. It pattern-matches a neighbour, and the result looks right precisely because it matches.
 
 Two questions, asked early, catch most of it:
 
-- **What are the entities, and what does each one know?** A record whose
-  identity lives only in its container's keys cannot describe itself to
-  a caller.
-- **Which existing type already holds this?** Extending a neighbour's
-  shape is not the same as finding the type that owns the concept.
+- **What are the entities, and what does each one know?** A record whose identity lives only in its container's keys cannot describe itself to a caller.
+- **Which existing type already holds this?** Extending a neighbour's shape is not the same as finding the type that owns the concept.
 
-Structural review AFTER the code is written finds these too — an
-anonymous record, an identifier collision — but finds them as rework
-rather than as design.
+Structural review AFTER the code is written finds these too — an anonymous record, an identifier collision — but finds them as rework rather than as design.
 
 ## Put the Accessor on the Entity That Has the Coordinates
 
-For each exported function, ask whether some entity in the same package
-already carries **all** of its parameters as fields. If it does, the
-accessor belongs on that entity, and the free function is at best a
-low-level fallback for callers holding loose ids.
+For each exported function, ask whether some entity in the same package already carries **all** of its parameters as fields. If it does, the accessor belongs on that entity, and the free function is at best a low-level fallback for callers holding loose ids.
 
 ```ts
 // Bad: the caller re-supplies what the entity already knows
@@ -1462,14 +913,7 @@ const rate = shippingRateFor(order.country, order.year, order.service.tier);
 const rate = order.shippingRate;
 ```
 
-Equivalently: the API reads as a QUERY — *fetch the record where
-country=X and tier=Y* — where the domain reading is NAVIGATION — *this
-order's shipping rate*. Query-shaped APIs over a domain model are a smell exactly
-when the entity exists.
+Equivalently: the API reads as a QUERY — *fetch the record where country=X and tier=Y* — where the domain reading is NAVIGATION — *this order's shipping rate*. Query-shaped APIs over a domain model are a smell exactly when the entity exists.
 
-**What does not follow**, so the rule is not over-applied: this is not a
-licence to store the relationship on both ends. Back-pointers do not follow,
-and they do not work where one side has no entity at all (its ids are a bare
-string union) or the two ends sit at different granularities. The rule is *put the accessor on the entity
-that has the coordinates*, not *add back-pointers*.
+**What does not follow**, so the rule is not over-applied: this is not a licence to store the relationship on both ends. Back-pointers do not follow, and they do not work where one side has no entity at all (its ids are a bare string union) or the two ends sit at different granularities. The rule is *put the accessor on the entity that has the coordinates*, not *add back-pointers*.
 

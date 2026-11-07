@@ -46,43 +46,25 @@ Shared linting, formatting, commit config, and CLI tools for Casomo Ltd's repos.
 
 ## Install
 
-Published to the public npm registry. Add it to a consumer's
-`devDependencies`:
+Published to the public npm registry. Add it to a consumer's `devDependencies`:
 
 ```
 npm i -D @casomoltd/tooling
 ```
 
-The package is public, so installs need no token or `.npmrc`. The `files`
-allowlist plus the `verify-pack` leak-gate keep the published surface to
-configs/CLI only.
+The package is public, so installs need no token or `.npmrc`. The `files` allowlist plus the `verify-pack` leak-gate keep the published surface to configs/CLI only.
 
-**Installing this package never installs a browser.** The `screenshot`
-bin needs one and `build-report` needs the `typst` CLI, but neither is
-declared here — see [External prerequisites](#external-prerequisites).
+**Installing this package never installs a browser.** The `screenshot` bin needs one and `build-report` needs the `typst` CLI, but neither is declared here — see [External prerequisites](#external-prerequisites).
 
 ## External prerequisites
 
-Three bins need something npm cannot sensibly deliver: `screenshot` and
-`render-figures` need a Chromium build through Playwright, and
-`build-report` needs the `typst` CLI and the IBM Plex fonts. **None is
-declared — not as a dependency, and not as an optional peer.** Each loads
-its prerequisite lazily and fails with an install instruction when it is
-missing, so a consumer that never runs those bins carries nothing for them.
+Three bins need something npm cannot sensibly deliver: `screenshot` and `render-figures` need a Chromium build through Playwright, and `build-report` needs the `typst` CLI and the IBM Plex fonts. **None is declared — not as a dependency, and not as an optional peer.** Each loads its prerequisite lazily and fails with an install instruction when it is missing, so a consumer that never runs those bins carries nothing for them.
 
-The rule, for anything added later: a heavyweight prerequisite only some
-consumers need is documented here, never declared. An optional peer
-looks free because npm installs nothing for it, but it resolves into a
-consumer's lockfile as soon as anything pulls it in, and npm will not
-prune a satisfied optional peer afterwards — not on `npm install`, not
-on `npm install --package-lock-only`, not on `npm uninstall`. So any
-advisory against it reaches repos that never run the bin, and clearing
-it takes a release of this package rather than a fix in each of them.
+The rule, for anything added later: a heavyweight prerequisite only some consumers need is documented here, never declared. An optional peer looks free because npm installs nothing for it, but it resolves into a consumer's lockfile as soon as anything pulls it in, and npm will not prune a satisfied optional peer afterwards — not on `npm install`, not on `npm install --package-lock-only`, not on `npm uninstall`. So any advisory against it reaches repos that never run the bin, and clearing it takes a release of this package rather than a fix in each of them.
 
 ## Husky hooks
 
-The package provides shared hook commands so all repos enforce
-the same standards. Wire them up in `.husky/`:
+The package provides shared hook commands so all repos enforce the same standards. Wire them up in `.husky/`:
 
 **.husky/pre-commit**
 ```
@@ -99,18 +81,13 @@ commit-msg $1
 pre-push
 ```
 
-Each repo defines its own `check` script in `package.json` —
-the hooks call `npm run check` which runs whatever checks that
-repo needs (lint, typecheck, spell, etc.).
+Each repo defines its own `check` script in `package.json` — the hooks call `npm run check` which runs whatever checks that repo needs (lint, typecheck, spell, etc.).
 
-**Note:** The tooling repo itself calls scripts by path in its
-hooks (e.g. `./bin/check-version.sh`) because it can't resolve
-its own bin commands via `node_modules/.bin`.
+**Note:** The tooling repo itself calls scripts by path in its hooks (e.g. `./bin/check-version.sh`) because it can't resolve its own bin commands via `node_modules/.bin`.
 
 ### A repo whose toolchain is not npm
 
-A Python, Go or C++ repo still gets the commit rules. It carries a **dev-only
-npm layer** that exists to host the hook and nothing else:
+A Python, Go or C++ repo still gets the commit rules. It carries a **dev-only npm layer** that exists to host the hook and nothing else:
 
 ```json
 {
@@ -126,35 +103,21 @@ npm layer** that exists to host the hook and nothing else:
 }
 ```
 
-Plus `commitlint.config.cjs` re-exporting the rules, and `.husky/commit-msg`.
-No `version`, because the repo versions itself with its own tool.
+Plus `commitlint.config.cjs` re-exporting the rules, and `.husky/commit-msg`. No `version`, because the repo versions itself with its own tool.
 
-**Do not wire `pre-commit` or `pre-push` from this package in such a repo.**
-Both run `npm run check`, and `check-gates` reads `package.json` and requires
-eight named npm scripts — a gate a non-npm repo cannot satisfy and should not
-fake. Write a `.husky/pre-push` that calls the real toolchain instead:
+**Do not wire `pre-commit` or `pre-push` from this package in such a repo.** Both run `npm run check`, and `check-gates` reads `package.json` and requires eight named npm scripts — a gate a non-npm repo cannot satisfy and should not fake. Write a `.husky/pre-push` that calls the real toolchain instead:
 
 ```sh
 uv run ruff check && uv run ruff format --check && uv run pyright && uv run pytest
 ```
 
-If a house gate will not run in your repo, wire the shared one or fix this
-package, never a local copy: [Wire a missing gate, never rewrite
-it](docs/quality-gates.md#wire-a-missing-gate-never-rewrite-it).
+If a house gate will not run in your repo, wire the shared one or fix this package, never a local copy: [Wire a missing gate, never rewrite it](docs/quality-gates.md#wire-a-missing-gate-never-rewrite-it).
 
 ## Markdown / skills lint
 
-`bin/skills-lint.config.mjs` is a stock remark config (`remark-frontmatter` +
-`remark-validate-links` + `remark-lint-frontmatter-schema`) that validates a
-Claude Code skills/agents/docs tree: every `SKILL.md` / `agents/*.md` has
-parseable YAML frontmatter with `name` + `description`, and every relative link
-and `#anchor` resolves. tooling runs it in `npm run check` as `lint:md`, over
-the paths that script names in [`package.json`](package.json) — catching the
-breakage a rename or hand-edit leaves that Claude Code's loader silently
-swallows.
+`bin/skills-lint.config.mjs` is a stock remark config (`remark-frontmatter` + `remark-validate-links` + `remark-lint-frontmatter-schema`) that validates a Claude Code skills/agents/docs tree: every `SKILL.md` / `agents/*.md` has parseable YAML frontmatter with `name` + `description`, and every relative link and `#anchor` resolves. tooling runs it in `npm run check` as `lint:md`, over the paths that script names in [`package.json`](package.json) — catching the breakage a rename or hand-edit leaves that Claude Code's loader silently swallows.
 
-To gate a consumer repo's docs (link/anchor integrity) at its own pre-commit,
-install the remark toolchain and point it at the shipped config:
+To gate a consumer repo's docs (link/anchor integrity) at its own pre-commit, install the remark toolchain and point it at the shipped config:
 
 ```bash
 npm i -D remark-cli remark-frontmatter remark-validate-links remark-lint-frontmatter-schema
@@ -164,51 +127,25 @@ npm i -D remark-cli remark-frontmatter remark-validate-links remark-lint-frontma
 "lint:md": "remark --frail --quiet --no-stdout --rc-path node_modules/@casomoltd/tooling/bin/skills-lint.config.mjs docs"
 ```
 
-Append `&& npm run lint:md` to your `check` script. The config resolves the
-plugins from your repo's `node_modules` and the schema (shipped beside it)
-relative to your cwd; the frontmatter schema only matches `SKILL.md`/`agents`
-files, so for plain docs it acts as a link/anchor check. Requires a tooling
-version that ships the config.
+Append `&& npm run lint:md` to your `check` script. The config resolves the plugins from your repo's `node_modules` and the schema (shipped beside it) relative to your cwd; the frontmatter schema only matches `SKILL.md`/`agents` files, so for plain docs it acts as a link/anchor check. Requires a tooling version that ships the config.
 
 ## Screenshot tool
 
-`screenshot` is a visual feedback loop for coding agents: Claude captures the
-page it just changed, reads the PNG back and checks its own work. It needs a
-Chromium build, which this package does not install (see [External
-prerequisites](#external-prerequisites)). Setup, flags, presets and output
-location are in the [`screenshot`](skills/screenshot/SKILL.md) skill.
+`screenshot` is a visual feedback loop for coding agents: Claude captures the page it just changed, reads the PNG back and checks its own work. It needs a Chromium build, which this package does not install (see [External prerequisites](#external-prerequisites)). Setup, flags, presets and output location are in the [`screenshot`](skills/screenshot/SKILL.md) skill.
 
 ## Design specs
 
-`spec-check` reads one HTML design spec and reports its mechanical
-faults: an anchor resolving to nothing, a contents entry disagreeing
-with its heading, a figure without a number, an anchor or a caption, a
-figure wider than the card it sits in, a section number typed where the
-stylesheet generates one, and markup the artifact host refuses.
+`spec-check` reads one HTML design spec and reports its mechanical faults: an anchor resolving to nothing, a contents entry disagreeing with its heading, a figure without a number, an anchor or a caption, a figure wider than the card it sits in, a section number typed where the stylesheet generates one, and markup the artifact host refuses.
 
-`render-figures` rewrites a spec's mermaid figures as static SVG, so the
-page carries no runtime. Each figure keeps its source in an HTML comment
-above it, and a run reads those back, renders them and freezes the
-computed paint inline. It resolves Playwright from the working directory;
-set `RENDER_FIGURES_RESOLVE_FROM` to a project that has it when running
-from somewhere else.
+`render-figures` rewrites a spec's mermaid figures as static SVG, so the page carries no runtime. Each figure keeps its source in an HTML comment above it, and a run reads those back, renders them and freezes the computed paint inline. It resolves Playwright from the working directory; set `RENDER_FIGURES_RESOLVE_FROM` to a project that has it when running from somewhere else.
 
 ## Client reports (Typst)
 
-`report/` ships the Casomo house style for client-facing PDF reports: a
-[Typst](https://typst.app) template (`casomo-template.typ`, with the brand mark
-beside it) and the `build-report` bin that compiles a report to PDF.
-`report/example.typ` is a lorem-ipsum reference exercising every feature the
-template styles. How a report imports the template, where the PDF lands and
-the [external prerequisites](#external-prerequisites) it needs are in the
-[`generate-report`](skills/generate-report/SKILL.md) skill.
+`report/` ships the Casomo house style for client-facing PDF reports: a [Typst](https://typst.app) template (`casomo-template.typ`, with the brand mark beside it) and the `build-report` bin that compiles a report to PDF. `report/example.typ` is a lorem-ipsum reference exercising every feature the template styles. How a report imports the template, where the PDF lands and the [external prerequisites](#external-prerequisites) it needs are in the [`generate-report`](skills/generate-report/SKILL.md) skill.
 
 ## Quality gates
 
-The hooks are the gate and CI the backstop. What each hook runs, why `check`
-owns the build, the gates every repo's `check` must contain, and the rule that a
-failing check is fixed rather than weakened are in
-[docs/quality-gates.md](docs/quality-gates.md).
+The hooks are the gate and CI the backstop. What each hook runs, why `check` owns the build, the gates every repo's `check` must contain, and the rule that a failing check is fixed rather than weakened are in [docs/quality-gates.md](docs/quality-gates.md).
 
 ## Usage
 
@@ -227,42 +164,28 @@ module.exports = require('@casomoltd/tooling/commitlint');
 import { createBaseConfig } from '@casomoltd/tooling/eslint';
 ```
 
-The ESLint config uses a factory function that receives
-resolved imports from the consumer to avoid module resolution
-issues across package boundaries.
+The ESLint config uses a factory function that receives resolved imports from the consumer to avoid module resolution issues across package boundaries.
 
 ## Local development
 
-Changes to tooling require a push to `main` to publish (the
-workflow runs automatically). Consuming repos then pick up
-changes with `npm update @casomoltd/tooling`.
+Changes to tooling require a push to `main` to publish (the workflow runs automatically). Consuming repos then pick up changes with `npm update @casomoltd/tooling`.
 
-For fast iteration while editing tooling config locally, use
-`npm link` to temporarily symlink your local checkout:
+For fast iteration while editing tooling config locally, use `npm link` to temporarily symlink your local checkout:
 
 ```bash
 # in the consuming repo
 npm link ../tooling
 ```
 
-This overrides the published version until the next
-`npm install`, which restores the registry version.
+This overrides the published version until the next `npm install`, which restores the registry version.
 
 ## Claude Code skills (plugin)
 
-This repo is a Claude Code plugin (`.claude-plugin/`) shipping the **generic,
-public engineering standards** we work to across three agent-facing surfaces —
-**skills**, **hooks**, and **agents**. Business-specific ones live in private
-configuration, not here.
+This repo is a Claude Code plugin (`.claude-plugin/`) shipping the **generic, public engineering standards** we work to across three agent-facing surfaces — **skills**, **hooks**, and **agents**. Business-specific ones live in private configuration, not here.
 
-The tooling serves three consumers: **Claude** (the editing workflow) → these
-plugin surfaces; **CI + git-hooks** (automation) → the npm `bin` scripts. The CLI
-is not designed for manual human use.
+The tooling serves three consumers: **Claude** (the editing workflow) → these plugin surfaces; **CI + git-hooks** (automation) → the npm `bin` scripts. The CLI is not designed for manual human use.
 
-**Authoring standard:** creating or editing a skill/agent follows
-[`docs/skill-agent-schema.md`](docs/skill-agent-schema.md) — the interface schema
-(three profiles — procedural skill · agent · standard/rubric — plus a frontmatter
-decision table) that keeps these units composing without overlap.
+**Authoring standard:** creating or editing a skill/agent follows [`docs/skill-agent-schema.md`](docs/skill-agent-schema.md) — the interface schema (three profiles — procedural skill · agent · standard/rubric — plus a frontmatter decision table) that keeps these units composing without overlap.
 
 | Skill | Description |
 |---|---|
@@ -290,24 +213,13 @@ Skills then load namespaced as `/casomoltd:<name>`.
 
 ### Hooks
 
-The plugin also ships generic **PreToolUse hooks** (`hooks/`) that guard
-command/shell intent no linter or commit hook can see: confirm before
-`git push`, hard-block destructive git, `npm version major`, global installs,
-and edits that weaken TypeScript strictness. (They deliberately don't duplicate
-what commitlint/eslint already enforce — see `hooks/README.md`.) The guards are
-advisory — they ask you to confirm when they can't read a call's input, and
-never hard-block on their own malfunction. They require **Node ≥ 22.18 / ≥ 24**
-(they run as TypeScript `.mts` via native type-stripping — no build step).
+The plugin also ships generic **PreToolUse hooks** (`hooks/`) that guard command/shell intent no linter or commit hook can see: confirm before `git push`, hard-block destructive git, `npm version major`, global installs, and edits that weaken TypeScript strictness. (They deliberately don't duplicate what commitlint/eslint already enforce — see `hooks/README.md`.) The guards are advisory — they ask you to confirm when they can't read a call's input, and never hard-block on their own malfunction. They require **Node ≥ 22.18 / ≥ 24** (they run as TypeScript `.mts` via native type-stripping — no build step).
 
-See [`hooks/README.md`](hooks/README.md) for the full rule set, the file map,
-how the hooks relate to `settings.json` permissions and skill `allowed-tools`,
-and the TypeScript / vendored-types design rationale.
+See [`hooks/README.md`](hooks/README.md) for the full rule set, the file map, how the hooks relate to `settings.json` permissions and skill `allowed-tools`, and the TypeScript / vendored-types design rationale.
 
 ### Agents
 
-Namespaced agents (`agents/`), each read-only on what it inspects and
-preloading the house standard it applies. Each file's frontmatter and *Scope*
-say what it does and does not cover.
+Namespaced agents (`agents/`), each read-only on what it inspects and preloading the house standard it applies. Each file's frontmatter and *Scope* say what it does and does not cover.
 
 | Agent | Reviews or maps |
 |---|---|
@@ -318,20 +230,8 @@ say what it does and does not cover.
 | [`casomoltd:skill-review`](agents/skill-review.md) | Changed skills and agent briefs |
 | [`casomoltd:spec-review`](agents/spec-review.md) | An HTML design spec against its authoring rubric |
 
-`design-xray` and `docs-xray` persist their report and the caller publishes it:
-[An agent that persists a
-report](docs/skill-agent-schema.md#an-agent-that-persists-a-report).
+`design-xray` and `docs-xray` persist their report and the caller publishes it: [An agent that persists a report](docs/skill-agent-schema.md#an-agent-that-persists-a-report).
 
 ## Package distribution
 
-`@casomoltd/tooling`, alongside the product libraries
-(`@casomoltd/paye-calc`, `@casomoltd/nhs-pay`), publishes to the public
-npm registry via OIDC trusted publishing — install with no auth or
-`.npmrc`. A version-tag push (`npm version patch` → `git push
---follow-tags`) triggers `publish.yml`. That workflow carries **no npm
-pin**: it builds on Node 24, whose bundled npm 11.x is already the range
-we want — at or above the `npm >= 11.5.1` trusted publishing needs, and
-short of npm 12, which still refuses non-registry fetches by default
-(`EALLOWREMOTE`) and so cannot regenerate a lockfile that resolves a
-transitive remote tarball. Re-test the fetch block before moving to
-npm 12.
+`@casomoltd/tooling`, alongside the product libraries (`@casomoltd/paye-calc`, `@casomoltd/nhs-pay`), publishes to the public npm registry via OIDC trusted publishing — install with no auth or `.npmrc`. A version-tag push (`npm version patch` → `git push --follow-tags`) triggers `publish.yml`. That workflow carries **no npm pin**: it builds on Node 24, whose bundled npm 11.x is already the range we want — at or above the `npm >= 11.5.1` trusted publishing needs, and short of npm 12, which still refuses non-registry fetches by default (`EALLOWREMOTE`) and so cannot regenerate a lockfile that resolves a transitive remote tarball. Re-test the fetch block before moving to npm 12.

@@ -1,59 +1,31 @@
 # Diagram rubric
 
-*The rules that hold for **any** mermaid block, whatever renders it. Three
-units emit mermaid — [`design-xray`](../agents/design-xray.md),
-[`docs-xray`](../agents/docs-xray.md) and
-[`draft-design-spec`](../skills/draft-design-spec/SKILL.md) — and each cites
-these rules by identifier rather than restating them.*
+*The rules that hold for **any** mermaid block, whatever renders it. Three units emit mermaid — [`design-xray`](../agents/design-xray.md), [`docs-xray`](../agents/docs-xray.md) and [`draft-design-spec`](../skills/draft-design-spec/SKILL.md) — and each cites these rules by identifier rather than restating them.*
 
 ## Parser safety
 
-These fail the same way everywhere: the block does not parse, or it parses
-into something other than what was meant.
+These fail the same way everywhere: the block does not parse, or it parses into something other than what was meant.
 
-- **M1 — No `|`, `[`, `]`, `,` or `~` inside a label or a member line.** They
-  are mermaid syntax. This is the commonest way a generated block dies.
-- **M2 — Write a type in words.** `date or None`, not `date|None`. `list of
-  Item`, not `list[Item]`. `Callable str to str`, not `Callable[[str], str]`.
-  A type alias's shape goes in prose inside the class body.
-- **M3 — Short alphanumeric ids, the human label quoted.**
-  `readme["README.md"]`. An id carrying punctuation is an id that breaks.
-- **M4 — Ids are unique case-insensitively.** `Foo` and `foo` collapse into one
-  node, silently, and the diagram is then wrong rather than broken.
-- **M5 — No parentheses in a label or a relationship label.** A doc title or
-  a method signature carrying one is common, and it breaks the same way the
-  brackets in M1 do.
-- **M6 — No prose outside node and edge lines.** A sentence that wandered into
-  the block is a syntax error with a confusing message.
-- **M7 — Every node carries at least one edge.** A floating node reads as an
-  omission and distracts from the ones that mean something.
-- **M8 — Validate that the block parses before returning it.** Rendering is the
-  only real check; a block that has never been rendered has never been tested.
-- **M13 — Labels are plain ASCII.** No unicode arrows, middle dots or circled
-  numbers: some parsers blank the label or the whole block.
-- **M14 — No `direction` inside a subgraph.** Renderers disagree on it, so the
-  same block lays out differently, or fails, depending on where it is viewed.
+- **M1 — No `|`, `[`, `]`, `,` or `~` inside a label or a member line.** They are mermaid syntax. This is the commonest way a generated block dies.
+- **M2 — Write a type in words.** `date or None`, not `date|None`. `list of Item`, not `list[Item]`. `Callable str to str`, not `Callable[[str], str]`. A type alias's shape goes in prose inside the class body.
+- **M3 — Short alphanumeric ids, the human label quoted.** `readme["README.md"]`. An id carrying punctuation is an id that breaks.
+- **M4 — Ids are unique case-insensitively.** `Foo` and `foo` collapse into one node, silently, and the diagram is then wrong rather than broken.
+- **M5 — No parentheses in a label or a relationship label.** A doc title or a method signature carrying one is common, and it breaks the same way the brackets in M1 do.
+- **M6 — No prose outside node and edge lines.** A sentence that wandered into the block is a syntax error with a confusing message.
+- **M7 — Every node carries at least one edge.** A floating node reads as an omission and distracts from the ones that mean something.
+- **M8 — Validate that the block parses before returning it.** Rendering is the only real check; a block that has never been rendered has never been tested.
+- **M13 — Labels are plain ASCII.** No unicode arrows, middle dots or circled numbers: some parsers blank the label or the whole block.
+- **M14 — No `direction` inside a subgraph.** Renderers disagree on it, so the same block lays out differently, or fails, depending on where it is viewed.
 
 ## Composition
 
-True of a diagram in any context, because they are about what the reader can
-follow rather than about what the parser accepts.
+True of a diagram in any context, because they are about what the reader can follow rather than about what the parser accepts.
 
-- **M9 — Top-down by default.** A left-to-right chain runs several times the
-  width of the same graph drawn `TD`, and vertical usually matches the
-  metaphor: a ledger is stacked rows, a pipeline is stages.
-- **M10 — Short node labels; the detail goes in the legend.** Past a point,
-  width is set by how many nodes sit in the widest rank, not by label length —
-  when trimming text stops helping, merge nodes or split the figure.
-- **M11 — A legend is a key, not an inventory.** It maps symbol to meaning and
-  stops. It never lists which nodes carry a symbol; the reader can see that.
-- **M12 — Never repeat in a node what an adjacent table already states.** One
-  representation per fact, and it buys width for free.
-- **M15 — A `classDef` sets the border only.** `stroke` and `stroke-width`,
-  never `fill` or `color`: a hardcoded fill fights the reader's light or dark
-  theme, stranding light nodes on a dark canvas or leaving text unreadable.
-  Encode meaning in the border colour, keep one palette per diagram, and add a
-  one-line legend when colour carries meaning.
+- **M9 — Top-down by default.** A left-to-right chain runs several times the width of the same graph drawn `TD`, and vertical usually matches the metaphor: a ledger is stacked rows, a pipeline is stages.
+- **M10 — Short node labels; the detail goes in the legend.** Past a point, width is set by how many nodes sit in the widest rank, not by label length — when trimming text stops helping, merge nodes or split the figure.
+- **M11 — A legend is a key, not an inventory.** It maps symbol to meaning and stops. It never lists which nodes carry a symbol; the reader can see that.
+- **M12 — Never repeat in a node what an adjacent table already states.** One representation per fact, and it buys width for free.
+- **M15 — A `classDef` sets the border only.** `stroke` and `stroke-width`, never `fill` or `color`: a hardcoded fill fights the reader's light or dark theme, stranding light nodes on a dark canvas or leaving text unreadable. Encode meaning in the border colour, keep one palette per diagram, and add a one-line legend when colour carries meaning.
 
 ## Out of scope
 

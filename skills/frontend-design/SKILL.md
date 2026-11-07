@@ -6,20 +6,15 @@ license: Complete terms in LICENSE.txt
 
 ## Intent
 
-Create distinctive, production-grade frontend UI that avoids generic "AI slop"
-aesthetics — bold, cohesive, meticulously refined interfaces.
+Create distinctive, production-grade frontend UI that avoids generic "AI slop" aesthetics — bold, cohesive, meticulously refined interfaces.
 
 ## Applies-to
 
-Building or styling any web UI — components, pages, artifacts, posters,
-applications (HTML/CSS/JS, React, Vue, …). Invoked directly when building UI, or
-loaded as the aesthetic rubric during frontend work.
+Building or styling any web UI — components, pages, artifacts, posters, applications (HTML/CSS/JS, React, Vue, …). Invoked directly when building UI, or loaded as the aesthetic rubric during frontend work.
 
 ## Owns-vs-defers
 
-Owns **aesthetic & design-quality** judgment — typography, colour, layout, motion,
-the conceptual direction. **Defers** data/type/component-API design to `typescript`
-and mechanical rules to `eslint`.
+Owns **aesthetic & design-quality** judgment — typography, colour, layout, motion, the conceptual direction. **Defers** data/type/component-API design to `typescript` and mechanical rules to `eslint`.
 
 This skill guides creation of distinctive, production-grade frontend interfaces that avoid generic "AI slop" aesthetics. Implement real working code with exceptional attention to aesthetic details and creative choices.
 
@@ -60,37 +55,14 @@ Remember: Claude is capable of extraordinary creative work. Don't hold back, sho
 
 ## What You Never Wrote Will Beat What You Did
 
-A family of traps where the source reads correctly and something else
-wins. None of these throw, and most are invisible in a screenshot at a
-glance — so the defence in every case is to read the **computed** value
-in a real browser rather than confirm the rule was served.
+A family of traps where the source reads correctly and something else wins. None of these throw, and most are invisible in a screenshot at a glance — so the defence in every case is to read the **computed** value in a real browser rather than confirm the rule was served.
 
-- **Style the text element, never the box around it.** A rule aimed at a
-  container is inherited, and inheritance loses to anything targeting the
-  text by element — a bare `article p` sets size, colour *and* family and
-  beats a class the child merely inherits from its wrapper. Aim at the
-  children so the generated selector out-ranks it. Fixing this one
-  surface at a time is the trap: the siblings go on inheriting.
-- **A type ramp that bakes `font-weight` cannot be composed with.** If a
-  size class also sets weight, then pairing it with a weight utility
-  loses on source order — the class is present, says what you meant, and
-  does nothing. Either keep weight out of the ramp, or mark every
-  override site.
-- **Utility frameworks emit only what they can SEE as literal text.** A
-  class assembled at runtime, or split across two string literals,
-  type-checks and never reaches the stylesheet. A grid template built by
-  concatenation still lays out *silently* on implicit auto columns, with
-  a column resolving to zero width. Write every class name whole.
-- **Variants generate for the framework's own utilities only.** A
-  responsive or state prefix on a hand-written class reads correctly,
-  passes lint, and matches nothing.
-- **Native inputs render in the BROWSER's locale, not the page's.** A
-  native date input can present month-first to a user whose site is
-  day-first, so a typed day silently lands in the month. Data copied off
-  paper wants a text input with a mask.
-- **Check which PROPERTY a utility uses before cancelling it.** Centring
-  implemented with `translate` is not undone by resetting `transform`,
-  and the element stays pulled half its size out of place.
+- **Style the text element, never the box around it.** A rule aimed at a container is inherited, and inheritance loses to anything targeting the text by element — a bare `article p` sets size, colour *and* family and beats a class the child merely inherits from its wrapper. Aim at the children so the generated selector out-ranks it. Fixing this one surface at a time is the trap: the siblings go on inheriting.
+- **A type ramp that bakes `font-weight` cannot be composed with.** If a size class also sets weight, then pairing it with a weight utility loses on source order — the class is present, says what you meant, and does nothing. Either keep weight out of the ramp, or mark every override site.
+- **Utility frameworks emit only what they can SEE as literal text.** A class assembled at runtime, or split across two string literals, type-checks and never reaches the stylesheet. A grid template built by concatenation still lays out *silently* on implicit auto columns, with a column resolving to zero width. Write every class name whole.
+- **Variants generate for the framework's own utilities only.** A responsive or state prefix on a hand-written class reads correctly, passes lint, and matches nothing.
+- **Native inputs render in the BROWSER's locale, not the page's.** A native date input can present month-first to a user whose site is day-first, so a typed day silently lands in the month. Data copied off paper wants a text input with a mask.
+- **Check which PROPERTY a utility uses before cancelling it.** Centring implemented with `translate` is not undone by resetting `transform`, and the element stays pulled half its size out of place.
 
 ## Reusable Components & Consistency
 

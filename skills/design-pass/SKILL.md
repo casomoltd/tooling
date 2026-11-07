@@ -30,36 +30,19 @@ allowed-tools:
 
 ## Intent
 
-Map → review → refactor a package or diff: chain `design-xray` (structure) →
-`code-review` (judgment) → an approved refactor. One job: let the structural map
-drive the change instead of a least-disruption bolt-on.
+Map → review → refactor a package or diff: chain `design-xray` (structure) → `code-review` (judgment) → an approved refactor. One job: let the structural map drive the change instead of a least-disruption bolt-on.
 
-Map → review → refactor, in that order. Each stage feeds the next. Follow the
-steps in order; do NOT skip or reorder. The pass makes **no change to the user's
-codebase until step 5** — the only earlier write is the x-ray report `design-xray`
-persists in step 1, which lands in a working directory outside the repo.
+Map → review → refactor, in that order. Each stage feeds the next. Follow the steps in order; do NOT skip or reorder. The pass makes **no change to the user's codebase until step 5** — the only earlier write is the x-ray report `design-xray` persists in step 1, which lands in a working directory outside the repo.
 
-Run this **before** committing to a design when extending a package, not after.
-Starting from the structural map is the point: it routinely shows the "new" thing
-is a variant of something that already exists — N near-identical units where a
-type belongs — so the right move is to abstract, not to bolt on an (N+1)th copy.
-A plan that starts from "how do I add my thing with least disruption" walks past
-that; the map doesn't.
+Run this **before** committing to a design when extending a package, not after. Starting from the structural map is the point: it routinely shows the "new" thing is a variant of something that already exists — N near-identical units where a type belongs — so the right move is to abstract, not to bolt on an (N+1)th copy. A plan that starts from "how do I add my thing with least disruption" walks past that; the map doesn't.
 
-Design the target shape against the house design rubric
-([`../../docs/design-rubric.md`](../../docs/design-rubric.md)) — run its review
-lens (does the library already provide it? one producer per value? the thinnest
-seam? each concern in its home?) **before** committing to a shape, not only when
-reviewing the diff afterward. The rubric is the cross-cutting design half; the
-worker agents apply the language-specific rules.
+Design the target shape against the house design rubric ([`../../docs/design-rubric.md`](../../docs/design-rubric.md)) — run its review lens (does the library already provide it? one producer per value? the thinnest seam? each concern in its home?) **before** committing to a shape, not only when reviewing the diff afterward. The rubric is the cross-cutting design half; the worker agents apply the language-specific rules.
 
-This skill **orchestrates**; it does not re-implement. The judgment lives in two
-worker agents it invokes:
+This skill **orchestrates**; it does not re-implement. The judgment lives in two worker agents it invokes:
 - `casomoltd:design-xray` — the structural map + design findings + handoff.
 - `casomoltd:code-review` — house-standard judgment on specific files.
 
-Scope is **Python and TypeScript** (`.py` / `.ts` / `.tsx`); other languages
-have no house rubric, so the review/refactor stages skip them.
+Scope is **Python and TypeScript** (`.py` / `.ts` / `.tsx`); other languages have no house rubric, so the review/refactor stages skip them.
 
 ## 0. Resolve the target
 
@@ -74,79 +57,38 @@ If the target is ambiguous or empty, stop and ask — don't guess (fail loud).
 
 ## 1. Map (read-only)
 
-Invoke the `casomoltd:design-xray` agent on the target. Capture all five
-sections it returns: the doc-ready map (inventory + mermaid), the weight table,
-the design findings, the **handoff refactor-targets** table, and the pattern
-verdict. The handoff table is the contract that drives the rest of this pass.
+Invoke the `casomoltd:design-xray` agent on the target. Capture all five sections it returns: the doc-ready map (inventory + mermaid), the weight table, the design findings, the **handoff refactor-targets** table, and the pattern verdict. The handoff table is the contract that drives the rest of this pass.
 
 ## 2. Publish the FULL report + offer docs
 
-The `design-xray` agent **already persists its own report** — it writes
-`<work-dir>/<target-slug>.md`, renders `<target-slug>.html` beside it, and returns
-**both paths as the last lines of its output**. Don't re-write the markdown or
-hand-roll HTML — it's done. The agent has no artifact tool and the user only sees
-a "finished" notification, so **publishing is your step**:
+The `design-xray` agent **already persists its own report** — it writes `<work-dir>/<target-slug>.md`, renders `<target-slug>.html` beside it, and returns **both paths as the last lines of its output**. Don't re-write the markdown or hand-roll HTML — it's done. The agent has no artifact tool and the user only sees a "finished" notification, so **publishing is your step**:
 
-1. **Publish the reported `.html` as an artifact and give the user the link.**
-   That is the deliverable: the working copy is not somewhere they will look, and
-   a summary hides the map, the weight table and the ranked handoff they need to
-   judge for themselves. Surface the key findings alongside the link, never
-   instead of it.
-2. If the agent reported HTML was skipped (renderer not found), surface the `.md`
-   path instead and say the render was skipped.
+1. **Publish the reported `.html` as an artifact and give the user the link.** That is the deliverable: the working copy is not somewhere they will look, and a summary hides the map, the weight table and the ranked handoff they need to judge for themselves. Surface the key findings alongside the link, never instead of it.
+2. If the agent reported HTML was skipped (renderer not found), surface the `.md` path instead and say the render was skipped.
 
-Do NOT chase in-editor mermaid (e.g. a VSCode extension) — `render-report.mjs` is
-the reliable renderer, and it ships no mermaid runtime precisely so the published
-page renders. THEN, and only on explicit confirmation, **offer** to persist the
-doc-ready block into a real `README`/`ARCHITECTURE` doc in the repo — writing only
-that block, nothing else.
+Do NOT chase in-editor mermaid (e.g. a VSCode extension) — `render-report.mjs` is the reliable renderer, and it ships no mermaid runtime precisely so the published page renders. THEN, and only on explicit confirmation, **offer** to persist the doc-ready block into a real `README`/`ARCHITECTURE` doc in the repo — writing only that block, nothing else.
 
 ## 3. Review the targets (read-only)
 
-Route the handoff targets into the `casomoltd:code-review` agent — focused on
-exactly those files/symbols, with the "what to scrutinise" note as the brief.
+Route the handoff targets into the `casomoltd:code-review` agent — focused on exactly those files/symbols, with the "what to scrutinise" note as the brief.
 - A handful of targets → one `casomoltd:code-review` invocation over them.
-- A large target set → fan out one review per target so each gets full
-  attention. For a substantial fan-out, you MAY use the Workflow tool to run
-  the per-target reviews in parallel (this is the only place orchestration
-  parallelism is warranted; the rest of this skill is sequential).
+- A large target set → fan out one review per target so each gets full attention. For a substantial fan-out, you MAY use the Workflow tool to run the per-target reviews in parallel (this is the only place orchestration parallelism is warranted; the rest of this skill is sequential).
 
-Merge the code-review findings with the x-ray design findings, de-duplicated and
-ranked by impact. This merged list is the refactor plan.
+Merge the code-review findings with the x-ray design findings, de-duplicated and ranked by impact. This merged list is the refactor plan.
 
 ## 4. Confirm the refactor plan
 
-Present the merged, ranked plan and ask the user which items to apply. Call out
-anything the x-ray flagged as **speculative infrastructure** (don't add it) and
-anything its verdict deemed a **premature pattern** (don't introduce it). Do not
-proceed to step 5 without explicit approval.
+Present the merged, ranked plan and ask the user which items to apply. Call out anything the x-ray flagged as **speculative infrastructure** (don't add it) and anything its verdict deemed a **premature pattern** (don't introduce it). Do not proceed to step 5 without explicit approval.
 
 ## 5. Refactor (the only writing stage)
 
-Apply only the approved items. Before editing `.py`, load the `python-style`
-rules; before editing `.ts/.tsx`, load the `typescript` rules — so the refactor
-lands in house style rather than getting re-reviewed into it. Keep edits tight
-and reviewable; prefer the smallest change that resolves the finding.
+Apply only the approved items. Before editing `.py`, load the `python-style` rules; before editing `.ts/.tsx`, load the `typescript` rules — so the refactor lands in house style rather than getting re-reviewed into it. Keep edits tight and reviewable; prefer the smallest change that resolves the finding.
 
-When a finding is stale documentation or a drifted citation, fix it in the same
-pass — but a citation moves with the code or data it documents, and an **external
-figure is verified against its original source before you touch it**: never
-commit a reconstructed or guessed value (defer to `docs-style`'s recency-and-
-content rule). If you cannot confirm the source, surface the gap rather than
-enshrining a plausible reconstruction.
+When a finding is stale documentation or a drifted citation, fix it in the same pass — but a citation moves with the code or data it documents, and an **external figure is verified against its original source before you touch it**: never commit a reconstructed or guessed value (defer to `docs-style`'s recency-and- content rule). If you cannot confirm the source, surface the gap rather than enshrining a plausible reconstruction.
 
 ## 6. Review the generated diff and iterate
 
-The refactor just *wrote* code — review THAT, not only the pre-refactor targets
-from step 3 (step 3 decides what to change; this checks how the change landed).
-Invoke the `casomoltd:code-review` agent over the changed files (the diff), so
-the design-half judgment (value objects, EAFP-not-sentinels, DI, no hardcoded
-config, factory classmethods, protocols/interfaces placed well) runs over what
-was actually generated. Apply the high-confidence findings, re-run the checks,
-and repeat — a **bounded loop (2–3 rounds)** until the diff comes back clean or
-only genuine judgment calls remain, which you surface to the user rather than
-churn on. This is the generate → review → iterate loop; skipping it ships
-unreviewed codegen (the failure mode this step exists to close).
+The refactor just *wrote* code — review THAT, not only the pre-refactor targets from step 3 (step 3 decides what to change; this checks how the change landed). Invoke the `casomoltd:code-review` agent over the changed files (the diff), so the design-half judgment (value objects, EAFP-not-sentinels, DI, no hardcoded config, factory classmethods, protocols/interfaces placed well) runs over what was actually generated. Apply the high-confidence findings, re-run the checks, and repeat — a **bounded loop (2–3 rounds)** until the diff comes back clean or only genuine judgment calls remain, which you surface to the user rather than churn on. This is the generate → review → iterate loop; skipping it ships unreviewed codegen (the failure mode this step exists to close).
 
 ## 7. Verify and summarise
 
@@ -154,16 +96,10 @@ Re-run the repo's checks over what changed and report the result honestly:
 - Python → `ruff check` (and `pyright`/`uv run pytest` if the repo uses them).
 - TypeScript → `npm run check`.
 
-Then summarise: what was refactored, what was deferred (and why), and the
-doc-ready block for the user to keep. If checks fail, say so with the output —
-don't paper over it.
+Then summarise: what was refactored, what was deferred (and why), and the doc-ready block for the user to keep. If checks fail, say so with the output — don't paper over it.
 
 ## Boundaries
 
-- **vs the built-in `/code-review`** — that hunts correctness bugs; this pass does
-  design/structure only. It *invokes* `casomoltd:code-review` for house-standard
-  judgment but never duplicates the bug hunt.
-- **vs `eslint` / `ruff`** — the linters own mechanical rules; this pass owns the
-  design half (shape, separation of concerns, pattern-warranted-or-premature).
-- **vs its worker agents** — `design-xray` and `code-review` hold the judgment;
-  this skill only orchestrates and applies the approved diff.
+- **vs the built-in `/code-review`** — that hunts correctness bugs; this pass does design/structure only. It *invokes* `casomoltd:code-review` for house-standard judgment but never duplicates the bug hunt.
+- **vs `eslint` / `ruff`** — the linters own mechanical rules; this pass owns the design half (shape, separation of concerns, pattern-warranted-or-premature).
+- **vs its worker agents** — `design-xray` and `code-review` hold the judgment; this skill only orchestrates and applies the approved diff.

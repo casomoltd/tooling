@@ -1,10 +1,6 @@
 # Buttondown newsletters as code
 
-The `buttondown` command keeps a Buttondown newsletter's settings, skins and email
-templates as files in a repo, applies them to the live newsletter, and gates them
-in the repo's `check`. It also gates a post's copy before the post becomes a
-draft. How the platform itself behaves is in
-[Buttondown: how the platform behaves](buttondown-platform.md).
+The `buttondown` command keeps a Buttondown newsletter's settings, skins and email templates as files in a repo, applies them to the live newsletter, and gates them in the repo's `check`. It also gates a post's copy before the post becomes a draft. How the platform itself behaves is in [Buttondown: how the platform behaves](buttondown-platform.md).
 
 ## A repo's layout
 
@@ -18,14 +14,9 @@ buttondown/
   checks.mjs             the repo's own gates (optional)
 ```
 
-Each file in `fields/` is the Buttondown field it is named after. A stylesheet or
-text file is sent verbatim; an `.mjs` file's default export is the value, a string
-or, for a structured field such as `socials`, an array or object. A module lets a
-field be built from the site's own constants, so the newsletter and the site can't
-drift apart. A field may be set in `newsletter.json` or in `fields/`, never both.
+Each file in `fields/` is the Buttondown field it is named after. A stylesheet or text file is sent verbatim; an `.mjs` file's default export is the value, a string or, for a structured field such as `socials`, an array or object. A module lets a field be built from the site's own constants, so the newsletter and the site can't drift apart. A field may be set in `newsletter.json` or in `fields/`, never both.
 
-The newsletter's identity is never one of its fields: `newsletter.json` holding
-`id`, `publicId` or `username` is refused.
+The newsletter's identity is never one of its fields: `newsletter.json` holding `id`, `publicId` or `username` is refused.
 
 ## Configuration
 
@@ -46,8 +37,7 @@ Under `buttondown` in the repo's `casomo.config.mjs`:
 | `paletteFiles` | Other files (an icon, an SVG) whose colours must be the site's. |
 | `checks` | Paths to the repo's own [gates](#what-check-refuses). |
 
-A token is read from a top-level `:root` or `@theme` block of `globals`; a variant
-such as `.dark` or a `:root` inside `@media` is not the token.
+A token is read from a top-level `:root` or `@theme` block of `globals`; a variant such as `.dark` or a `:root` inside `@media` is not the token.
 
 ## Commands
 
@@ -65,39 +55,16 @@ npm run buttondown -- upload <img> # upload an image, print its URL
 npm run buttondown -- api <METHOD> <path> [json] [--send]
 ```
 
-Edit the files, never the dashboard: a dashboard edit is drift, and `npm run
-buttondown` reports it. A few settings are dashboard-only and can't be kept as
-files ([The API](buttondown-platform.md#the-api)).
+Edit the files, never the dashboard: a dashboard edit is drift, and `npm run buttondown` reports it. A few settings are dashboard-only and can't be kept as files ([The API](buttondown-platform.md#the-api)).
 
-- **`apply`** patches only what differs, and exits 1 if Buttondown refused any
-  field or tag, so a script can gate on it.
-- **`check <f.md>`** gates one post's copy
-  ([the post gate](#what-check-refuses-in-a-post)), without the key.
-- **`draft`** takes a markdown file whose first line, after any front matter, is
-  `# Subject`. Keep the file outside the repo: once sent, an email is final and
-  Buttondown holds the record of it. The new draft's id is written back into the
-  front matter, so a re-run replaces that draft; `slug` and `description` pass
-  through, and `image` sets the post's share image, defaulting to the
-  newsletter's own (Buttondown otherwise takes the post's first picture). A
-  draft already sent is refused rather than rewritten. It runs
-  [the post gate](#what-check-refuses-in-a-post) first and uploads nothing if
-  it fails.
-- **`api`** exists for setting a manual test up and tearing it down. It writes
-  newsletter settings only to the configured newsletter, judged on the path the
-  server routes. Unless the command carries `--send`, it refuses any call that
-  could send an email: a write to the emails that isn't plainly a draft (a
-  create must say `status: draft`; an edit may leave the status out), and any
-  action on an email or a subscriber, such as `publish`, `send-draft` or a
-  reminder. A send is then always a person's deliberate act, and a route
-  Buttondown adds is refused until someone looks at it. Creating an unactivated
-  subscriber still mails a confirmation; that is the manual test's stand-in for
-  a sign-up, so point it at an address you own.
+- **`apply`** patches only what differs, and exits 1 if Buttondown refused any field or tag, so a script can gate on it.
+- **`check <f.md>`** gates one post's copy ([the post gate](#what-check-refuses-in-a-post)), without the key.
+- **`draft`** takes a markdown file whose first line, after any front matter, is `# Subject`. Keep the file outside the repo: once sent, an email is final and Buttondown holds the record of it. The new draft's id is written back into the front matter, so a re-run replaces that draft; `slug` and `description` pass through, and `image` sets the post's share image, defaulting to the newsletter's own (Buttondown otherwise takes the post's first picture). A draft already sent is refused rather than rewritten. It runs [the post gate](#what-check-refuses-in-a-post) first and uploads nothing if it fails.
+- **`api`** exists for setting a manual test up and tearing it down. It writes newsletter settings only to the configured newsletter, judged on the path the server routes. Unless the command carries `--send`, it refuses any call that could send an email: a write to the emails that isn't plainly a draft (a create must say `status: draft`; an edit may leave the status out), and any action on an email or a subscriber, such as `publish`, `send-draft` or a reminder. A send is then always a person's deliberate act, and a route Buttondown adds is refused until someone looks at it. Creating an unactivated subscriber still mails a confirmation; that is the manual test's stand-in for a sign-up, so point it at an address you own.
 
 ## The key and the newsletter
 
-The key is read from the file `BUTTONDOWN_KEY_FILE` names, never from the command
-line, where it would sit in the shell history and in `ps`. Create the file
-readable by you alone:
+The key is read from the file `BUTTONDOWN_KEY_FILE` names, never from the command line, where it would sit in the shell history and in `ps`. Create the file readable by you alone:
 
 ```sh
 umask 077
@@ -105,107 +72,44 @@ cat > "$BUTTONDOWN_KEY_FILE"    # paste the key, then Ctrl-D
 chmod 600 "$BUTTONDOWN_KEY_FILE"
 ```
 
-The key reaches every newsletter on the account, so every request carries
-`Buttondown-Context` with the configured id. `apply` also checks the newsletter it
-reads before writing, and the one each write returns, against the configured id
-(or `publicId`) and username; either mismatch stops the run. `api` refuses a write
-to another newsletter's settings instead; reads, and writes outside
-`/newsletters`, are unrestricted.
+The key reaches every newsletter on the account, so every request carries `Buttondown-Context` with the configured id. `apply` also checks the newsletter it reads before writing, and the one each write returns, against the configured id (or `publicId`) and username; either mismatch stops the run. `api` refuses a write to another newsletter's settings instead; reads, and writes outside `/newsletters`, are unrestricted.
 
 ## What `check` refuses
 
-Bare `check` gates the skins and settings; a post is gated by `check <f.md>`
-([below](#what-check-refuses-in-a-post)). It reads the fields as they will be
-sent, composed skins included; a
-newsletter with no `web_css` or `css` field is refused, since there would be
-nothing to check. It fails when:
+Bare `check` gates the skins and settings; a post is gated by `check <f.md>` ([below](#what-check-refuses-in-a-post)). It reads the fields as they will be sent, composed skins included; a newsletter with no `web_css` or `css` field is refused, since there would be nothing to check. It fails when:
 
-- the web skin's TOKENS block is stale against the tokens (when `tokens` or
-  `extra` is set), or an `asserts` token has moved;
-- a skin, or a `paletteFiles` file, uses a hex colour the `globals` stylesheet
-  doesn't contain; only hex is checked, so an `rgb()` or named colour passes;
-- a skin hides anything (`display: none`, `font-size: 0`) that `allowedHides`
-  doesn't list;
+- the web skin's TOKENS block is stale against the tokens (when `tokens` or `extra` is set), or an `asserts` token has moved;
+- a skin, or a `paletteFiles` file, uses a hex colour the `globals` stylesheet doesn't contain; only hex is checked, so an `rgb()` or named colour passes;
+- a skin hides anything (`display: none`, `font-size: 0`) that `allowedHides` doesn't list;
 - a skin injects text with `content:`;
 - a web-skin `href` selector matches no `socials` URL or `ownLinks` entry;
 - an email link class has no `a.<class>` rule;
-- the web skin has an `@import` that isn't a whole statement before its first
-  rule: one after a rule, which browsers ignore, or one whose URL was cut short;
-- the web skin reads a variable nothing declares: a `--bd-*` role, or one the
-  shared web rules read; the declaration reading it would be dropped;
+- the web skin has an `@import` that isn't a whole statement before its first rule: one after a rule, which browsers ignore, or one whose URL was cut short;
+- the web skin reads a variable nothing declares: a `--bd-*` role, or one the shared web rules read; the declaration reading it would be dropped;
 - one of the repo's own gates reports a problem.
 
-A gate is a module whose default export takes `{root, payload, css, web, email,
-readToken}` and resolves to a list of problems, empty when clean; the `Check` type
-in `@casomoltd/tooling/buttondown` declares it.
+A gate is a module whose default export takes `{root, payload, css, web, email, readToken}` and resolves to a list of problems, empty when clean; the `Check` type in `@casomoltd/tooling/buttondown` declares it.
 
 ## What `check` refuses in a post
 
-`check <file.md>` reads the post as `draft` would send it and runs these checks
-in the repo it is run from. A problem fails the post; a warning is printed and
-doesn't. There is no override.
+`check <file.md>` reads the post as `draft` would send it and runs these checks in the repo it is run from. A problem fails the post; a warning is printed and doesn't. There is no override.
 
-- **Shape:** the post is read by the one parser `draft` uses
-  ([`post.mjs`](../buttondown/post.mjs)), so whatever `draft` would refuse
-  fails here first: a body that doesn't open on `# Subject`, an empty `id:` or
-  `image:`, or an `image:` that isn't an absolute URL.
-- **Readability:** the body's paragraphs, scored with the
-  [readability](../readability/index.mjs) formulas, must reach no higher than
-  the repo's `readability.config.mjs` `maxGrade`, else the readability
-  default. Headings, lists, tables, quotes, captions and HTML blocks are left
-  out: dense with figures and titles, they score as hard sentences when they
-  aren't. A post too short to score warns.
-- **Em dash:** none in the subject, description or body; an en dash in a range
-  passes.
-- **Banned words:** none of the `words` in
-  [`banned-words.json`](../buttondown/banned-words.json), exported as
-  `@casomoltd/tooling/banned-words`. Its `inContext` words are wrong in one
-  sense only ("leverage" as a verb), which a word match can't tell, so they are
-  listed and not checked.
-- **Spelling:** the repo's own cspell reads the subject, description and body,
-  not the front matter, with the config the repo's `spell` script names (`-c`
-  or `--config`), else the first one cspell's own search finds. A repo without
-  cspell fails.
-- **Personal data:** [`check-personal-data`](../bin/check-personal-data.mjs)'s
-  rules, with the repo's `personalData` settings and local denylist.
-- **Links:** every `http(s)` link and image is fetched. A 404 or 410 fails. A
-  5xx, a timeout or a network error is retried once and then warns, and so does
-  any other 4xx: a publisher's server error or a refused robot says nothing
-  about whether the page exists.
+- **Shape:** the post is read by the one parser `draft` uses ([`post.mjs`](../buttondown/post.mjs)), so whatever `draft` would refuse fails here first: a body that doesn't open on `# Subject`, an empty `id:` or `image:`, or an `image:` that isn't an absolute URL.
+- **Readability:** the body's paragraphs, scored with the [readability](../readability/index.mjs) formulas, must reach no higher than the repo's `readability.config.mjs` `maxGrade`, else the readability default. Headings, lists, tables, quotes, captions and HTML blocks are left out: dense with figures and titles, they score as hard sentences when they aren't. A post too short to score warns.
+- **Em dash:** none in the subject, description or body; an en dash in a range passes.
+- **Banned words:** none of the `words` in [`banned-words.json`](../buttondown/banned-words.json), exported as `@casomoltd/tooling/banned-words`. Its `inContext` words are wrong in one sense only ("leverage" as a verb), which a word match can't tell, so they are listed and not checked.
+- **Spelling:** the repo's own cspell reads the subject, description and body, not the front matter, with the config the repo's `spell` script names (`-c` or `--config`), else the first one cspell's own search finds. A repo without cspell fails.
+- **Personal data:** [`check-personal-data`](../bin/check-personal-data.mjs)'s rules, with the repo's `personalData` settings and local denylist.
+- **Links:** every `http(s)` link and image is fetched. A 404 or 410 fails. A 5xx, a timeout or a network error is retried once and then warns, and so does any other 4xx: a publisher's server error or a refused robot says nothing about whether the page exists.
 
 ## Shared skins and email blocks
 
-A site whose emails draw their own bands, and whose blog wears its own skin, takes
-the shared parts from `@casomoltd/tooling/buttondown` and keeps only its own:
+A site whose emails draw their own bands, and whose blog wears its own skin, takes the shared parts from `@casomoltd/tooling/buttondown` and keeps only its own:
 
-- **An email theme** is one value a site defines once and passes to both email
-  functions: `{fonts: {body, heading}, colours: {page, ink, heading}, leading:
-  {body, prose}}`. Either function names any missing part of it rather than
-  rendering `undefined`.
-- **`createEmailBlocks(options)`** returns the bands an email is built from: the
-  title card, white air, paragraphs, body links, the one action, the sign-off and
-  the small print. Beside the theme, the site supplies the rest of its look and
-  its small print, every part required (`EmailBlockOptions` in
-  `index.d.mts`), and draws its own mark band. `footer()` must be told whether
-  there is a subscription to leave.
-- **`emailBaseCss(theme)`** writes the rules every site's emails share, with
-  literal values, since a mail client can't resolve a custom property: the page,
-  prose (justified), headings, links, rules, square corners on everything, the
-  container resets, and a hide for each piece
-  of Buttondown's email chrome (`EMAIL_CHROME_HIDES`, which the site spreads into
-  `allowedHides`). A site's `fields/css.mjs` appends its own stylesheet.
-- **`composeWebSkin(site)`** inserts the shared web rules after the site
-  stylesheet's leading comments and `@charset`, `@import` and `@layer`
-  statements and ahead of its own rules, so the site's win a tie. It also hides
-  the hosted-page controls in `WEB_CHROME_HIDES` (the mail-provider button, and
-  a signed-in reader's manage link to buttondown.com), with `!important`, so a
-  site's rules can't show them unless they are `!important` too; the site
-  spreads that list into `allowedHides`. The manage-link hide assumes the
-  archive is on a custom domain, where that link asks the reader to sign in
-  again. The
-  shared rules read their values from variables the site's TOKENS block declares:
-  Buttondown's `--color-background`, `--color-foreground`, `--font-family-sans`
-  and `--radius`, and these roles the theme lacks:
+- **An email theme** is one value a site defines once and passes to both email functions: `{fonts: {body, heading}, colours: {page, ink, heading}, leading: {body, prose}}`. Either function names any missing part of it rather than rendering `undefined`.
+- **`createEmailBlocks(options)`** returns the bands an email is built from: the title card, white air, paragraphs, body links, the one action, the sign-off and the small print. Beside the theme, the site supplies the rest of its look and its small print, every part required (`EmailBlockOptions` in `index.d.mts`), and draws its own mark band. `footer()` must be told whether there is a subscription to leave.
+- **`emailBaseCss(theme)`** writes the rules every site's emails share, with literal values, since a mail client can't resolve a custom property: the page, prose (justified), headings, links, rules, square corners on everything, the container resets, and a hide for each piece of Buttondown's email chrome (`EMAIL_CHROME_HIDES`, which the site spreads into `allowedHides`). A site's `fields/css.mjs` appends its own stylesheet.
+- **`composeWebSkin(site)`** inserts the shared web rules after the site stylesheet's leading comments and `@charset`, `@import` and `@layer` statements and ahead of its own rules, so the site's win a tie. It also hides the hosted-page controls in `WEB_CHROME_HIDES` (the mail-provider button, and a signed-in reader's manage link to buttondown.com), with `!important`, so a site's rules can't show them unless they are `!important` too; the site spreads that list into `allowedHides`. The manage-link hide assumes the archive is on a custom domain, where that link asks the reader to sign in again. The shared rules read their values from variables the site's TOKENS block declares: Buttondown's `--color-background`, `--color-foreground`, `--font-family-sans` and `--radius`, and these roles the theme lacks:
 
   | Variable | Role |
   |---|---|
@@ -216,63 +120,26 @@ the shared parts from `@casomoltd/tooling/buttondown` and keeps only its own:
   | `--bd-focus` | the focus ring |
   | `--bd-leading` | an archive entry's line height |
 
-  A site's `fields/web_css.mjs` composes its `skins/web.css`, and `webSkin` names
-  that file so `tokens` rewrites its block.
-- **`colophonLinks(colophon)`** turns a site's colophon into `socials` links for
-  the archive footer. Each line is `{text, register: {number, url}}` or `{text,
-  source}`, its text written without the closing full stop. The text is split
-  into runs of at most 32 characters (the label limit), the full stop goes on the
-  register's number, or on the text where there's none, and every URL is marked
-  with a `colophon=<line>-start|run<n>|num` query for the skin to key on (see
-  *Line breaks in the footer* below).
-- **`colophonHtml(colophon, link)`** is the same colophon as an email's small
-  print, its lines joined by `<br>`: a register's number linked to the register,
-  and a line with no register linked whole to its source, so a mail app doesn't
-  turn a bare address into a map link in its own colour. `link(href, text)`
-  draws each link in the site's style.
+  A site's `fields/web_css.mjs` composes its `skins/web.css`, and `webSkin` names that file so `tokens` rewrites its block.
+- **`colophonLinks(colophon)`** turns a site's colophon into `socials` links for the archive footer. Each line is `{text, register: {number, url}}` or `{text, source}`, its text written without the closing full stop. The text is split into runs of at most 32 characters (the label limit), the full stop goes on the register's number, or on the text where there's none, and every URL is marked with a `colophon=<line>-start|run<n>|num` query for the skin to key on (see *Line breaks in the footer* below).
+- **`colophonHtml(colophon, link)`** is the same colophon as an email's small print, its lines joined by `<br>`: a register's number linked to the register, and a line with no register linked whole to its source, so a mail app doesn't turn a bare address into a map link in its own colour. `link(href, text)` draws each link in the site's style.
 
 ## Writing a skin
 
-A skin restyles Buttondown's markup; it never rebuilds it. A rule written
-against someone else's markup stops applying **without failing** when that
-markup changes, so the page quietly reverts and nobody notices until a reader
-does. The rules that follow from that:
+A skin restyles Buttondown's markup; it never rebuilds it. A rule written against someone else's markup stops applying **without failing** when that markup changes, so the page quietly reverts and nobody notices until a reader does. The rules that follow from that:
 
-- **Restyle, don't rebuild:** colour, face, size, weight and spacing. Where the
-  thing to change is the newsletter's own data (its name, icon or description),
-  change the field rather than styling over its rendering.
-- **Hide only with a reason** listed under `allowedHides`, and add no text:
-  `check` refuses `content:` and an unlisted hide.
-- **Order your own blocks, not theirs.** Buttondown renders the name, then the
-  `description`, then the form. Give the description's blocks classes of your own,
-  flatten `.newsletter-description` with `display: contents`, and give those blocks
-  an `order` around the name and the form. If the rule stops applying, they fall
-  back to the order written rather than reshuffling the page.
-- **Paint, don't inject.** A wordmark or an icon is a background image on a link
-  whose own text stays in the markup for screen readers, with the text set to
-  `font-size: 0` (a hide, so listed).
-- **Key on your data.** A footer entry is found by the URL it points at, which is
-  the newsletter's own `socials` data, not by its position or Buttondown's class.
+- **Restyle, don't rebuild:** colour, face, size, weight and spacing. Where the thing to change is the newsletter's own data (its name, icon or description), change the field rather than styling over its rendering.
+- **Hide only with a reason** listed under `allowedHides`, and add no text: `check` refuses `content:` and an unlisted hide.
+- **Order your own blocks, not theirs.** Buttondown renders the name, then the `description`, then the form. Give the description's blocks classes of your own, flatten `.newsletter-description` with `display: contents`, and give those blocks an `order` around the name and the form. If the rule stops applying, they fall back to the order written rather than reshuffling the page.
+- **Paint, don't inject.** A wordmark or an icon is a background image on a link whose own text stays in the markup for screen readers, with the text set to `font-size: 0` (a hide, so listed).
+- **Key on your data.** A footer entry is found by the URL it points at, which is the newsletter's own `socials` data, not by its position or Buttondown's class.
 
 Techniques that have held up:
 
-- **Outranking the theme.** Several of its rules carry `!important` or an id's
-  specificity (`:is(#subscribe-form, …)`), so a matching rule names the element or
-  the id too; the address field's rule is `input[type=email].input-field`, which
-  only a selector naming the type outranks.
-- **A switch for a checkbox:** `appearance: none` on the input, a
-  `radial-gradient` knob slid by `background-position`, since a pseudo-element
-  knob would need `content:`.
-- **A full-width band behind several siblings:** each draws its own slice with an
-  outset `border-image` (`linear-gradient(c, c) fill 0 // 1px 100vmax`), reaching
-  1px into its neighbours so no seam shows; the shared base flattens every
-  `box-shadow`, so a spread shadow won't do it.
-- **Line breaks in the footer:** `socials` render as one flex row, which can't
-  break before a given link, so lay the list out as floats and give the first
-  link of each line `clear: left`.
-- **`:has()` can't nest:** write a sibling chain that ends at the element you key
-  on, such as `h2:has(+ p + div > a[href*="/rss"])`.
+- **Outranking the theme.** Several of its rules carry `!important` or an id's specificity (`:is(#subscribe-form, …)`), so a matching rule names the element or the id too; the address field's rule is `input[type=email].input-field`, which only a selector naming the type outranks.
+- **A switch for a checkbox:** `appearance: none` on the input, a `radial-gradient` knob slid by `background-position`, since a pseudo-element knob would need `content:`.
+- **A full-width band behind several siblings:** each draws its own slice with an outset `border-image` (`linear-gradient(c, c) fill 0 // 1px 100vmax`), reaching 1px into its neighbours so no seam shows; the shared base flattens every `box-shadow`, so a spread shadow won't do it.
+- **Line breaks in the footer:** `socials` render as one flex row, which can't break before a given link, so lay the list out as floats and give the first link of each line `clear: left`.
+- **`:has()` can't nest:** write a sibling chain that ends at the element you key on, such as `h2:has(+ p + div > a[href*="/rss"])`.
 
-What Buttondown renders in each state (signed in, just signed up, the
-preferences page) and the classes to key on are in
-[The hosted pages](buttondown-platform.md#the-hosted-pages).
+What Buttondown renders in each state (signed in, just signed up, the preferences page) and the classes to key on are in [The hosted pages](buttondown-platform.md#the-hosted-pages).
