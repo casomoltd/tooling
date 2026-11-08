@@ -14,7 +14,7 @@ A session list is the one file both of you write in. It is not a record, it is n
 
 ## What the file is for
 
-**Actions only, and only the ones that need doing.** A durable fact belongs in whatever owns it — the tracker item, the reference page, the code comment. If a line is not something someone does, it is in the wrong file.
+**Actions only, and only the ones that need doing**, bar a Done section while its work is in flight ([Close threads](#close-threads)). A durable fact belongs in whatever owns it — the tracker item, the reference page, the code comment. If a line is not something someone does, it is in the wrong file.
 
 **No method here either.** How a thing is done belongs in a skill. A design for something unbuilt belongs in a tracked item, with a one-line pointer here.
 
@@ -81,6 +81,10 @@ Carrying it in both places is the duplication this skill exists to stop: the inb
 
 ## Close threads
 
-The section that grows is the one nobody is closing. When an item is done, delete it; when it is superseded, delete it and state the current position; when it turns out to belong somewhere else, move it there and delete it here.
+The section that grows is the one nobody is closing. When an item is done, delete it, bar a Done section (below); when it is superseded, delete it and state the current position; when it turns out to belong somewhere else, move it there and delete it here.
+
+**A Done section is allowed while its piece of work is in flight**, so progress shows as the list is worked through. Once the tracking item that work belongs to is finished, delete the Done items: the detail lives on that item's record, not here.
+
+**A planning artefact is optional.** When the work runs from one (a shared document, a rendered page, a scratch file), the list points to it in one line rather than copying it.
 
 **An item that has been on the list through three rewrites is telling you something** — usually that it is not an action, or that it is blocked on something nobody has named. Say which.
