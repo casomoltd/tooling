@@ -38,8 +38,10 @@
     "!retention/tsconfig.json"
   ],
   "scripts": {
-    "check": "node bin/check-gates.mjs && node bin/verify-pack.mjs && npm run check:private-refs && npm run check:personal-data && npm run lint && npm run typecheck && npm run test && npm run lint:md",
+    "check": "node bin/check-gates.mjs && node bin/verify-pack.mjs && npm run check:private-refs && npm run check:personal-data && npm run lint && npm run check:shell && npm run typecheck && npm run test && npm run lint:md",
     "lint": "eslint .",
+    "//check:shell": "shellcheck is the system binary (apt install shellcheck), not an npm package; this checks the repo's own scripts and is not a shared gate.",
+    "check:shell": "git ls-files -z '*.sh' | xargs -0 -r -n1 bash -n && git ls-files -z '*.sh' | xargs -0 -r shellcheck",
     "typecheck": "tsc --noEmit -p hooks/tsconfig.json && tsc --noEmit -p bin/tsconfig.json && tsc --noEmit -p identity/tsconfig.json && tsc --noEmit -p tally/tsconfig.json && tsc --noEmit -p tally/tsconfig.browser.json && tsc --noEmit -p attribution/tsconfig.json && tsc --noEmit -p signature/tsconfig.json && tsc --noEmit -p retention/tsconfig.json",
     "test": "node hooks/test.mts && node hooks/commit-detail.test.mts && node bin/commit-msg.test.mjs && node bin/check-gates.test.mjs && node bin/check-listed-files.test.mjs && node bin/check-personal-data.test.mjs && node bin/check-routes.test.mjs && node bin/casomo-config.test.mjs && node bin/buttondown.test.mjs && node buttondown/post-check.test.mjs && node commitlint/index.test.mjs && node readability/index.test.mjs && node identity/index.test.mjs && node tally/translator.test.mjs && node tally/compare.test.mjs && node tally/embed.test.mjs && node tally/frame.test.mjs && node tally/frame.dom.test.mjs && node attribution/index.test.mjs && node signature/rules.test.mjs && node retention/periods.test.mjs && node bin/exports.test.mjs",
     "lint:md": "remark --frail --quiet --no-stdout --rc-path bin/skills-lint.config.mjs skills agents docs",
