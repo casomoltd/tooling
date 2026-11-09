@@ -11,8 +11,8 @@
  *               (report/casomo-template.typ in this package).
  *
  * Options:
- *   --out, -o <file>  Output PDF path. Default (see the generate-report
- *                     skill): $SCRATCH_DIR/reports/<name>.pdf, or
+ *   --out, -o <file>  Output PDF path. Default:
+ *                     $SCRATCH_DIR/reports/<name>.pdf, or
  *                     <repo-root>/scratch/reports/ when unset (gitignore
  *                     scratch/ in the consumer repo).
  *   --root <dir>      Typst compile root (default: auto-detected, see below)

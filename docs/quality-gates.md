@@ -51,5 +51,5 @@ The same rule applies below the config, to a type relaxed to quiet the compiler:
 ## Out of scope
 
 - The lint rules and their limits: [lint.md](lint.md).
-- Commit-message shape and the commit workflow: the [`commit`](../skills/commit/SKILL.md) skill.
-- Bumping, tagging and pushing: the [`release-version`](../skills/release-version/SKILL.md) skill.
+- Making a commit and its message shape: [Commits](commit.md).
+- Bumping, tagging and pushing: [Releases](release.md).

@@ -72,7 +72,7 @@ A skill is *dispatched by intent* — its `description` is a router (trigger phr
 
 The composition graph is the point. Some `tooling`-native seams:
 
-- **`commit` ↔ `release-version`** — `commit` runs checks, stages, and commits, and *stops*; the release tail (bump → push → publish/deploy) is `release-version`. Each states the seam in its Boundaries so neither drifts into the other's lane.
+- **`design-pass` ↔ `design-xray`** — `design-xray` maps a package's structure read-only and stops; `design-pass` chains that map into a review and an approved refactor. Each states the seam in its Boundaries so neither drifts into the other's lane.
 - **`design-pass` → `design-xray` → `code-review`** — the `design-pass` skill orchestrates two agents: `design-xray` returns a structural map + a ranked refactor-target handoff, which `code-review` then judges file-by-file. The handoff table *is* the interface between them.
 - **`python-style` / `typescript` vs `eslint` / `ruff`** — the rubrics own the design-judgment half; the linters own the mechanical half. `code-review`'s "Ignore — owned elsewhere" section names that seam so it never re-flags a lint rule.
 

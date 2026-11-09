@@ -44,7 +44,7 @@ The bulk of these are **command/shell intent** — git/npm safety that no linter
 
 A Claude rule earns its place only when nothing authoritative already catches it, and a rule is removed from here only once its real home enforces it (no coverage gap). The two content rules that remain — `tsconfig` strict-weakening (tsc *passes* once weakened) and bare `# type: ignore` (until a consumer's ruff config adds `PGH003`) — stay only because nothing else guards them yet.
 
-(Drafted commit *messages* are deliberately not guarded here either: the `commit` skill drafts the message to a file, runs the repo's own `commit-msg` git hook over it, and only then commits with `git commit -F` — same file, same gate, just before the commit instead of during it. The whole process, step by step, is [Commits](../docs/commit.md).)
+(Drafted commit *messages* are deliberately not guarded here either: [the commit form](../docs/commit.md#the-command) drafts the message to a file, runs the repo's own `commit-msg` git hook over it, and only then commits with `git commit -F` — same file, same gate, just before the commit instead of during it. The whole process, step by step, is [Commits](../docs/commit.md).)
 
 ## Failure handling
 

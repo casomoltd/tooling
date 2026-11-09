@@ -8,4 +8,4 @@ Public repo: shared dev config + CLIs (published to npm as `@casomoltd/tooling`,
 
 When creating or editing a skill or agent, follow [`docs/skill-agent-schema.md`](docs/skill-agent-schema.md), the house authoring schema: the interface vocabulary and the three-profile decision table (procedural skill · agent · standard/rubric) that says which sections a given unit needs.
 
-For the prose, [`skills/docs-style`](skills/docs-style/SKILL.md) is the owner. Before handing back, run [`agents/skill-review`](agents/skill-review.md) on a changed skill or brief and [`agents/doc-review`](agents/doc-review.md) on a changed doc; the [`commit`](skills/commit/SKILL.md) skill routes staged files to both.
+For the prose, [`skills/docs-style`](skills/docs-style/SKILL.md) is the owner. Before handing back, run [`agents/skill-review`](agents/skill-review.md) on a changed skill or brief and [`agents/doc-review`](agents/doc-review.md) on a changed doc.

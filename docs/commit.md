@@ -1,6 +1,6 @@
 # Commits
 
-How a commit is made in a repo on this package's gates: what happens at each step, which gate runs where, and the one command a commit is made with. The steps Claude follows are the [`commit` skill](../skills/commit/SKILL.md); the hooks are in [Quality gates](quality-gates.md#the-hooks).
+How a commit is made in a repo on this package's gates: what happens at each step, which gate runs where, and the one command a commit is made with. The hooks enforce it: a commit that fails a gate is refused, whoever makes it.
 
 ## The steps
 
@@ -14,9 +14,7 @@ How a commit is made in a repo on this package's gates: what happens at each ste
 
 Each step is a command of its own, never chained with another step, so each one that asks for permission asks for itself alone.
 
-A commit never bumps the version or pushes; that is the release, a separate step ([`release-version`](../skills/release-version/SKILL.md)), whose bump [never runs in parallel][bump] with another command.
-
-[bump]: ../skills/release-version/SKILL.md#4-bump--with-the-repos-own-tooling-never-hand-edit
+A commit never bumps the version or pushes; that is the release ([Releases](release.md)).
 
 ## The command
 

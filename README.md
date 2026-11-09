@@ -141,11 +141,13 @@ Append `&& npm run lint:md` to your `check` script. The config resolves the plug
 
 ## Client reports (Typst)
 
-`report/` ships the Casomo house style for client-facing PDF reports: a [Typst](https://typst.app) template (`casomo-template.typ`, with the brand mark beside it) and the `build-report` bin that compiles a report to PDF. `report/example.typ` is a lorem-ipsum reference exercising every feature the template styles. How a report imports the template, where the PDF lands and the [external prerequisites](#external-prerequisites) it needs are in the [`generate-report`](skills/generate-report/SKILL.md) skill.
+`report/` ships the Casomo house style for client-facing PDF reports: a [Typst](https://typst.app) template (`casomo-template.typ`, with the brand mark beside it) and the `build-report` bin that compiles a report to PDF. `report/example.typ` is a lorem-ipsum reference exercising every feature the template styles. A report imports the template from `/node_modules/@casomoltd/tooling/report/casomo-template.typ` (the bin sets the Typst root so that resolves); the PDF lands in `$SCRATCH_DIR/reports/<name>.pdf`, or `scratch/reports/` at the repo root when that is unset; the [external prerequisites](#external-prerequisites) it needs are listed below.
 
 ## Quality gates
 
 The hooks are the gate and CI the backstop. What each hook runs, why `check` owns the build, the gates every repo's `check` must contain, and the rule that a failing check is fixed rather than weakened are in [docs/quality-gates.md](docs/quality-gates.md).
+
+**Contributing to a repo on these gates:** the policy is the same in every repo that installs this package, so a repo states only what differs. Making a commit is [docs/commit.md](docs/commit.md); bumping, tagging and pushing a version is [docs/release.md](docs/release.md).
 
 ## Usage
 
@@ -189,13 +191,9 @@ The tooling serves three consumers: **Claude** (the editing workflow) → these 
 
 | Skill | Description |
 |---|---|
-| [`/casomoltd:commit`](skills/commit/SKILL.md) | Run checks and commit cleanly (no bump, no push) |
-| [`/casomoltd:release-version`](skills/release-version/SKILL.md) | Bump → push → CI publish/deploy (the release tail) |
 | [`/casomoltd:design-pass`](skills/design-pass/SKILL.md) | Map → review → refactor a package |
 | [`/casomoltd:draft-design-spec`](skills/draft-design-spec/SKILL.md) | Author a reviewable HTML design spec before writing code |
 | [`/casomoltd:screenshot`](skills/screenshot/SKILL.md) | Capture and analyse a dev server page |
-| [`/casomoltd:generate-report`](skills/generate-report/SKILL.md) | Scaffold and compile a Typst client report, verify the PDF |
-| [`/casomoltd:session-todo`](skills/session-todo/SKILL.md) | Write and work a session handover list |
 | [`casomoltd:typescript`](skills/typescript/SKILL.md) | TypeScript data modelling and type design (rubric) |
 | [`casomoltd:python-style`](skills/python-style/SKILL.md) | Python code-generation style rules (rubric) |
 | [`casomoltd:docs-style`](skills/docs-style/SKILL.md) | Technical and reference doc convention (rubric) |
