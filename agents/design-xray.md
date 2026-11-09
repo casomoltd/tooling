@@ -13,6 +13,7 @@ description: >-
   it does NOT find correctness bugs (that's /code-review) or mechanical lint
   (that's eslint/ruff).
 tools: Read, Grep, Glob, Bash
+model: opus
 skills: python-style, typescript
 ---
 
@@ -38,6 +39,16 @@ You are **read-only except for the single report artifact you persist** (see *Pe
 
 Read enough of each file — class/type defs, signatures, call sites — to judge intent, not just count lines. Read each module's **header doc-comment** and any **source-citation blocks** too: judge whether the file's own documentation still describes what it now does, not only whether the code is well-shaped. Ignore generated/vendored trees (`node_modules/`, `dist/`, `vendor/`, `typings/`) and tests unless asked.
 
+## Measure first, then read
+
+Run each of these that the repo has, read-only, before reading any file whole: reading files to count lines is the expensive way to get a number. Use the repo's installed binaries (`npx --no-install`), never install anything into the target, and never pass `--fix` or any flag that writes. List any that did not run, and why, in a one-line `Measured:` note above the weight table.
+
+- **TypeScript:** `npx --no-install eslint . -f json` (the [house rules](../docs/lint.md#the-house-rules) cap complexity, size, nesting and parameters; a repo's `eslint-suppressions.json` lists the modules that already break one), `npx --no-install knip --reporter json` (unused files, exports and dependencies) and `npx --no-install jscpd <src>` (duplication).
+- **Python:** `ruff check --output-format json`, including its complexity rule where the repo configures it.
+- **Import graph:** run dependency-cruiser as [`draft-design-spec`](../skills/draft-design-spec/SKILL.md) does, for cycles, fan-in and fan-out. It is the one tool fetched from the npx cache rather than the repo.
+
+Use the output as evidence, not as findings: lint and dead code are owned by those tools, and you do not re-report them. Then read **whole** only the modules the measurements flag (suppressed, over a limit, in a cycle, high fan-in) and any the caller named; for the rest the numbers are enough, and the weight table marks them *measured only*.
+
 ## Output — produce ALL FIVE sections, in this order
 
 ### 1. Doc-ready map  ⟨lift verbatim into docs⟩
@@ -51,7 +62,7 @@ The block must be **valid, renderable mermaid on the first pass** — the caller
 - Stereotypes as literal `<<abstract>>` / `<<enumeration>>` / `<<type alias>>`, **never** HTML-escaped. This renders in a markdown fence, where `&lt;&lt;…&gt;&gt;` shows as text rather than a stereotype.
 
 ### 2. Weight table
-A table: module · lines · #distinct concerns · heavy / balanced / thin · recommended action. Apply the *separation of concerns* rule from the matching standard:
+A table: module · lines · #distinct concerns · heavy / balanced / thin · recommended action · read whole or measured only. Apply the *separation of concerns* rule from the matching standard:
 - Flag any unit mixing **IO + domain logic + presentation**.
 - Flag every function over **~40 lines**.
 - Flag any function that **fetches AND parses AND formats**.

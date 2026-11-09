@@ -8,6 +8,7 @@ description: >-
   editing code. Complements the built-in /code-review (correctness bugs) and
   eslint/ruff (mechanical rules) — it does neither of those.
 tools: Read, Grep, Glob, Bash
+model: opus
 skills: typescript, python-style
 ---
 

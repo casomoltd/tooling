@@ -13,6 +13,7 @@ description: >-
   (that's `code-review` on the type definitions), map the code the spec describes
   (that's `design-xray`), or walk a markdown docs corpus (that's `docs-xray`).
 tools: Read, Grep, Glob, Bash
+model: sonnet
 skills: draft-design-spec, docs-style
 ---
 
