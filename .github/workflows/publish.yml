@@ -17,7 +17,9 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      # write: the release step below attaches the packed tarball. Temporary,
+      # while npm publishing is paused (#7).
+      contents: write
       id-token: write # OIDC — trusted publishing, no stored token
 
     steps:
@@ -43,5 +45,18 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Publish
-        run: npm publish
+      # Temporary: the npm account is on hold, so a version tag releases the
+      # packed tarball on GitHub instead of publishing to npm, and consumers
+      # install it from the release URL. Revert once npm accepts publishes
+      # again, and publish each version released this way:
+      # https://github.com/casomoltd/tooling/issues/7
+      - name: Pack
+        run: npm pack
+
+      - name: Release the tarball on GitHub
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh release create "$GITHUB_REF_NAME" ./*.tgz --verify-tag
+          --title "$GITHUB_REF_NAME"
+          --notes "Not on npm yet: install from the attached tarball."
