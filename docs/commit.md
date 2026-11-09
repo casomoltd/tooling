@@ -6,13 +6,13 @@ How a commit is made in a repo on this package's gates: what happens at each ste
 
 1. **Run the repo's checks.** `npm run check`, or a Python repo's suite, so the commit's own `pre-commit` hook, which runs the same, passes once it is confirmed.
 2. **Stage the files by name.** `cd <repo> && git add a.ts b.ts`, never `git add -A` or `git add .`, so a commit holds only what was meant for it.
-3. **Review the staged diff.** The review agents read what is staged, and the diff and their findings go to the person committing before anything lands.
+3. **Review the staged diff** before anything lands. In a Claude Code session the plugin's review agents read what is staged, and the diff and their findings go to the person committing.
 4. **Write the message to a file.** The file is the message: what is checked next is exactly what the commit records.
 5. **Run the message gate on the file.** The repo's own `commit-msg` hook, called with the file's path, checks it as the commit will; fix what it reports and run it again until it passes.
-6. **Commit from the file, in [the commit form](#the-command).** The person committing confirms it in a prompt that shows the repo, the staged files and the message (the [`git-commit-confirm`](../hooks/README.md) guard).
+6. **Commit from the file, in [the commit form](#the-command).** In a Claude Code session the person committing confirms it in a prompt that shows the repo, the staged files and the message (the [`git-commit-confirm`](../hooks/README.md) guard).
 7. **The commit's own hooks run.** `pre-commit` runs `npm run check`, and `commit-msg` checks the message again; either one failing stops the commit.
 
-Each step is a command of its own, never chained with another step, so each one that asks for permission asks for itself alone.
+Steps 3 and 6 are what a Claude Code session adds; step 7's hooks apply to every commit. Each step is a command of its own, never chained with another step, so each one that asks for permission asks for itself alone.
 
 A commit never bumps the version or pushes; that is the release ([Releases](release.md)).
 
