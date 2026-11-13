@@ -64,6 +64,7 @@ Voice governs the sentences; this governs what the doc is made of and what order
 ## Single source of truth
 
 - **One fact, one home.** Point to the owner (a link plus a one-line summary) rather than restating its content — "canonical interface, referenced not restated". Duplicated content drifts out of sync; a pointer can't.
+- **A fact about a shared dependency lives in the dependency's doc.** When a repo learns how a tool, library or platform it shares with other repos behaves, the fact belongs in that dependency's doc, even when no other repo has written it down yet; the repo links it and keeps only how it uses the dependency (its own settings, its own instances). The test is whether the statement would still be true in a sibling repo that uses the same dependency: if it would, it is the dependency's.
 - **Load heavy reference just-in-time.** Schemas, ID tables, and taxonomies live in their own linked file, not inlined into the main spine — the spine stays scannable and the reference updates independently.
 - **Explain WHY, not WHAT.** A note earns its place by giving the rationale a reader can't infer from the thing itself; it never just restates the mechanic in prose.
 - **State a rule at the level it applies.** A rule is usually written the day one case prompted it, and it tends to describe that case. State the principle the case is an instance of, and let the case be one example among others: a rule worded around its origin is a second rule waiting to be written for the next sibling case, and a reader of that sibling will not find it.

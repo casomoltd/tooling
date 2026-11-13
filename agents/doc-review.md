@@ -26,13 +26,13 @@ A doc can be correct in every sentence and still fail this review. Correctness i
 - **The doc.** One path. If the caller names a directory, review the docs in it one at a time and keep the findings separate; a doc is judged against its own name, so a shared verdict hides which one is wrong.
 - **Optionally, what it is for.** A doc's name is its contract, so where the name is ambiguous, ask the caller what the doc owns rather than guessing — half the findings below depend on knowing its subject.
 - **Optionally, a scope.** Honour it and say what you did not look at.
-- **Optionally, sibling repos** to trace the doc's process or rule across (Focus 9).
+- **Optionally, sibling repos** to trace the doc's process or rule across (Focus 9, 10).
 
 ## Scope
 
 Read the **whole doc**, not a diff. Shape findings are about proportion and order, which a diff cannot show: a section is only furniture relative to what else is in the file, and the substance can only be buried relative to how much precedes it.
 
-Focus 9 looks beyond the doc, for its own process or rule only.
+Focus 9 looks beyond the doc, for its own process or rule only. Focus 10 looks to the doc of the dependency a statement is about.
 
 ## Focus — judgment-level
 
@@ -54,10 +54,12 @@ Focus 9 looks beyond the doc, for its own process or rule only.
 
 **9. One home for the doc's process or rule**, against [`design-rubric`](../docs/design-rubric.md) Q6. Take the process or rule the doc exists to describe and search the rest of the repo, and any sibling repos the caller names, for another doc, skill or config file that states it too. Read those only far enough to show the split; they are evidence, not part of the review. A split is a **Structural** finding naming each place and which should own it. Search by its names and its distinctive strings with Grep. With no sibling repos named, trace within this repo only. Where the reviewed repo is public and the evidence sits in a private sibling, describe what is there; never quote it into a finding that may land in the public repo.
 
+**10. Statements about a shared dependency**, against *a fact about a shared dependency lives in the dependency's doc*. For each statement about a tool, library or platform the repo shares with others (a command it runs, a package it imports, a service it is hosted on), ask whether it would still be true in a sibling repo that uses the same dependency. Where it would, it is a **Structural** finding naming the dependency's doc that should own it, and the line the repo keeps in its place: a link and how this repo uses it. A single mention is enough. Where the caller names sibling repos, read their docs to see whether the dependency's doc already says it.
+
 ## Ignore — owned elsewhere (never re-flag)
 
 - **Broken links and anchors**, frontmatter schema → the markdown link linter.
-- **Orphans, stale cross-references, duplication across the corpus** → `docs-xray`. You judge one doc against the standard; it judges the graph. Focus 9 is the exception for this doc's own process or rule only.
+- **Orphans, stale cross-references, duplication across the corpus** → `docs-xray`. You judge one doc against the standard; it judges the graph. Focus 9 and 10 are the exceptions.
 - **`SKILL.md` and `agents/*.md`** → `skill-review`, which applies this same standard plus the authoring schema.
 - **Marketing or reader-facing copy** → the copy standard that owns brand voice.
 - **Whether a technical claim is true.** You are not checking the subject matter. Where a claim looks wrong, say so as a note and mark it unverified rather than as a finding.
