@@ -2,7 +2,7 @@
 
 The **software architecture** lens behind the house standards — language- and platform-agnostic (a library, a service, a CLI, a UI). It exists to be run **up front**: most design churn is discovering, over review rounds, that a proposed type was an unneeded wrapper, that a second producer should have been unified, or that a concern sat in the wrong layer. Designing to the lens first collapses those rounds.
 
-The enforceable, example-backed **rules** live in the language standards ([`typescript`](../skills/typescript/SKILL.md), [`python-style`](../skills/python-style/SKILL.md)); this doc does **not** restate them — it is the cross-cutting lens and an index into them. Applied by [`draft-design-spec`](../skills/draft-design-spec/SKILL.md), [`design-pass`](../skills/design-pass/SKILL.md), and the `design-xray` / `code-review` agents.
+The enforceable, example-backed **rules** live in the language standards ([`typescript`](../skills/typescript/SKILL.md), [`python-style`](../skills/python-style/SKILL.md), [`cpp-style`](../skills/cpp-style/SKILL.md)); this doc does **not** restate them — it is the cross-cutting lens and an index into them. Applied by [`draft-design-spec`](../skills/draft-design-spec/SKILL.md), [`design-pass`](../skills/design-pass/SKILL.md), and the `design-xray` / `code-review` agents.
 
 ## The review lens
 

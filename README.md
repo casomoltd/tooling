@@ -196,6 +196,7 @@ The tooling serves three consumers: **Claude** (the editing workflow) → these 
 | [`/casomoltd:screenshot`](skills/screenshot/SKILL.md) | Capture and analyse a dev server page |
 | [`casomoltd:typescript`](skills/typescript/SKILL.md) | TypeScript data modelling and type design (rubric) |
 | [`casomoltd:python-style`](skills/python-style/SKILL.md) | Python code-generation style rules (rubric) |
+| [`casomoltd:cpp-style`](skills/cpp-style/SKILL.md) | C++ layout and portability rules (rubric) |
 | [`casomoltd:docs-style`](skills/docs-style/SKILL.md) | Technical and reference doc convention (rubric) |
 | [`/casomoltd:frontend-design`](skills/frontend-design/SKILL.md) | Distinctive, production-grade frontend UI (rubric) |
 | [`/casomoltd:page-design`](skills/page-design/SKILL.md) | Content-page structure for trust (rubric) |
