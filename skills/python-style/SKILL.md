@@ -19,7 +19,7 @@ Govern Python code generation — the design/style judgment for how Python is wr
 
 ## Owns-vs-defers
 
-Owns the **design & style judgment** — class design, types over dicts, EAFP, naming, module API, docstrings. **Defers** the mechanical half to `ruff` / `pyright` (line length, import order, `D100`/`D103`, `RUF022`, `E722`, annotation syntax): if a linter would catch it, it isn't this rubric's to restate.
+Applies on top of the house code standard, [`code-style`](../code-style/SKILL.md), and owns what Python adds to it: the **design & style judgment** — class design, types over dicts, EAFP, naming, module API, docstrings. **Defers** the mechanical half to `ruff` / `pyright` (line length, import order, `D100`/`D103`, `RUF022`, `E722`, annotation syntax): if a linter would catch it, it isn't this rubric's to restate.
 
 The rules below are self-contained — apply them directly. They take the [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html) as the baseline (assume its conventions wherever this file is silent), but what's written here is what's enforced; don't rely on fetching the guide at runtime.
 
@@ -29,7 +29,7 @@ Default output tends to be naive and procedural. Reach for these first — they 
 
 **When planning, present the class hierarchy.** A design plan should name the types and how they relate (what subclasses what, what implements which `Protocol`, which collections wrap which elements) — not just a list of functions. Weight that hierarchy toward the `collections.abc` ABCs: if a domain concept is a group of things, say which ABC it is (`Mapping`/`Set`/`Sequence`/`Collection`) and why, in the plan, before any code is written.
 
-- **Separation of concerns.** Keep IO, domain logic, and presentation in separate units. A function that fetches *and* parses *and* formats is three responsibilities — split them. The converse holds too: modules that answer the same question are one concern, so merge them. The test and the reasons to keep them apart hold in any language: [One Concern, One Module](../typescript/SKILL.md#one-concern-one-module).
+- **Separation of concerns.** Keep IO, domain logic, and presentation in separate units. A function that fetches *and* parses *and* formats is three responsibilities — split them. The converse holds too: modules that answer the same question are one concern, so merge them. The test and the reasons to keep them apart: [One Concern, One Module](../code-style/SKILL.md#one-concern-one-module).
 
 - **Depend on abstractions, not implementations (ports & adapters).** Define the interface the logic needs (a `Protocol` / type alias) in its own module; keep the concrete adapter (HTTP client, DB driver) in another. High-level code imports the interface and receives the adapter by injection; it never imports the concrete module just to name a type. Don't mix the abstraction and its implementation in one module. A port with a **single operation** is a `Callable` type alias, not a one-method `Protocol`; reserve `Protocol` for ports with several methods or state.
 
@@ -46,7 +46,7 @@ Default output tends to be naive and procedural. Reach for these first — they 
   def http_get(url: str) -> str: ...   # satisfies Fetch structurally
   ```
 
-- **Polymorphism over type codes.** An object carrying a `kind`/`type` field that callers `if`/`match` on is a missing subtype. Give each variant a class behind a shared `Protocol`; let one small factory pick the type, so call sites never ask "which kind are you?".
+- **Polymorphism over type codes** ([Variants over Mode Flags](../code-style/SKILL.md#variants-over-mode-flags), in Python). An object carrying a `kind`/`type` field that callers `if`/`match` on is a missing subtype. Give each variant a class behind a shared `Protocol`; let one small factory pick the type, so call sites never ask "which kind are you?".
 
   ```python
   # No — callers switch on a type code
@@ -68,7 +68,7 @@ Default output tends to be naive and procedural. Reach for these first — they 
 
 - **Service factories are `make_x()` functions.** Building a *collaborator* — a client that needs a credential, a service that loads config, a cache that resolves a directory — is a free `make_x()` factory that encapsulates the env/config/credential wiring and returns the ready object to be injected. This is distinct from an alternate *constructor* of a value (`X.from_row`), which stays a classmethod. Don't name it `configure_x` — that implies hidden, stateful side effects.
 
-- **Value objects, not primitives.** Don't pass bare `str`/`dict` between modules for a domain concept. Wrap it (`NewType`, a frozen dataclass, a model) so the type carries meaning and can grow behaviour.
+- **Value objects, not primitives** ([Pass Value Objects, Not Loose Fields](../code-style/SKILL.md#pass-value-objects-not-loose-fields), in Python). Don't pass bare `str`/`dict` between modules for a domain concept. Wrap it (`NewType`, a frozen dataclass, a model) so the type carries meaning and can grow behaviour.
 
 - **Identity vs. data.** A value object owns its *identity* and behaviour, not the heavy artifact it identifies — that lives in a store keyed by the identity (content-addressing: the key *is* the content, so a stale entry can't exist). When identity must persist across runs, derive it from a **stable content hash** (`sha256(payload).hexdigest()[:16]`), never Python `__hash__`: `hash()` of a `str`/`bytes` is randomised per process (`PYTHONHASHSEED`), so it can't be persisted or compared across runs.
 
@@ -85,7 +85,7 @@ Default output tends to be naive and procedural. Reach for these first — they 
           return [self[k] for k in self if k not in seen]
   ```
 
-- **EAFP — raise at the operation, handle at the boundary.** An operation that can't do its job raises; a single resilience boundary catches and decides policy (skip, retry, abort). Never return a sentinel that collides with a valid result.
+- **EAFP — raise at the operation, handle at the boundary** ([Don't Swallow Exceptions](../code-style/SKILL.md#dont-swallow-exceptions), in Python). An operation that can't do its job raises; a single resilience boundary catches and decides policy (skip, retry, abort). Never return a sentinel that collides with a valid result.
 
   ```python
   # No — sentinel hides the failure (an empty list also means "no items")
@@ -100,6 +100,8 @@ Default output tends to be naive and procedural. Reach for these first — they 
       return real_parse(text)  # propagates ParseError
   ```
 
+- **A domain rule holds on every path the code produces the value** ([A Domain Rule Lives in the Library, on Every Path](../code-style/SKILL.md#a-domain-rule-lives-in-the-library-on-every-path)).
+
 - **Dependency injection over patching.** Pass collaborators (a fetcher, a clock, a path, a client) as parameters with sensible defaults; tests inject fakes. Needing `monkeypatch.setattr(module, ...)` means the seam is missing — add the parameter instead.
 
 - **Framework-first.** Before hand-rolling serialization, validation, parsing, or config handling, use the library that does it. A hand-written `to_dict`/`from_dict` pair is usually a model class you haven't reached for yet.
@@ -108,9 +110,8 @@ Default output tends to be naive and procedural. Reach for these first — they 
 
 - **Keep a policy in one place.** The two halves of one policy — encode and decode, serialise and parse, open and close, a format and its parser — are a single decision and belong together (one class, one module, one construction site). Split them and they drift onto different assumptions: one half quietly relies on something the other no longer guarantees. Define the policy once and route both directions through it.
 
-- **A domain rule holds on every path.** A rule the domain owns — a regulatory minimum, a rounding, a region-specific adjustment — is applied wherever the code produces the affected value, not re-implemented at a call site. It lives in the type/module that owns the data, on **every** path that emits the value. Consolidating it into one path (a table build, one accessor) is safe only if every consumer flows through that path; a second path taking the raw value silently drops the rule. Before removing a transform from a path because "another already does it," confirm no caller reaches the value the other way — else keep it on both (an idempotent transform composes) and guard the pair with an equivalence test (see Tests).
 
-- **No hardcoded config.** Domain values — URLs, hosts, addresses, limits, paths — live once in a config module and are imported, never re-typed as literals scattered across modules. If a value appears in two places, derive one from the other (`USER_AGENT = f"…{BASE_URL}"`), don't repeat it.
+- **No hardcoded config** ([No Magic Literals](../code-style/SKILL.md#no-magic-literals), in Python). Domain values — URLs, hosts, addresses, limits, paths — live once in a config module and are imported, never re-typed as literals scattered across modules. If a value appears in two places, derive one from the other (`USER_AGENT = f"…{BASE_URL}"`), don't repeat it.
 
 ## Types over dicts
 
@@ -197,13 +198,14 @@ def load_records(path: Path) -> list[Record]:
 
 ## Functions
 
-- Keep functions under ~40 lines. Break up longer ones.
+- Keep a function to the house limits in [Keep a Function to One Screen](../code-style/SKILL.md#keep-a-function-to-one-screen); ruff does not enforce them.
 - Never use mutable default arguments. Use `None` then initialise inside.
 - Use `operator` module over trivial lambdas.
 - Lambda only for one-liners under ~60 chars.
 
 ## Ordering — public before private
 
+- The Python form of [Lay Out a Module Top-Down](../code-style/SKILL.md#lay-out-a-module-top-down).
 - **At module scope, classes and constants come before functions, and public names before private (`_`-prefixed) ones in each.** Lead with the public API; private helpers and private constants go below. Forward references in a function body resolve at call time, so a public function may call a private helper defined further down — that's fine and expected. A module-level constant is evaluated at import, so a class it instantiates or a constant it reads comes first, whatever its visibility.
 - **Within a class, public methods before private (`_`) methods.**
 - One exception to "definitions first": a private type referenced in another definition's *annotation* must appear before that use (annotations evaluate at definition time).
@@ -267,12 +269,10 @@ No top-level execution besides imports and definitions.
 
 ## Tests
 
-- Name a test as the requirement it proves, not a label: `test_<subject>_should_<expected>` — e.g. `test_press_self_destruct_should_go_bang`. The list of test names should read like a specification of the behaviour.
+- Name tests per [Name a Test for the Requirement It Proves](../code-style/SKILL.md#name-a-test-for-the-requirement-it-proves).
 - Every test has a docstring: the steps it performs, and **why** it exists (the requirement or regression it guards).
 - One behaviour per test; arrange → act → assert.
-- Guard a **cross-path invariant** with an equivalence test, not just a per-path fixture: when two paths must agree (a value derived two ways, a fast path against a reference), assert `path_a == path_b`, so a refactor that changes one and not the other fails. Where the result is externally knowable, assert the concrete figure with its **source cited inline at the assertion** — a test module is a verification document, so the reference sits at the exact line it verifies, proving correctness against the world, not just internal consistency.
-- **Pin transcribed reference data to a cited fixture.** When you transcribe an external table into code, commit a fixture mirroring the authoritative table (one row per value, the source cited) and assert the code against it. A code-vs-code check (a value equals a recomputation, or a hardcoded expected) proves consistency, not correctness: a whole table transcribed on a wrong factor is internally consistent and still wrong — only a fixture tied to the published source catches it. And a **uniform offset across a whole table** (every value off by the same fraction) is the signature of a wrong transform — a mis-applied uplift, a rounding, a unit slip — not noise.
-- **Don't pin a computation to its own output.** A test for a computed model (projection, amortisation, forecast, any multi-step arithmetic) needs one assertion the implementation couldn't have produced. Both failing habits look thorough: an `expected` that is a **recorded run** (run the code, write the answer down), and an `expected` that **re-spells the implementation's formula** — two spellings of one model agree by construction. Add an independent route: a closed form against an iterative loop, a cited worked example, a hand-computed boundary, or a **property** the model must satisfy however it is written (an output that must not move when an unrelated input changes; an identity two outputs must obey). Choose the fixture so the two routes agree **exactly**, and comment why. Re-type a rate literal rather than importing the implementation's constant — an imported constant makes the test agree with whatever it is changed to — and cite it. Recorded output is fine as a **regression pin**; the fault is a pins-only suite not labelled as one, naming what would actually settle correctness.
+- What a test must prove, past its name, is code-style's [Tests and checks](../code-style/SKILL.md#tests-and-checks): cross-path invariants, cited fixtures for transcribed data, an independent route for a computed model, assertions that can fail, and guards shown to fail.
 
 ```python
 def test_press_self_destruct_should_go_bang():

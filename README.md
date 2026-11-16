@@ -194,6 +194,7 @@ The tooling serves three consumers: **Claude** (the editing workflow) → these 
 | [`/casomoltd:design-pass`](skills/design-pass/SKILL.md) | Map → review → refactor a package |
 | [`/casomoltd:draft-design-spec`](skills/draft-design-spec/SKILL.md) | Author a reviewable HTML design spec before writing code |
 | [`/casomoltd:screenshot`](skills/screenshot/SKILL.md) | Capture and analyse a dev server page |
+| [`casomoltd:code-style`](skills/code-style/SKILL.md) | The house code standard for every language (rubric) |
 | [`casomoltd:typescript`](skills/typescript/SKILL.md) | TypeScript data modelling and type design (rubric) |
 | [`casomoltd:python-style`](skills/python-style/SKILL.md) | Python code-generation style rules (rubric) |
 | [`casomoltd:cpp-style`](skills/cpp-style/SKILL.md) | C++ layout and portability rules (rubric) |

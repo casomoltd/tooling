@@ -53,11 +53,11 @@ An agent that returns a rendered report ([`design-xray`](../agents/design-xray.m
 
 ### standard / rubric — the inverted interface
 
-A rubric (`python-style`, `typescript`, `frontend-design`) is not invoked to produce an artefact; it is **preloaded as a rubric** by a consumer (an agent's `skills:` list, or an editor loading it before writing code). Its interface is therefore *inverted* — declare it with three short lines above the ruleset body:
+A rubric (`code-style`, `python-style`, `typescript`, `frontend-design`) is not invoked to produce an artefact; it is **preloaded as a rubric** by a consumer (an agent's `skills:` list, or an editor loading it before writing code). Its interface is therefore *inverted* — declare it with three short lines above the ruleset body:
 
-- **Intent** — one distinct verb ("govern TypeScript data/type/variant design").
+- **Intent** — one distinct verb ("govern the design rules every language shares").
 - **Applies-to** — the surface it governs (`**/*.py`; `.ts` / `.tsx`). Often already encoded as the `paths:` frontmatter.
-- **Owns-vs-defers** — the rules this rubric owns vs those a sibling or linter owns. This is the rubric's analogue of Outputs-with-ownership: it stops two rubrics (or a rubric and a linter) from double-flagging the same thing. E.g. `typescript` owns data/type/variant + crawlable-navigation design; `eslint` owns the mechanical rules; a prose reviewer owns anchor *phrasing*.
+- **Owns-vs-defers** — the rules this rubric owns vs those a sibling or linter owns. This is the rubric's analogue of Outputs-with-ownership: it stops two rubrics (or a rubric and a linter) from double-flagging the same thing. E.g. `code-style` owns the rules every language shares; `typescript` owns TypeScript data/type design and crawlable navigation; `eslint` owns the mechanical rules; a prose reviewer owns anchor *phrasing*.
 
 The body remains the ruleset itself — that is the rubric's Method; don't add a second procedural Method on top of it.
 
@@ -74,7 +74,7 @@ The composition graph is the point. Some `tooling`-native seams:
 
 - **`design-pass` ↔ `design-xray`** — `design-xray` maps a package's structure read-only and stops; `design-pass` chains that map into a review and an approved refactor. Each states the seam in its Boundaries so neither drifts into the other's lane.
 - **`design-pass` → `design-xray` → `code-review`** — the `design-pass` skill orchestrates two agents: `design-xray` returns a structural map + a ranked refactor-target handoff, which `code-review` then judges file-by-file. The handoff table *is* the interface between them.
-- **`python-style` / `typescript` vs `eslint` / `ruff`** — the rubrics own the design-judgment half; the linters own the mechanical half. `code-review`'s "Ignore — owned elsewhere" section names that seam so it never re-flags a lint rule.
+- **`code-style` / `python-style` / `typescript` vs `eslint` / `ruff`** — the rubrics own the design-judgment half; the linters own the mechanical half. `code-review`'s "Ignore — owned elsewhere" section names that seam so it never re-flags a lint rule.
 
 **Reference material lives in interface docs, not always-loaded context.** When a unit's Inputs/Outputs reference a schema, a data layout, or an ID table, point at a canonical interface doc (like this one) loaded just-in-time — don't inline the heavy reference onto the unit's spine, and don't duplicate it into always-on context.
 

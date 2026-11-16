@@ -2,7 +2,7 @@
 
 The **software architecture** lens behind the house standards — language- and platform-agnostic (a library, a service, a CLI, a UI). It exists to be run **up front**: most design churn is discovering, over review rounds, that a proposed type was an unneeded wrapper, that a second producer should have been unified, or that a concern sat in the wrong layer. Designing to the lens first collapses those rounds.
 
-The enforceable, example-backed **rules** live in the language standards ([`typescript`](../skills/typescript/SKILL.md), [`python-style`](../skills/python-style/SKILL.md), [`cpp-style`](../skills/cpp-style/SKILL.md)); this doc does **not** restate them — it is the cross-cutting lens and an index into them. Applied by [`draft-design-spec`](../skills/draft-design-spec/SKILL.md), [`design-pass`](../skills/design-pass/SKILL.md), and the `design-xray` / `code-review` agents.
+The enforceable, example-backed **rules** live in the house code standard, [`code-style`](../skills/code-style/SKILL.md), and the language standards ([`typescript`](../skills/typescript/SKILL.md), [`python-style`](../skills/python-style/SKILL.md), [`cpp-style`](../skills/cpp-style/SKILL.md)); this doc does **not** restate them — it is the cross-cutting lens and an index into them. Applied by [`draft-design-spec`](../skills/draft-design-spec/SKILL.md), [`design-pass`](../skills/design-pass/SKILL.md), and the `design-xray` / `code-review` agents.
 
 ## The review lens
 
@@ -22,13 +22,13 @@ Plus one sequencing rule: **foundations first, features on top** — land the do
 
 Each lens question is backed by a named rule in the standards, or, for Q6, by the review briefs. Cite those **by name**; don't restate them here. The question numbers are stable identifiers, cited elsewhere: a new question takes the next number.
 
-- **Q1 · Q2 — library-first, one producer** → `typescript`: *Reuse the Library's Types and Values* · *Don't Wrap a Domain Object to Decorate It* · *A Domain Rule Lives in the Library, on Every Path*. `python-style`: **Design** (SoC, framework-first, no re-implemented domain logic).
-- **Q3 — thinnest interface, typed returns** → `typescript`: *Pass Value Objects, Not Loose Fields* · *Separate Static from Varying* · *A Library Takes Only What Its Rule Needs*.
-- **Q4 — a concern per layer, presentation-agnostic core** → `typescript`: *Keep Shared Modules Presentation-Agnostic* · *A Library Takes Only What Its Rule Needs* · *A Content Document Holds Words, Not Logic*.
-- **Q5 + fail-loud — no silent default, polymorphism, EAFP** → `typescript`: *No Silent Default for a Domain-Selecting Input* · *Variants over Mode Flags* · *Once Dispatched, Don't Re-Ask the Type* · *Don't Swallow Exceptions*. `python-style`: **Design** (value objects, EAFP, polymorphism).
+- **Q1 · Q2 — library-first, one producer** → `code-style`: *A Domain Rule Lives in the Library, on Every Path*. `typescript`: *Reuse the Library's Types and Values* · *Don't Wrap a Domain Object to Decorate It*. `python-style`: **Design** (SoC, framework-first, no re-implemented domain logic).
+- **Q3 — thinnest interface, typed returns** → `code-style`: *Pass Value Objects, Not Loose Fields* · *A Library Takes Only What Its Rule Needs*. `typescript`: *Separate Static from Varying*.
+- **Q4 — a concern per layer, presentation-agnostic core** → `code-style`: *A Library Takes Only What Its Rule Needs*. `typescript`: *Keep Shared Modules Presentation-Agnostic* · *A Content Document Holds Words, Not Logic*.
+- **Q5 + fail-loud — no silent default, polymorphism, EAFP** → `code-style`: *No Silent Default for a Domain-Selecting Input* · *Variants over Mode Flags* · *Once Dispatched, Don't Re-Ask the Type* · *Don't Swallow Exceptions*. `python-style`: **Design** (value objects, EAFP, polymorphism).
 - **Q6 — one owner per responsibility** → `docs-style`: *One fact, one home*, for prose. Code, config and hooks have no language rule for it: the [`code-review`](../agents/code-review.md) and [`doc-review`](../agents/doc-review.md) briefs trace each responsibility a change touches beyond its own files.
-- **Q7 — one question per module** → `typescript`: *One Concern, One Module* · *A Generic Helper Lives in the Utility Module*. `python-style`: **Design** (SoC).
-- **Unifying two paths** — when you must temporarily keep two, `typescript`: *Guard Cross-Path Invariants with a Test* (retire it once unified).
+- **Q7 — one question per module** → `code-style`: *One Concern, One Module*. `typescript`: *A Generic Helper Lives in the Utility Module*. `python-style`: **Design** (SoC).
+- **Unifying two paths** — when you must temporarily keep two, `code-style`: *Guard Cross-Path Invariants with a Test* (retire it once unified).
 
 ## See also
 

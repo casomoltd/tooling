@@ -4,9 +4,10 @@ description: >-
   C++ design and style rules, embedded-aware: naming, file layout, classes, error
   handling without exceptions, casts, const, fixed-width integers, macros, statics,
   tests, doc comments, and code that means the same on every processor and compiler
-  it builds for. Use when writing or reviewing C++. A repo's own docs (linked from
-  its CLAUDE.md) or its own `cpp-style` skill add its project's facts on top. NOT the mechanical rules clang-format and
-  clang-tidy enforce.
+  it builds for, on top of code-style. Use when writing or reviewing C++. A repo's
+  own docs (linked from its CLAUDE.md) or its own `cpp-style` skill add its
+  project's facts on top. NOT the mechanical rules clang-format and clang-tidy
+  enforce.
 user-invocable: false
 paths: "**/*.cpp,**/*.h,**/*.hpp,**/*.cc,**/*.ino"
 ---
@@ -23,7 +24,7 @@ Govern C++ design and style judgment: what a linter can't see about how C++ is n
 
 ## Owns-vs-defers
 
-Owns the **design and style judgment** below. **Defers** the mechanical half to clang-format, clang-tidy and cppcheck (indent, braces, line length, include sorting): if one of them would catch it, it isn't this rubric's to restate. A repo states its project's facts (build flags, memory policy, targets, legacy code) in its own docs, linked from its `CLAUDE.md`, or in a `.claude/skills/cpp-style/SKILL.md` of its own, and those win where the two differ. Where both are silent, use judgment against the [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html); only the rules written here are cited as findings.
+Applies on top of the house code standard, [`code-style`](../code-style/SKILL.md), and owns what C++ adds to it: the **design and style judgment** below. **Defers** the mechanical half to clang-format, clang-tidy and cppcheck (indent, braces, line length, include sorting): if one of them would catch it, it isn't this rubric's to restate. A repo states its project's facts (build flags, memory policy, targets, legacy code) in its own docs, linked from its `CLAUDE.md`, or in a `.claude/skills/cpp-style/SKILL.md` of its own, and those win where the two differ. Where both are silent, use judgment against the [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html); only the rules written here and in `code-style` are cited as findings.
 
 Several rules depend on how the project builds (exceptions, RTTI, the documentation warning). They are written "where the build …"; the repo's facts say which apply.
 
@@ -60,7 +61,7 @@ Use `Count` only on an enum backed by a fixed-width integer type whose values ar
 
 ## Layout of a source file
 
-The C++ form of [Lay Out a Module Top-Down](../typescript/SKILL.md#lay-out-a-module-top-down); C++ adds the declarations, because a helper must be declared before its first use. [One Concern, One Module](../typescript/SKILL.md#one-concern-one-module) applies unchanged.
+The C++ form of [Lay Out a Module Top-Down](../code-style/SKILL.md#lay-out-a-module-top-down); C++ adds the declarations, because a helper must be declared before its first use.
 
 - **Types and constants first.** After the includes, a source file's own types (structs, enums, aliases) and constants come before any function, test files included; a helper's result type sits with them, not beside the helper.
 - **Public code first, helpers after it.** A `.cpp` defines its public and externally visible functions first, in the order the header declares them, then its file-local (`static` or anonymous-namespace) helpers. A reader meets the entry points without scrolling past implementation detail.
@@ -157,11 +158,11 @@ Prefer `constexpr` variables, `inline` functions and scoped enums. A macro is ac
 ## General
 
 - No `using namespace`. `nullptr`, not `NULL`. Prefix `++i` unless the old value is needed.
-- Keep a function to the length limit in [`python-style` § Functions](../python-style/SKILL.md#functions), or the repo's clang-tidy `readability-function-size` where it sets one.
+- Keep a function to the house limits in [Keep a Function to One Screen](../code-style/SKILL.md#keep-a-function-to-one-screen), or to the repo's clang-tidy `readability-function-size` where it sets one.
 
 ## Tests
 
-**Naming.** `test_<subject>_should_<expected>`, as in [`python-style` § Tests](../python-style/SKILL.md#tests), naming the requirement, not the mechanism: `test_record_should_have_no_padding`, not `test_record_size_should_equal_sum_of_fields`. Every name carries `_should_`; a name that describes only the setup (`test_reader_half_line`) says nothing about the outcome.
+**Naming.** Name tests per [Name a Test for the Requirement It Proves](../code-style/SKILL.md#name-a-test-for-the-requirement-it-proves).
 
 **Documentation.** Every test function has a `///` comment: one line each for setup, action and expected outcome, then why the test exists (the requirement or regression it guards). It does not restate the name:
 
@@ -181,7 +182,7 @@ Doxygen `///` comments on the public API. **Where the build enables `-Wdocumenta
 
 **Required in headers:** a `/// @file` banner; a `///` block before each class, struct, enum and type alias; `@param` for each parameter and `@return` for a non-void return on public functions; `///<` after each enumerator; on a `constexpr` constant, what it controls, where it is enforced, and what happens past the limit; `///<` on a member whose purpose the name doesn't give.
 
-**Optional:** in `.cpp` files and tests, `//` comments on non-obvious logic (protocol parsing, state machines). A literal that stands for something gets a `kPascalCase` `constexpr` name, not a comment ([No Magic Literals](../typescript/SKILL.md#no-magic-literals)). Private members need no Doxygen; a file-local helper's doc, where it has one, sits on its declaration ([Layout of a source file](#layout-of-a-source-file)).
+**Optional:** in `.cpp` files and tests, `//` comments on non-obvious logic (protocol parsing, state machines). A literal that stands for something gets a `kPascalCase` `constexpr` name, not a comment ([No Magic Literals](../code-style/SKILL.md#no-magic-literals)). Private members need no Doxygen; a file-local helper's doc, where it has one, sits on its declaration ([Layout of a source file](#layout-of-a-source-file)).
 
 ```cpp
 /// @brief Short summary when @param or @return follows.
@@ -202,6 +203,6 @@ Code whose result could differ between processors or compilers. Code built for m
 - **Headers describe portable behaviour.** A public name or doc comment does not name a processor, compiler or runtime. If behaviour must differ by target, the difference lives in a source file or the build configuration.
 - **Do not depend on what one compiler or processor does with undefined behaviour.** Common cases: signed overflow, an out-of-range float-to-integer conversion, a shift past the type's width, out-of-bounds or null access, an unaligned or aliasing-violating access, and reading an uninitialised value. Write code whose result the language defines on every target.
 - **Arithmetic that can outgrow its type gets a deliberate choice:** a wider type; an unsigned type where wrapping is the intent, such as a difference of free-running timer counts; or a check that reports the problem.
-- **A conversion that can fail returns a status** (a `bool`, with the result through an output pointer) when a wrong value would reach a protocol, a setpoint or hardware. The one alternative is a clamp that is the specified behaviour and whose name says so; never an unspecified one ([the same failure on the way out](../typescript/SKILL.md#the-same-failure-on-the-way-out)).
+- **A conversion that can fail returns a status** (a `bool`, with the result through an output pointer) when a wrong value would reach a protocol, a setpoint or hardware. The one alternative is a clamp that is the specified behaviour and whose name says so; never an unspecified one ([the same failure on the way out](../code-style/SKILL.md#the-same-failure-on-the-way-out)).
 - **Matching legacy code does not license copying its undefined behaviour.** Legacy code that relies on it stays as it is, each case recorded in the repo's own docs (the file, the construct, the class of undefined behaviour); new code does not recreate it.
 - **Behaviour that depends on the architecture** (the cases above, integer widths, struct layout and alignment) **is checked where it runs:** a test on the target, and a host test that exercises the boundary value. A sanitizer on host-run fuzzing (UBSan, made fatal) is a second net, not a substitute.

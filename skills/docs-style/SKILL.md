@@ -29,7 +29,7 @@ Owns doc **convention** — voice, structure, single-source linking, sourcing, a
 - mechanical link/anchor validity and frontmatter schema to the markdown link linter (remark) — if a linter catches it, it isn't this rubric's to restate.
 - prose voice for **marketing/brand copy** to the copy standard that owns brand voice — this rubric is for neutral technical/reference prose.
 - cross-reference **coherence** (orphans, stale pointers, duplication graph) to the `docs-xray` agent — this rubric is what you author *against*; that agent judges the wired-up result.
-- code **inside fenced blocks** to the language's own standard ([`python-style`](../python-style/SKILL.md), [`typescript`](../typescript/SKILL.md)).
+- code **inside fenced blocks** to [`code-style`](../code-style/SKILL.md) and the language's own standard ([`python-style`](../python-style/SKILL.md), [`typescript`](../typescript/SKILL.md)).
 
 ## Voice
 

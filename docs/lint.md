@@ -23,7 +23,7 @@ Both take the consumer's own resolved imports (the package has no dependencies o
 | `@typescript-eslint/no-non-null-assertion` | A `!` tells the compiler a value exists without checking that it does. |
 | `@typescript-eslint/switch-exhaustiveness-check` | A switch over a union names every member, so adding one is a type error at each switch, not a silent fall-through. |
 
-The limits themselves are in `house-rules.mjs`, each with its source or a note that it is proposed there. The judgment half of the same standards (what a function should be split into, what a name should say) is the [`typescript` skill](../skills/typescript/SKILL.md)'s, and the [`code-review` agent](../agents/code-review.md) holds those limits too wherever lint is suppressed.
+The limits themselves are in `house-rules.mjs`, each with its source or a note that it is proposed there. The judgment half (what a function should be split into, what a name should say) belongs to the [`code-style`](../skills/code-style/SKILL.md) and [`typescript`](../skills/typescript/SKILL.md) skills, and the [`code-review` agent](../agents/code-review.md) holds those limits too wherever lint is suppressed.
 
 ## Exemptions
 
