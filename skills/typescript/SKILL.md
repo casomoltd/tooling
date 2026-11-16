@@ -20,7 +20,7 @@ Govern TypeScript data, type, and component-variant design — typed identifiers
 
 ## Owns-vs-defers
 
-Owns the **design half** — data modelling, typed identifiers, value objects, variants over mode flags, crawlable-navigation design (a real `<a>`/`<Link>`, not a JS-only handler), the size limits wherever lint is suppressed, and a content document kept to words. **Defers** mechanical rules to `eslint` (max-len, import order, `@typescript-eslint`, sonarjs), and anchor *phrasing/flow* to the prose reviewer — this rubric owns the element, not the wording.
+Owns the **design half** — data modelling, typed identifiers, value objects, variants over mode flags, crawlable-navigation design (a real `<a>`/`<Link>`, not a JS-only handler), a hand-written utility class against the framework's utilities, the size limits wherever lint is suppressed, and a content document kept to words. **Defers** mechanical rules to `eslint` (max-len, import order, `@typescript-eslint`, sonarjs), and anchor *phrasing/flow* to the prose reviewer — this rubric owns the element, not the wording.
 
 ## Typed Identifiers
 
@@ -416,6 +416,21 @@ const squareArea: AreaOf<Square> = (s) => s.side ** 2;
 Ordinary conditionals are fine — this is specifically a **type-tag** conditional that redoes dispatch the interface already models. Flag: an `if (x.kind === …)` / `switch (x.kind)` **inside** a variant method; a variant that takes the full union and immediately narrows it; a discriminant field on the *implementation* object (the tag belongs on the data and as the registry key, not on the impl).
 
 Enforcement: once each implementation is typed to its case, `@typescript-eslint/no-unnecessary-condition` flags the now-redundant tag check (a comparison the types prove can't vary), and a `no-restricted-syntax` selector can ban `switch`/`.kind ===` inside a `variants/` or `families/` dir. Neither catches "this *should* have been polymorphic" — that stays a design-review call (the `code-review` / `design-xray` agents apply this rubric).
+
+## Crawlable Navigation
+
+Primary navigation, and any hub-to-spoke or page-to-page link, renders a real `<a href>` or `<Link>`. A JS-only `onClick`, `router.push` or `<select>` emits no anchor, so the link is invisible to crawlers and answer engines. A mode flag that downgrades a link to a handler is the case [Component Variants & the Server/Client Boundary](#component-variants--the-serverclient-boundary) settles. Flag too hardcoded prose in a component that names another internal page or route in plain text with no `<Link>` on that phrase: the reference must be a crawlable anchor.
+
+## A Project's Own Class Must Not Shadow a Framework Utility
+
+A class the project defines and a framework utility that set the same property conflict silently, by source order. In Tailwind: where a project defines its own `text-*` or `bg-*` class that sets more than one property, a type ramp setting `font-size` **and** `font-weight`, say, pairing it with a framework utility for the *second* property ties on specificity and loses on source order. The utility is present, readable, and does nothing. Mark the utility with the framework's importance marker (`!`), or delete the redundant class.
+
+Two relatives fail the same silent way:
+
+- A framework's responsive variants are generated for **its own** utilities only, so `sm:<hand-written-class>` is a class that does not exist.
+- A class-merging helper (`tailwind-merge` and kin) classifies a class it doesn't recognise by guesswork, and may drop it as a conflict, unless the project's own scale is registered with it.
+
+Flag: a project class paired with an unmarked framework utility for one of its properties; a responsive variant on a project class; a project scale passed through a merge helper that does not know it.
 
 ## A Content Document Holds Words, Not Logic
 
@@ -898,6 +913,7 @@ Two questions, asked early, catch most of it:
 
 - **What are the entities, and what does each one know?** A record whose identity lives only in its container's keys cannot describe itself to a caller.
 - **Which existing type already holds this?** Extending a neighbour's shape is not the same as finding the type that owns the concept.
+- **Do two identifier unions share values?** Where they overlap, one id compiles where the other is required and returns a plausible wrong answer. Give each domain its own distinct values, or a branded type.
 
 Structural review AFTER the code is written finds these too — an anonymous record, an identifier collision — but finds them as rework rather than as design.
 
