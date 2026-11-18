@@ -56,6 +56,8 @@ Read the **whole unit**, not only the diff. A rule added at the bottom can contr
 
 **10. The unit names the principle it carries out**, the schema's [*Principle* line](../docs/skill-agent-schema.md#the-interface-vocabulary). Where a skill exists to apply a principle written elsewhere, it says which in one line and links where that principle is written, so the two can be checked against each other. Read the linked source, and flag a unit that applies a principle it does not name, a link to a principle that no longer says what the unit claims, a private link in a public repo, per the schema, and a unit that restates the principle's reasoning instead of linking it (item 3). A unit that applies no principle beyond its own method needs no such line.
 
+**11. A place outside the unit is named by its role, not a machine path**, the schema's [*Naming a place outside the unit*](../docs/skill-agent-schema.md#naming-a-place-outside-the-unit). Flag any absolute path (`~/…`, `$HOME/…`, `/home/…`) a unit depends on, and name the replacement the schema gives for where the place sits. A path offered as an example of where a person might put something is not a dependency; check what the path is *doing* before you flag it.
+
 ## Ignore — owned elsewhere (never re-flag)
 
 - **Broken links, anchors, and code fences missing a language tag** — the markdown linter owns all of it. A backticked path that should be a link is still yours, because that is a judgement about where a rule lives; fence formatting is not.

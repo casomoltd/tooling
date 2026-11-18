@@ -91,6 +91,18 @@ Good: RETIREMENT_AGE = 60, defined once;  if age >= RETIREMENT_AGE
 Bad:  if age >= 60    (the reader must look up what 60 is)
 ```
 
+### Find Files From the Program's Own Location
+
+A program finds the files it works with from where it is, never from a machine path. Take its own directory once, resolving any symlink it was called through, name it, and derive every root from it by the layout around it: `HERE` in a shell script, `Path(__file__).resolve().parent` in Python, `import.meta.dirname` in a Node module. Where a root sits outside the layout the program can see, read it from an environment variable, with the derived path as its default. Why a machine path fails is in [Naming a place outside the unit](../../docs/skill-agent-schema.md#naming-a-place-outside-the-unit), which applies the same rule to a skill's prose.
+
+```text
+Good: HERE=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
+      repo=$(dirname "$HERE");  DATA_ROOT="${DATA_ROOT:-$repo/../datasets}"
+Bad:  DATA_ROOT="$HOME/dev/acme/datasets"    (wrong once acme is renamed)
+```
+
+**Source:** proposed here, with no external source.
+
 ## Data across a boundary
 
 ### Pass Value Objects, Not Loose Fields

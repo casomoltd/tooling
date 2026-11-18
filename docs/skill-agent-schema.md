@@ -78,6 +78,16 @@ The composition graph is the point. Some `tooling`-native seams:
 
 **Reference material lives in interface docs, not always-loaded context.** When a unit's Inputs/Outputs reference a schema, a data layout, or an ID table, point at a canonical interface doc (like this one) loaded just-in-time — don't inline the heavy reference onto the unit's spine, and don't duplicate it into always-on context.
 
+## Naming a place outside the unit
+
+**A unit names a place by its role, never by a machine path.** A unit is read on more than one machine and outlives any directory layout, so an absolute path (`~/dev/…`, `/home/…`) in its prose is a fact about one machine that goes stale the day a directory moves.
+
+- **Inside the same repo:** a relative markdown link, which moves with the repo and is checked by `lint:md`.
+- **Under the session's root:** the path relative to that root, named by role: "the workspace's `scratch/`", or "`<repo>/docs/` from the workspace root".
+- **Anywhere else** (another repo, another workspace, a credential the unit reads): an environment variable the workspace's or the user's `settings.json` sets, named in the unit, with what to do when it is unset. A move then edits one settings file, not every unit that names the place.
+
+An example of where a person might put something, such as where a setup step suggests saving a credential, is not a dependency and may stay. Code follows the same rule from its own location ([`code-style`](../skills/code-style/SKILL.md#find-files-from-the-programs-own-location)), and [`skill-review`](../agents/skill-review.md) item 11 checks units against it.
+
 ## Enforcement
 
 The **mechanical** half of this schema is linted, not just trusted: `bin/skills-lint.config.mjs` runs stock remark (`remark-frontmatter` + `remark-validate-links` + `remark-lint-frontmatter-schema`) to verify every skill/agent's frontmatter parses and carries `name` + `description`, and that every cross-link and `#anchor` resolves. `npm run check` runs it as `lint:md`, over the paths that script names in [`package.json`](../package.json), so a rename or hand-edit that breaks a link — the kind Claude Code's loader silently swallows — fails the build.
@@ -88,4 +98,5 @@ The **judgment** half stays human-reviewed — a linter can't check it:
 - **Intent distinctness** — does each unit have one distinct verb, or do two units overlap?
 - **Outputs-ownership** — does exactly one unit own each field/artefact/rule?
 - **sibling seams** — does every Boundaries line point at a real sibling?
+- **places by role** — does a unit name a place outside itself by a machine path ([Naming a place outside the unit](#naming-a-place-outside-the-unit))?
 - **principle named** — does a unit that carries out a principle name it and link where it is written, does that source still say what the unit claims, and in a public repo can a public reader open the link?
