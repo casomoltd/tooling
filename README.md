@@ -58,7 +58,7 @@ The package is public, so installs need no token or `.npmrc`. The `files` allowl
 
 ## External prerequisites
 
-Three bins need something npm cannot sensibly deliver: `screenshot` and `render-figures` need a Chromium build through Playwright, and `build-report` needs the `typst` CLI and the IBM Plex fonts. **None is declared — not as a dependency, and not as an optional peer.** Each loads its prerequisite lazily and fails with an install instruction when it is missing, so a consumer that never runs those bins carries nothing for them.
+Three bins need something npm cannot sensibly deliver: `screenshot` and `render-figures` need a Chromium build through Playwright, and `build-report` needs the `typst` CLI and the IBM Plex fonts. **None is declared — not as a dependency, and not as an optional peer.** The `typst` CLI must be a release binary or a `cargo install`, not the snap, which reads only files its caller owns and so cannot compile a report in a checkout another account wrote. Each loads its prerequisite lazily and fails with an install instruction when it is missing, so a consumer that never runs those bins carries nothing for them.
 
 The rule, for anything added later: a heavyweight prerequisite only some consumers need is documented here, never declared. An optional peer looks free because npm installs nothing for it, but it resolves into a consumer's lockfile as soon as anything pulls it in, and npm will not prune a satisfied optional peer afterwards — not on `npm install`, not on `npm install --package-lock-only`, not on `npm uninstall`. So any advisory against it reaches repos that never run the bin, and clearing it takes a release of this package rather than a fix in each of them.
 

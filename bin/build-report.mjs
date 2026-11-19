@@ -91,8 +91,10 @@ const root = values.root ? path.resolve(values.root) : findRoot(input);
 const fonts = spawnSync("typst", ["fonts"], {encoding: "utf8"});
 if (fonts.error) {
   fail(
-    "the `typst` CLI is not on PATH — install it first " +
-      "(https://typst.app, e.g. `snap install typst` or `cargo install typst-cli`).",
+    "the `typst` CLI is not on PATH — install it first, as a release binary " +
+      "(https://github.com/typst/typst/releases) or `cargo install typst-cli`. " +
+      "Not the snap: it reads only files its caller owns, so it cannot compile " +
+      "a report in a checkout another account wrote.",
   );
 }
 if (fonts.status === 0) {
