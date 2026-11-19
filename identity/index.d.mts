@@ -40,11 +40,13 @@ export type ColophonLine =
 export declare const COMPANY_COLOPHON: readonly ColophonLine[];
 
 /** The values Casomo's tagged links carry: a link is tagged only where the
- *  referrer goes missing, as from an email. */
+ *  referrer goes missing, as from an email or an advert. */
 export declare const CASOMO_UTM: {
-  readonly sources: readonly ["casomo", "signature", "blog"];
-  readonly media: readonly ["email", "footer"];
+  readonly sources: readonly ["casomo", "signature", "blog", "reddit", "facebook"];
+  readonly media: readonly ["email", "footer", "paid"];
   readonly content: readonly ["showcase", "profile", "casomoltd"];
+  /** A paid advert, numbered as it is made: `ad-1`, `ad-2`. */
+  readonly campaigns: RegExp;
 };
 
 /** A link to a Casomo page with its tags added: `utmTagger` bound to
@@ -53,7 +55,7 @@ export declare const tagged: (url: string, tags: UtmTags<
   (typeof CASOMO_UTM)["sources"][number],
   (typeof CASOMO_UTM)["media"][number],
   (typeof CASOMO_UTM)["content"][number]
->) => string;
+> & {campaign?: `ad-${number}`}) => string;
 
 /** The company's LinkedIn pages, by the `utm_content` value a link to each
  *  carries: every content value but a person's profile, which stays with

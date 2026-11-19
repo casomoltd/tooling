@@ -78,12 +78,24 @@ assert.equal(
 // publishes is built from these, so a renamed value would split one channel
 // into two in the analytics.
 assert.deepEqual(CASOMO_UTM, {
-  sources: ["casomo", "signature", "blog"],
-  media: ["email", "footer"],
+  sources: ["casomo", "signature", "blog", "reddit", "facebook"],
+  media: ["email", "footer", "paid"],
   content: ["showcase", "profile", "casomoltd"],
+  campaigns: /^ad-[1-9]\d*$/,
 });
 assert.equal(tagged("https://casomoltd.com/", {source: "signature", medium: "email"}),
   "https://casomoltd.com/?utm_source=signature&utm_medium=email");
+assert.equal(
+  tagged("https://casomo.co.uk/",
+    {source: "reddit", medium: "paid", campaign: "ad-1"}),
+  "https://casomo.co.uk/?utm_source=reddit&utm_medium=paid&utm_campaign=ad-1");
+
+// A campaign that isn't `ad-<n>` fails the typecheck, and at run time too.
+assert.throws(
+  () => tagged("https://casomo.co.uk/",
+    // @ts-expect-error: not an `ad-<n>` campaign.
+    {source: "reddit", medium: "paid", campaign: "AD-1"}),
+  /utm_campaign AD-1 does not match/);
 
 // The company's LinkedIn pages, one per site's brand; the company page is
 // the one the organisation's sameAs names.
