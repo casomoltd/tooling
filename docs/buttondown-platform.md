@@ -5,6 +5,7 @@ What Buttondown does that its documentation doesn't make obvious, for newsletter
 ## The API
 
 - **One key, every newsletter.** An account's API key reaches every newsletter on it. A request names its newsletter with the `Buttondown-Context` header; without it, the request goes to the account's default newsletter, and an unknown id is refused rather than falling back ([authentication](https://docs.buttondown.com/api-authentication)). The command sends the header on every call.
+- **Any key that can edit a post reads subscriber activity.** The Emails permission includes `/v1/events`, which returns each subscriber's opens and clicks.
 - **A newsletter has two ids.** Most endpoints return its UUID; some return a prefixed form (`news_…`) for the same newsletter.
 - **A plan-gated field fails the whole PATCH**, naming a feature rather than the field, so one field the plan won't take blocks every other field in the call. `buttondown apply` retries field by field and reports the refused one.
 - **Some fields are dashboard-only.** These exist on the newsletter object and can be read from the hosted page's embedded JSON, but a PATCH refuses them as `extra_forbidden`:

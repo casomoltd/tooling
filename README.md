@@ -85,6 +85,10 @@ Each repo defines its own `check` script in `package.json` — the hooks call `n
 
 **Note:** The tooling repo itself calls scripts by path in its hooks (e.g. `./bin/check-version.sh`) because it can't resolve its own bin commands via `node_modules/.bin`.
 
+### A checkout shared by two users
+
+`prepare` runs `husky`, and the hook path it sets (`core.hooksPath`, `.husky/_`) lives in the checkout's git config. When `prepare` runs as a different user from the one that set the hooks up, husky has been seen to fail part-way (cause not traced) and delete `.husky/_/h` and `husky.sh`, so every commit and push goes unchecked until `npx husky` runs again as the owner. The second user therefore installs with `--ignore-scripts`; the hook path is already set, so it loses nothing.
+
 ### A repo whose toolchain is not npm
 
 A Python, Go or C++ repo still gets the commit rules. It carries a **dev-only npm layer** that exists to host the hook and nothing else:
