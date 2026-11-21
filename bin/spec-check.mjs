@@ -13,7 +13,17 @@
  *   node bin/spec-check.mjs <spec.html>
  */
 import { readFileSync } from 'node:fs';
+import { escapeRegExp, startTags } from '../lib/html.mjs';
 import { FIGURE_WIDTH_BUDGET } from './utils.mjs';
+
+/** Enough of a stray paragraph to find it in the source. */
+const QUOTED_CHARS = 60;
+/** A contents entry that types its own section number. */
+const TYPED_TOC = /<a href="#[^"]+"[^>]*>\s*(\d+(?:\.\d+)?)\s*(?:&middot;|·)/g;
+/** An end tag. Start tags are read by `startTags`, which knows a quoted value
+ *  may hold `<` or `>`; an end tag carries no attributes, so a pattern
+ *  reads it whole. */
+const END_TAG = /<\/[a-z][\w-]*\s*>/gi;
 
 const file = process.argv[2];
 if (!file) throw new Error('usage: spec-check.mjs <spec.html>');
@@ -30,10 +40,22 @@ const doc = html
 const findings = [];
 const fail = (rule, detail) => findings.push({ rule, detail });
 const all = (re, s = html) => [...s.matchAll(re)];
-const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-// A tag stops at the next `<`, so a `<` left unclosed is read once, not once
-// per later character.
-const text = (s) => s.replace(/<[^<>]*>/g, '').replace(/\s+/g, ' ').trim();
+/** `s` as a reader sees it: its tags removed and its whitespace collapsed. A
+ *  `<` that opens no tag, as in `a < b`, is text and stays. */
+const text = (s) => {
+  const tags = [...startTags(s), ...[...s.matchAll(END_TAG)].map((m) =>
+    ({ start: m.index, end: m.index + m[0].length }))]
+    .sort((a, b) => a.start - b.start);
+  let out = '';
+  let at = 0;
+  for (const { start, end } of tags) {
+    // An end tag written inside a start tag's quoted value is not one.
+    if (start < at) continue;
+    out += s.slice(at, start);
+    at = end;
+  }
+  return (out + s.slice(at)).replace(/\s+/g, ' ').trim();
+};
 
 // --- anchors -------------------------------------------------------------
 const ids = new Set(all(/\sid="([^"]+)"/g, doc).map((m) => m[1]));
@@ -69,17 +91,15 @@ else {
 // The Overview & goals card is the document's summary. A standfirst above it
 // says the same thing a second time, and belongs to no section, so it is the
 // copy that goes stale unread. Everything else in the masthead -- eyebrow,
-// title, contents, status pills -- is not a paragraph, so a <p> left after
-// the nav and the card are removed is the defect.
-/** Enough of a stray paragraph to find it in the source. */
-const QUOTED_CHARS = 60;
+// title, contents, status pills -- is not a paragraph, so a paragraph or
+// block of prose left after the nav and the card are removed is the defect.
 const hero = doc.match(/<header[^>]*class="hero"[\s\S]*?<\/header>/);
 if (hero) {
   const loose = hero[0]
     .replace(/<nav[\s\S]*?<\/nav>/g, '')
     .replace(/<section[\s\S]*?<\/section>/g, '');
-  // Prose, not `<p>`: the standfirst this rule exists to catch was carried as
-  // a non-paragraph element, so keying on the tag let the exact defect past.
+  // Prose, not `<p>`: a standfirst may be any block element, so the rule
+  // keys on what an element holds rather than on its tag.
   for (const m of loose.matchAll(/<(?:p|div)\b[^>]*>([\s\S]*?)<\/(?:p|div)>/g)) {
     if (/\bclass="[^"]*\b(?:eyebrow|pillrow|pill|wrap)\b/.test(m[0])) continue;
     const words = text(m[1]);
@@ -93,7 +113,6 @@ if (hero) {
 for (const m of all(/<h[23][^>]*>\s*(\d+(?:\.\d+)?)\s*(?:&middot;|·)/g, doc)) {
   fail('numbering', `a heading types "${m[1]}"; section numbers are generated`);
 }
-const TYPED_TOC = /<a href="#[^"]+"[^>]*>\s*(\d+(?:\.\d+)?)\s*(?:&middot;|·)/g;
 for (const m of all(TYPED_TOC, doc)) {
   fail('numbering', `a contents entry types "${m[1]}"; numbers are generated`);
 }
@@ -188,16 +207,17 @@ for (const m of all(/^[ \t]*click[ \t]+(\S+)[ \t]+(\S.*|)$/gm)) {
     // tag. Searching for `href="…"` alone matches the tail of `xlink:href`,
     // so it would pass on the deprecated attribute and never see the one the
     // renderer adds.
-    const tag = svg.match(new RegExp(`<a\\b[^>]*\\bdata-id="${esc(node)}"[^>]*>`));
-    return tag && new RegExp(`(^|\\s)href="${esc(href[1])}"`).test(tag[0]);
+    const id = escapeRegExp(node);
+    const tag = svg.match(new RegExp(`<a\\b[^>]*\\bdata-id="${id}"[^>]*>`));
+    return tag && new RegExp(`(^|\\s)href="${escapeRegExp(href[1])}"`).test(tag[0]);
   })) {
     fail('click', `click ${node} href ${href[1]} did not survive pre-rendering`);
   }
 }
 
-// Matched as a whole tag, then read attribute by attribute: requiring `rel`
-// before `href` let a reordered link through, and a missed blocked stylesheet
-// is the direction that fails open.
+// Matched as a whole tag, then read attribute by attribute, since attributes
+// are read in any order: a missed blocked stylesheet is the direction that
+// fails open.
 for (const m of all(/<link\b[^>]*>/g, doc)) {
   if (!/\brel="[^"]*\bstylesheet\b/.test(m[0])) continue;
   const href = m[0].match(/\bhref="([^"]+)"/);

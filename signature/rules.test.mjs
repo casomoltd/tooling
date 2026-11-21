@@ -7,7 +7,7 @@ import {join} from "node:path";
 import * as faults from "./faults.mjs";
 import * as rules from "./rules.mjs";
 
-const {attribute, escapeRegExp, hrefs, imageTags, readPng} = rules;
+const {attribute, hrefs, imageTags, readPng} = rules;
 
 const HTML = '<table><tr><td><a href="https://e.com/?a=1&amp;b=2">'
   + '<img src="https://e.com/sig/a.png" width="34" height="34" alt="A" border="0">'
@@ -16,10 +16,13 @@ const HTML = '<table><tr><td><a href="https://e.com/?a=1&amp;b=2">'
 assert.deepEqual(imageTags(HTML),
   ['<img src="https://e.com/sig/a.png" width="34" height="34" alt="A" border="0">']);
 assert.deepEqual(hrefs(HTML), ["https://e.com/?a=1&b=2"]);
+assert.deepEqual(imageTags('<img alt="a > b" src=x.png>'),
+  ['<img alt="a > b" src=x.png>']);
+assert.deepEqual(hrefs("<a href='https://a.test'>a</a><a href=https://b.test>b</a>"),
+  ["https://a.test", "https://b.test"]);
 assert.equal(attribute(imageTags(HTML)[0], "width"), "34");
+assert.equal(attribute("<img alt=\"Tom &amp; Jerry\">", "alt"), "Tom & Jerry");
 assert.throws(() => attribute("<img src=x>", "alt"), /has no alt/);
-assert.ok(new RegExp(escapeRegExp("a.b(c)")).test("xa.b(c)y"));
-assert.ok(!new RegExp(escapeRegExp("a.b")).test("axb"));
 
 /** A PNG's first 26 bytes: signature, then a header chunk of this size and
  *  colour type.  @param {number} width @param {number} height

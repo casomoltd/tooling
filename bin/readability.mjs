@@ -25,7 +25,7 @@
 
 import {parseArgs} from "node:util";
 import path from "node:path";
-import {loadConfig} from "./casomo-config.mjs";
+import {loadConfig} from "../lib/casomo-config.mjs";
 import {
   FORMULAS,
   MIN_SCORABLE_WORDS,

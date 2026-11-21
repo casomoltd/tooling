@@ -19,20 +19,24 @@ export interface PngHeader {
   colourType: number;
 }
 
-/** Every `<img>` tag in a signature, whole. */
+/** Every `<img>` tag in a signature, whole, a `>` in a quoted value
+ *  included. */
 export declare function imageTags(html: string): string[];
 
-/** Every link's address in a signature, its `&amp;` read back as `&`. */
+/** Every link's address in a signature, however quoted, its entities read
+ *  back. */
 export declare function hrefs(html: string): string[];
 
-/** A tag's attribute; throws where the tag has none. */
+/** A tag's attribute, double-quoted, single-quoted or bare, its entities
+ *  read back; throws where the tag has none or gives it no value. */
 export declare function attribute(tag: string, name: string): string;
 
 /** A PNG's size and colour type, read from its header; throws on a file that
  *  isn't a PNG. */
 export declare function readPng(bytes: Uint8Array): PngHeader;
 
-/** Text made literal inside a regular expression. */
+/** Text made literal inside a regular expression: a re-export of
+ *  `@casomoltd/tooling/html`'s `escapeRegExp`, its home. */
 export declare function escapeRegExp(text: string): string;
 
 /** A site's signature and the facts it is checked against. */

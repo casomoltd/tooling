@@ -1,7 +1,7 @@
 /**
  * Helpers the bins and the hooks share: the entry-point check, the platform
  * opener and a design spec's figure-width budget. A repo's
- * `casomo.config.mjs` is read by casomo-config.mjs.
+ * `casomo.config.mjs` is read by `lib/casomo-config.mjs`.
  */
 
 import {spawn} from "node:child_process";

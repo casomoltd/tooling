@@ -5,6 +5,8 @@
  * generated and a check can tell when it has fallen behind.
  */
 
+import {escapeRegExp} from "../lib/html.mjs";
+
 /** The line that closes every generated block, whichever file holds it. */
 export const TOKENS_END = "/* END TOKENS */";
 
@@ -39,7 +41,7 @@ export function stripComments(text) {
  * @param {string} name
  */
 export function readToken(css, name) {
-  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const escaped = escapeRegExp(name);
   for (const m of css.matchAll(new RegExp(`^\\s*${escaped}:\\s*([^;]+);`, "gm"))) {
     if (isBaseBlock(css, m.index)) return m[1].trim();
   }

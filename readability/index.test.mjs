@@ -88,6 +88,7 @@ const edges = site({
       <p>Line one here<br />line two follows.</p>
       <p>Hello {on ? <strong>bold words</strong> : "plain words"} friend.</p>
       <p>Tom &amp; Jerry&nbsp;don&rsquo;t run.</p>
+      <p>Bands it&#x27;s, it&apos;s, A &AMP; B, half&frac12;way.</p>
       <Card description="Your pension grows with every year you work." />
     </>
   );
@@ -98,6 +99,9 @@ const edgeText = extractText(edges);
 assert.match(edgeText, /Line one here line two follows\./);
 assert.match(edgeText, /Hello bold words friend\./);
 assert.match(edgeText, /Tom & Jerry don’t run\./);
+// Markup and numeric references read as characters; a typographic one the
+// reader doesn't know reads as a space.
+assert.match(edgeText, /Bands it's, it's, A & B, half way\./);
 assert.match(edgeText, /Your pension grows with every year you work\./);
 
 // Scoring stays wired to the extracted text.

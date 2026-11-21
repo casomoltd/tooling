@@ -18,6 +18,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { resolve } from 'node:path';
+import { escapeRegExp } from '../lib/html.mjs';
 import { FIGURE_WIDTH_BUDGET } from './utils.mjs';
 
 /** Playwright is a heavy prerequisite this package deliberately does not
@@ -39,7 +40,7 @@ try {
 /** The marker above each figure, as one producer: it is both searched for
  *  and written back, so the two must be the same string. */
 const MARKER = '  <!-- figure source, regenerate with bin/render-figures.mjs:';
-const SOURCE = new RegExp(`${MARKER.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`
+const SOURCE = new RegExp(escapeRegExp(MARKER)
   + '\n([\\s\\S]*?)\n  -->\n  <div class="figure-card">[\\s\\S]*?<\\/div>\n', 'g');
 
 /** Written even when they compute to `none`: an arrowhead that silently gains

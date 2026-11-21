@@ -38,7 +38,7 @@ import {existsSync} from "node:fs";
 import {mkdir, readdir, readFile, writeFile} from "node:fs/promises";
 import path from "node:path";
 import {pathToFileURL} from "node:url";
-import {CASOMO_CONFIG_KEYS, loadCasomoConfig} from "../bin/casomo-config.mjs";
+import {CASOMO_CONFIG_KEYS, loadCasomoConfig} from "../lib/casomo-config.mjs";
 import {readToken} from "../tokens/block.mjs";
 import {detail, DRAFT, newsletterPath} from "./api.mjs";
 import {assertAbsoluteUrl, readPost, withId} from "./post.mjs";

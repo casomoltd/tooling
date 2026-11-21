@@ -12,6 +12,7 @@ import {execSync} from "node:child_process";
 // package.json + LICENSE regardless of the allowlist, so permit those too.
 const ALLOWED_PREFIXES = [
   "bin/",
+  "lib/",
   "eslint/",
   "prettier/",
   "commitlint/",

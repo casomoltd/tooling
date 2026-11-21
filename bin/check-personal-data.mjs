@@ -37,7 +37,8 @@
 import {execFileSync} from "node:child_process";
 import {existsSync, readFileSync, statSync} from "node:fs";
 import path from "node:path";
-import {CASOMO_CONFIG_KEYS, loadCasomoConfig} from "./casomo-config.mjs";
+import {CASOMO_CONFIG_KEYS, loadCasomoConfig} from "../lib/casomo-config.mjs";
+import {escapeRegExp} from "../lib/html.mjs";
 import {isEntryPoint} from "./utils.mjs";
 
 /** Addresses in every repo's own tooling that name no person. */
@@ -183,7 +184,7 @@ const nameHits = (lines, name) => {
   // No `g`: `.test()` on a global regex advances `lastIndex`, and a name on
   // consecutive lines would be reported on every other one.
   const re = new RegExp(
-    `\\b${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i");
+    `\\b${escapeRegExp(name)}\\b`, "i");
   return lines.flatMap((line, i) =>
     re.test(line)
       ? [{line: i + 1, rule: "name on the local denylist", text: name}]

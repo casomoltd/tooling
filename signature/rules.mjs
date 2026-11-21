@@ -10,6 +10,12 @@
  * types are index.d.mts.
  */
 
+import {startTags} from "../lib/html.mjs";
+
+/** A re-export of `@casomoltd/tooling/html`'s `escapeRegExp`, its home, so a
+ *  signature test needs one import. */
+export {escapeRegExp} from "../lib/html.mjs";
+
 /** @import * as Signature from "./index.d.mts" */
 
 /** Gmail's limit on a signature's length
@@ -41,29 +47,35 @@ const HEIGHT_OFFSET = 20;
 const COLOUR_TYPE_OFFSET = 25;
 
 /**
- * Every `<img>` tag in a signature, whole.
+ * Every `<img>` tag in a signature, whole, as the shared tag reader finds
+ * it, so a `>` in a quoted value doesn't cut it short.
  * @param {string} html
  */
 export function imageTags(html) {
-  return [...html.matchAll(/<img\b[^>]*>/g)].map(([tag]) => tag);
+  return startTags(html).filter((tag) => tag.name === "img")
+    .map(({start, end}) => html.slice(start, end));
 }
 
 /**
- * Every link's address in a signature, its `&amp;` read back as `&`.
+ * Every link's address in a signature, its entities read back.
  * @param {string} html
  */
 export function hrefs(html) {
-  return [...html.matchAll(/\shref="([^"]*)"/g)]
-    .map(([, href]) => href.replaceAll("&amp;", "&"));
+  return startTags(html).flatMap(({attributes}) => attributes
+    .flatMap(({name, value}) => (name === "href" && value !== undefined
+      ? [value] : [])));
 }
 
 /**
- * A tag's attribute; throws where the tag has none, since a signature's
- * image without its width or alt is the fault being looked for.
+ * A tag's attribute, read by the shared tag reader, its entities read
+ * back; throws where the tag has none or gives it no value, since a
+ * signature's image without its width or alt is the fault being looked
+ * for.
  * @param {string} tag @param {string} name
  */
 export function attribute(tag, name) {
-  const value = new RegExp(String.raw`\s${name}="([^"]*)"`).exec(tag)?.[1];
+  const value = startTags(tag)[0]?.attributes
+    .find((a) => a.name === name.toLowerCase())?.value;
   if (value === undefined) throw new Error(`${tag} has no ${name}`);
   return value;
 }
@@ -84,14 +96,4 @@ export function readPng(bytes) {
     height: data.readUInt32BE(HEIGHT_OFFSET),
     colourType: data[COLOUR_TYPE_OFFSET],
   };
-}
-
-/**
- * Text made literal inside a regular expression, for a test matching a
- * link's address or text. `RegExp.escape` does this from Node 24 and an
- * ES2025 lib; this package sets no Node floor, so it keeps its own.
- * @param {string} text
- */
-export function escapeRegExp(text) {
-  return text.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
 }

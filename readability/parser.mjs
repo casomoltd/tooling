@@ -8,6 +8,7 @@
 import ts from "typescript";
 import fs from "node:fs";
 import path from "node:path";
+import {decodeEntities} from "../lib/html.mjs";
 import {extractMdxText} from "./markdown.mjs";
 import {FIGURE} from "./score.mjs";
 
@@ -36,14 +37,6 @@ const SRC_ALIAS = "@/";
 
 /** A run of at least two letters: the least that reads as a word. */
 const HAS_WORD = /[A-Za-z]{2,}/;
-
-/** Typographic entities, read as the characters they stand for. */
-const ENTITIES = {
-  "&nbsp;": " ", "&amp;": "&", "&lt;": "<", "&gt;": ">",
-  "&rsquo;": "\u2019", "&lsquo;": "\u2018", "&rdquo;": "\u201d",
-  "&ldquo;": "\u201c", "&ndash;": "\u2013", "&mdash;": "\u2014",
-  "&hellip;": "\u2026", "&#39;": "'", "&quot;": "\"",
-};
 
 /**
  * Prose a reader actually sees on a page, following the components it
@@ -88,7 +81,7 @@ export function extractText(filePath, {maxDepth = 3} = {}) {
   );
 
   let text = terminated.join(" ");
-  text = text.replace(/&#?\w+;/g, (entity) => ENTITIES[entity] ?? " ");
+  text = text.replace(/&#?\w+;/g, readEntity);
   text = text.replace(/\s+/g, " ").trim();
 
   return text;
@@ -114,6 +107,14 @@ export function routeText(dir) {
   const page = extractText(path.join(dir, "page.tsx"));
   const mdx = path.join(dir, "content.mdx");
   return fs.existsSync(mdx) ? `${page} ${extractMdxText(mdx)}`.trim() : page;
+}
+
+/** One entity as a reader sees it: `decodeEntities`'s reading, and a space for
+ *  a name it doesn't know. `&nbsp;` reads as U+00A0, which the whitespace pass
+ *  after it collapses with the rest. */
+function readEntity(entity) {
+  const decoded = decodeEntities(entity);
+  return decoded === entity ? " " : decoded;
 }
 
 // -------------------------------------------------------------------

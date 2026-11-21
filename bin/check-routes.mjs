@@ -11,7 +11,7 @@
  * belongs to a push, not to every commit.
  *
  * It reads the sitemap Next emits: plain `<loc>` elements, in a urlset or a
- * sitemap index one level deep, with `&amp;` the only entity in a URL.
+ * sitemap index one level deep, its entities read back.
  *
  * It then follows the links a site promises will work wherever they were
  * sent, through their redirects, and fails unless the final response is a
@@ -39,7 +39,8 @@ import {createServer} from "node:net";
 import {setTimeout as sleep} from "node:timers/promises";
 import {tallyFormHref} from "../tally/embed.mjs";
 import {loadTallyRegistry} from "../tally/config.mjs";
-import {CASOMO_CONFIG_KEYS, loadCasomoConfig} from "./casomo-config.mjs";
+import {CASOMO_CONFIG_KEYS, loadCasomoConfig} from "../lib/casomo-config.mjs";
+import {decodeEntities} from "../lib/html.mjs";
 import {isEntryPoint} from "./utils.mjs";
 
 const HOST = "127.0.0.1";
@@ -138,7 +139,7 @@ export const linkTargets = async (dir = process.cwd()) => {
  * @param {string} xml */
 const sitemapPaths = (xml) =>
   [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(([, loc]) => {
-    const url = new URL(loc.trim().replaceAll("&amp;", "&"));
+    const url = new URL(decodeEntities(loc.trim()));
     return url.pathname + url.search;
   });
 

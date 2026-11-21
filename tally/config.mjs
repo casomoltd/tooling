@@ -7,7 +7,7 @@
 import {readFile, writeFile} from "node:fs/promises";
 import path from "node:path";
 import {pathToFileURL} from "node:url";
-import {CASOMO_CONFIG_KEYS, loadCasomoConfig} from "../bin/casomo-config.mjs";
+import {CASOMO_CONFIG_KEYS, loadCasomoConfig} from "../lib/casomo-config.mjs";
 import {uniqueBy} from "./fields.mjs";
 
 /** @import {FormDefinition} from "./index.d.mts" */
