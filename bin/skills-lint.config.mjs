@@ -1,11 +1,13 @@
 // remark config for linting a Claude Code skills/agents/docs tree — the basic
 // smoke test that catches most breakage a rename or hand-edit leaves behind:
-// invalid YAML frontmatter and broken markdown links/anchors. Nothing custom,
-// just three stock remark plugins.
+// invalid YAML frontmatter, broken markdown links/anchors, and an agent that
+// preloads a skill that doesn't exist. Three stock remark plugins and one rule
+// of ours.
 //
 //   remark-frontmatter             recognise the `---` YAML block
 //   remark-validate-links          every relative link + #anchor resolves
 //   remark-lint-frontmatter-schema frontmatter parses and has name+description
+//   remark-lint-agent-preloads     every skill an agent preloads resolves
 //
 // Run with cwd = the repo being linted, pointing remark at this file:
 //   remark --frail --quiet --no-stdout --rc-path <this> <paths…>
@@ -19,6 +21,7 @@ import {fileURLToPath} from "node:url";
 import remarkFrontmatter from "remark-frontmatter";
 import remarkValidateLinks from "remark-validate-links";
 import remarkLintFrontmatterSchema from "remark-lint-frontmatter-schema";
+import remarkLintAgentPreloads from "./remark-lint-agent-preloads.mjs";
 
 const schemaAbs = fileURLToPath(
   new URL("./schemas/frontmatter.schema.json", import.meta.url),
@@ -40,5 +43,6 @@ export default {
     remarkFrontmatter,
     [remarkValidateLinks, {repository: false}],
     [remarkLintFrontmatterSchema, {schemas: {[schema]: targets}}],
+    remarkLintAgentPreloads,
   ],
 };

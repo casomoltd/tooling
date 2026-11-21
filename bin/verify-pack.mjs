@@ -27,6 +27,7 @@ const ALLOWED_PREFIXES = [
   "signature/",
   "retention/",
   "tokens/",
+  "skills/",
 ];
 const ALLOWED_FILES = [
   "README.md", "package.json", "LICENSE", "LICENSE.md",

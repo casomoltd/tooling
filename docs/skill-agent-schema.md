@@ -33,6 +33,8 @@ A unit is one of three kinds, and the kind is **inferable from its frontmatter**
 An agent is *called as a function*: its `description` is a capability + when-to-use (with `tools` / `model` / `skills` in frontmatter), its **Inputs** read as a near-signature ("the caller provides: …"), and its **Output** is a defined return shape the caller parses. It leans on **Inputs → Output**. Declare Inputs explicitly rather than burying them in Scope — the caller is coding against them. `design-xray` and `code-review` model this: each opens with `## Inputs` (the target
 + the rubrics it preloads) and ends with a fixed `## Output` shape.
 
+Every name in an agent's `skills:` list must resolve to a skill in the repo or in this package: `remark-lint-agent-preloads`, run by `bin/skills-lint.config.mjs` in every repo's `lint:md`, fails the build on one that doesn't, because Claude Code skips an unresolvable preload with only a debug-log warning.
+
 ### An agent that persists a report
 
 An agent that returns a rendered report ([`design-xray`](../agents/design-xray.md), [`docs-xray`](../agents/docs-xray.md)) writes it and names it; the caller publishes it. The agent states only which sections it writes and what `<target>` is, and follows this contract:
