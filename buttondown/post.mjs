@@ -96,12 +96,41 @@ function assertFrontMatter(fields) {
   if (fields.image) assertAbsoluteUrl("image", fields.image);
 }
 
-/** Each `key: value` line, split at its first colon and trimmed. */
+/** Each `key: value` line, split at its first colon and trimmed, with one
+ *  pair of surrounding quotes removed. */
 function frontMatterFields(text) {
   return Object.fromEntries(text.split("\n")
     .filter((line) => line.includes(":"))
     .map((line) => {
       const at = line.indexOf(":");
-      return [line.slice(0, at).trim(), line.slice(at + 1).trim()];
+      const key = line.slice(0, at).trim();
+      return [key, scalar(key, line.slice(at + 1).trim())];
     }));
+}
+
+/**
+ * A value with its quoting removed, so a quoted one doesn't go out with its
+ * quotes: one matching pair is the quoting, and `''` inside single quotes is
+ * one quote mark, as in YAML. A quote left open, or any other quote mark
+ * or backslash inside, is one this reader doesn't decode, so it refuses the
+ * value rather than send it half read. It reads one line, not YAML: no
+ * comments and no block scalars, which a post's few fields don't need and a
+ * YAML parser would add as a runtime dependency.
+ */
+function scalar(key, value) {
+  const quote = value[0];
+  if (quote !== '"' && quote !== "'") return value;
+  const inner = value.slice(1, -1);
+  // A value that opens a quote must be one matching pair, with no quote
+  // mark left inside ('"Band 5" is not "band 6"', '"Never closed'), as YAML
+  // requires too.
+  const loose = value.length === 1 || value.at(-1) !== quote || (quote === "'"
+    ? inner.replaceAll("''", "").includes("'")
+    : inner.includes('"') || inner.includes("\\"));
+  if (loose) {
+    throw new Error(`front matter \`${key}:\` isn't one matching pair of `
+      + "quotes with no quote mark or backslash inside; write the value "
+      + "unquoted");
+  }
+  return quote === "'" ? inner.replaceAll("''", "'") : inner;
 }

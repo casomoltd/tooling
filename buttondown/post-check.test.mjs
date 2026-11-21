@@ -22,6 +22,20 @@ await test("parsePost reads the fields and refuses a post with no subject", () =
   assert.throws(() => parsePost("No heading.\n"), /# Subject/);
 });
 
+await test("parsePost reads a quoted value without its quotes", () => {
+  const description = (value) => parsePost(
+    `---\ndescription: ${value}\n---\n# Subject\n\nBody.\n`).fields.description;
+  assert.equal(description('"Factors: the 2026 set."'), "Factors: the 2026 set.");
+  assert.equal(description("'It''s here.'"), "It's here.");
+  assert.equal(description("Plain, unquoted."), "Plain, unquoted.");
+  assert.throws(() => description('"Opened, never closed.'), /write the value unquoted/);
+  assert.throws(() => description("\"Mixed.'"), /write the value unquoted/);
+  assert.throws(() => description('"'), /write the value unquoted/);
+  assert.throws(() => description('"A \\"quote\\"."'), /write the value unquoted/);
+  assert.throws(() => description('"Band 5" is not "band 6"'), /write the value unquoted/);
+  assert.throws(() => description("'It's'"), /write the value unquoted/);
+});
+
 await test("parsePost refuses the front matter `draft` would refuse", () => {
   const head = (fm) => `---\n${fm}\n---\n# Subject\n\nBody.\n`;
   assert.throws(() => parsePost(head("image:")), /empty `image:`/);
