@@ -31,7 +31,9 @@ const findings = [];
 const fail = (rule, detail) => findings.push({ rule, detail });
 const all = (re, s = html) => [...s.matchAll(re)];
 const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-const text = (s) => s.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+// A tag stops at the next `<`, so a `<` left unclosed is read once, not once
+// per later character.
+const text = (s) => s.replace(/<[^<>]*>/g, '').replace(/\s+/g, ' ').trim();
 
 // --- anchors -------------------------------------------------------------
 const ids = new Set(all(/\sid="([^"]+)"/g, doc).map((m) => m[1]));
@@ -69,6 +71,8 @@ else {
 // copy that goes stale unread. Everything else in the masthead -- eyebrow,
 // title, contents, status pills -- is not a paragraph, so a <p> left after
 // the nav and the card are removed is the defect.
+/** Enough of a stray paragraph to find it in the source. */
+const QUOTED_CHARS = 60;
 const hero = doc.match(/<header[^>]*class="hero"[\s\S]*?<\/header>/);
 if (hero) {
   const loose = hero[0]
@@ -81,7 +85,7 @@ if (hero) {
     const words = text(m[1]);
     if (!words) continue;
     fail('masthead', `prose sits in the masthead outside the Overview card: `
-      + `"${words.slice(0, 60)}…" (S11)`);
+      + `"${words.slice(0, QUOTED_CHARS)}…" (S11)`);
   }
 }
 
@@ -168,7 +172,9 @@ if (html.includes('Syntax error in text')) {
 // ban inline JS, and a pattern that only recognises one spelling of it lets
 // the rest through silently.
 const svgs = all(/<svg\b[^>]*\bid="fig-svg-\d+"[\s\S]*?<\/svg>/g).map((m) => m[0]);
-for (const m of all(/^[ \t]*click\s+(\S+)\s+(.*)$/gm)) {
+// A directive is one line, its remainder starting at its first non-blank, so
+// no two parts of the pattern can claim the same blank.
+for (const m of all(/^[ \t]*click[ \t]+(\S+)[ \t]+(\S.*|)$/gm)) {
   const [, node, rest] = m;
   const href = rest.match(/^(?:href\s+)?"([^"]+)"/);
   if (/^call\b/.test(rest)) {

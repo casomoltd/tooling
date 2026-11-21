@@ -37,14 +37,6 @@
       "count": 1
     }
   },
-  "bin/spec-check.mjs": {
-    "@typescript-eslint/no-magic-numbers": {
-      "count": 1
-    },
-    "sonarjs/super-linear-regex": {
-      "count": 2
-    }
-  },
   "buttondown/email-blocks.mjs": {
     "max-lines-per-function": {
       "count": 1
