@@ -21,6 +21,8 @@ assert.deepEqual(CASOMO_ORGANIZATION, {
   name: "Casomo Ltd",
   url: "https://casomoltd.com",
   logo: "https://casomoltd.com/assets/icon.svg",
+  // The year of incorporation, as the COMPANY_REGISTER page shows it.
+  foundingDate: "2023",
   sameAs: [
     // The NHS-facing site.
     "https://casomo.co.uk",

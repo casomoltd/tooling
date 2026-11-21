@@ -30,6 +30,9 @@ export const CASOMO_ORGANIZATION = Object.freeze({
   // The company's mark, as its own site serves it. Each site keeps its own
   // favicon and palette; this is the one logo the company is known by.
   logo: `${SITE}/assets/icon.svg`,
+  // The year the company was incorporated, as its record on the register,
+  // COMPANY_REGISTER below, shows it.
+  foundingDate: "2023",
   sameAs: Object.freeze([
     "https://casomo.co.uk",
     "https://www.facebook.com/casomouk",

@@ -11,6 +11,9 @@ export interface CasomoOrganization {
   readonly name: string;
   readonly url: `https://${string}`;
   readonly logo: string;
+  /** The year of incorporation, as ISO 8601 `YYYY`, which schema.org's
+   *  `Date` takes. */
+  readonly foundingDate: `${number}`;
   readonly sameAs: readonly string[];
 }
 
