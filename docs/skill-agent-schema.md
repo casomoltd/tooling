@@ -35,6 +35,8 @@ An agent is *called as a function*: its `description` is a capability + when-to-
 
 Every name in an agent's `skills:` list must resolve to a skill in the repo or in this package: `remark-lint-agent-preloads`, run by `bin/skills-lint.config.mjs` in every repo's `lint:md`, fails the build on one that doesn't, because Claude Code skips an unresolvable preload with only a debug-log warning.
 
+**An agent preloads a skill by name in `skills:`**, never by a path to its `SKILL.md`. A subagent resolves a path from the directory it was launched in, not from the agent file, so a path that works from one checkout fails silently from another, while an unresolvable `skills:` name fails the preload lint above.
+
 ### An agent that persists a report
 
 An agent that returns a rendered report ([`design-xray`](../agents/design-xray.md), [`docs-xray`](../agents/docs-xray.md)) writes it and names it; the caller publishes it. The agent states only which sections it writes and what `<target>` is, and follows this contract:
