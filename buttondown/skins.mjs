@@ -48,18 +48,28 @@ export function emailBaseCss(theme) {
   return [
     `body, td, div { font-family: ${fonts.body}; color: ${colours.ink}; `
       + `font-size: ${BODY_SIZE}; line-height: ${leading.body}; }`,
-    // Buttondown inlines its own grey; important, so this is the last.
-    `body { background-color: ${colours.page} !important; }`,
+    // No surface of our own: the email sits on the mail app's, as a letter
+    // does. A painted body shows as a card where the app's ground differs
+    // (Gmail on Android draws on grey). Important, so it follows the grey
+    // Buttondown inlines.
+    "body { background-color: transparent !important; }",
     // Unscoped, because the template rounds its card, its quotation and
     // whatever it adds next under class names of its own.
     "* { border-radius: 0 !important; }",
+    // The template's two wrappers each pad 20px a side, which a phone's
+    // column can't spare: the body gives up its sides, and the container
+    // (below) keeps the one margin.
+    ".email-body { padding-left: 0 !important; "
+      + "padding-right: 0 !important; }",
     // Forced, because the template styles the paragraph it wraps around
-    // the content and wins on specificity.
+    // the content and wins on specificity. Left-aligned at every width:
+    // Buttondown inlines these with their `!important`, which a media
+    // query can't beat, so a phone gets what a desktop gets, and justified
+    // text in a phone's column opens wide gaps between words.
     `p, li { font-family: ${fonts.body} !important; `
       + `color: ${colours.ink} !important; font-size: ${BODY_SIZE} !important; `
       + `line-height: ${leading.prose} !important; `
-      + "font-weight: 400 !important; text-align: justify !important; "
-      + "hyphens: auto; -webkit-hyphens: auto; -ms-hyphens: auto; }",
+      + "font-weight: 400 !important; text-align: left !important; }",
     `p { margin: ${PARAGRAPH_MARGIN}; }`,
     `ul, ol { margin: ${PARAGRAPH_MARGIN}; padding-left: 24px; `
       + `color: ${colours.ink}; font-size: ${BODY_SIZE} !important; }`,
@@ -80,11 +90,12 @@ export function emailBaseCss(theme) {
       + "text-underline-offset: 0.15em; }",
     "hr { border: 0; margin: 32px 0; }",
     "blockquote { background: transparent !important; margin: 24px 0; }",
-    // Longhands, because Buttondown emits its own border properties after
-    // these and would override the shorthand.
-    ".email-container { border-width: 0 !important; "
-      + "border-style: none !important; "
-      + `background-color: ${colours.page} !important; }`,
+    // The one margin, no border and no ground. Buttondown emits its own
+    // padding shorthand after these, so the padding is a shorthand too,
+    // and its own border longhands, so the border is reset with longhands.
+    ".email-container { padding: 0 16px !important; "
+      + "border-width: 0 !important; border-style: none !important; "
+      + "background-color: transparent !important; }",
     ".newsletter-footer { border: 0 !important; "
       + "background: transparent !important; padding: 0 !important; "
       + "margin: 0 !important; }",

@@ -79,7 +79,7 @@ export const TABLE: string;
  *  `createEmailBlocks`, so each font and colour has one producer. */
 export interface EmailTheme {
   fonts: {body: string; heading: string};
-  colours: {page: string; ink: string; heading: string};
+  colours: {ink: string; heading: string};
   /** Line heights: of the page, and of prose. */
   leading: {body: string; prose: string};
 }

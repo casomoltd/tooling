@@ -40,6 +40,10 @@ const block = [
 ].join("\n");
 const root = `:root {\n${block}\n}`;
 
+/** The clean email skin every test repo starts with. */
+const EMAIL_SKIN = ".newsletter-masthead { display: none !important; }\n"
+  + "a.on-dark { color: #222222 !important; }\n";
+
 /** A repo with a clean skin; `files` replaces or adds files, and a config
  *  key set to undefined is left out. */
 function repo(files = {}, config = {}) {
@@ -62,9 +66,7 @@ function repo(files = {}, config = {}) {
     "buttondown/fields/web_css.css":
       `${root}\n.a { color: #222; }\n`
       + 'a[href="https://example.com/"] { color: #123456; }\n',
-    "buttondown/fields/css.css":
-      ".newsletter-masthead { display: none !important; }\n"
-      + "a.on-dark { color: #222222 !important; }\n",
+    "buttondown/fields/css.css": EMAIL_SKIN,
     "buttondown/fields/footer.mjs": "export default 'footer';",
     ...files,
   };
@@ -131,6 +133,19 @@ await fails(web(".b { display: none !important; }"), /hides \.b/);
 await fails(web("@media (min-width: 1px) { .c { font-size: 0; } }"),
   /hides \.c/);
 await fails({}, /hides \.newsletter-masthead/, {allowedHides: {}});
+
+// An email @media naming a media type stops Buttondown inlining the skin;
+// a bare feature query, and a media type in the web skin, pass.
+const emailCss = (extra) => ({"buttondown/fields/css.css":
+  `${EMAIL_SKIN}${extra}\n`});
+for (const query of ["only screen and (max-width: 600px)", "screen",
+  "print, (max-width: 1px)", "not all and (min-width: 1px)"]) {
+  await fails(emailCss(`@media ${query} { p { margin: 0; } }`),
+    /names a media type, which stops Buttondown inlining/);
+}
+await passes(emailCss("@media (max-width: 600px) { p { margin: 0; } }"));
+await passes(emailCss("@media not (hover: hover) { p { margin: 0; } }"));
+await passes(web("@media screen and (min-width: 1px) { .a { margin: 0; } }"));
 
 // Injected text; removing it, or a layout property ending in content, is
 // not injection.
@@ -492,7 +507,7 @@ for (const h of Object.keys(WEB_CHROME_HIDES)) {
   assert.ok(at < composed.indexOf(":root"), `${h} ahead of the site's rules`);
 }
 const theme = {fonts: {body: "Sans", heading: "Serif"},
-  colours: {page: "#ffffff", ink: "#222222", heading: "#123456"},
+  colours: {ink: "#222222", heading: "#123456"},
   leading: {body: "1.5", prose: "1.6"}};
 const emailBase = emailBaseCss(theme);
 assert.match(emailBase, /p, li \{ font-family: Sans !important; color: #222222/);
@@ -500,6 +515,17 @@ assert.ok(Object.keys(EMAIL_CHROME_HIDES).every((h) =>
   emailBase.includes(`${h} { display: none !important; }`)));
 assert.throws(() => emailBaseCss({fonts: {body: "Sans"}}),
   /emailBaseCss needs theme.fonts.heading/);
+// The prose is left-aligned at every width, since its inlined
+// `!important` would beat any phone rule.
+assert.match(emailBase, /p, li \{[^}]*text-align: left !important; \}/);
+assert.doesNotMatch(emailBase, /justify|@media/);
+// No surface of our own, and the template's wrappers give up their sides
+// but for one margin, set as a shorthand to follow Buttondown's own.
+assert.match(emailBase, /body \{ background-color: transparent !important; \}/);
+assert.match(emailBase, /\.email-container \{ padding: 0 16px !important; /);
+assert.match(emailBase,
+  /\.email-body \{ padding-left: 0 !important; padding-right: 0 !important; \}/);
+assert.doesNotMatch(emailBase, /#ffffff/i);
 
 // The composer reads past @charset and @layer, an upper-case @import, and
 // a quoted bracket in a URL, as well as comments.

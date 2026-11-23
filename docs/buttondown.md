@@ -85,6 +85,7 @@ Bare `check` gates the skins and settings; a post is gated by `check <f.md>` ([b
 - a skin injects text with `content:`;
 - a web-skin `href` selector matches no `socials` URL or `ownLinks` entry;
 - an email link class has no `a.<class>` rule;
+- the email skin has an `@media` query naming a media type (`only`, `screen`, `print`, `all`) ([why](buttondown-platform.md#email-rendering));
 - the web skin has an `@import` that isn't a whole statement before its first rule: one after a rule, which browsers ignore, or one whose URL was cut short;
 - the web skin reads a variable nothing declares: a `--bd-*` role, or one the shared web rules read; the declaration reading it would be dropped;
 - one of the repo's own gates reports a problem.
@@ -110,9 +111,9 @@ A gate is a module whose default export takes `{root, payload, css, web, email, 
 
 A site whose emails draw their own bands, and whose blog wears its own skin, takes the shared parts from `@casomoltd/tooling/buttondown` and keeps only its own:
 
-- **An email theme** is one value a site defines once and passes to both email functions: `{fonts: {body, heading}, colours: {page, ink, heading}, leading: {body, prose}}`. Either function names any missing part of it rather than rendering `undefined`.
+- **An email theme** is one value a site defines once and passes to both email functions: `{fonts: {body, heading}, colours: {ink, heading}, leading: {body, prose}}`. Either function names any missing part of it rather than rendering `undefined`.
 - **`createEmailBlocks(options)`** returns the bands an email is built from: the title card, white air, paragraphs, body links, the one action, the sign-off and the small print. Beside the theme, the site supplies the rest of its look and its small print, every part required (`EmailBlockOptions` in `index.d.mts`), and draws its own mark band. `footer()` must be told whether there is a subscription to leave.
-- **`emailBaseCss(theme)`** writes the rules every site's emails share, with literal values, since a mail client can't resolve a custom property: the page, prose (justified), headings, links, rules, square corners on everything, the container resets, and a hide for each piece of Buttondown's email chrome (`EMAIL_CHROME_HIDES`, which the site spreads into `allowedHides`). A site's `fields/css.mjs` appends its own stylesheet.
+- **`emailBaseCss(theme)`** writes the rules every site's emails share, with literal values, since a mail client can't resolve a custom property: no surface of their own (a transparent body and container, the container alone keeping a 16px margin; [why](buttondown-platform.md#email-rendering)), prose (left-aligned at every width; [why](buttondown-platform.md#email-rendering)), headings, links, rules, square corners on everything, the container resets, and a hide for each piece of Buttondown's email chrome (`EMAIL_CHROME_HIDES`, which the site spreads into `allowedHides`). A site's `fields/css.mjs` appends its own stylesheet.
 - **`composeWebSkin(site)`** inserts the shared web rules after the site stylesheet's leading comments and `@charset`, `@import` and `@layer` statements and ahead of its own rules, so the site's win a tie. It also hides the hosted-page controls in `WEB_CHROME_HIDES` (the mail-provider button, and a signed-in reader's manage link to buttondown.com), with `!important`, so a site's rules can't show them unless they are `!important` too; the site spreads that list into `allowedHides`. The manage-link hide assumes the archive is on a custom domain, where that link asks the reader to sign in again. The shared rules read their values from variables the site's TOKENS block declares: Buttondown's `--color-background`, `--color-foreground`, `--font-family-sans` and `--radius`, and these roles the theme lacks:
 
   | Variable | Role |

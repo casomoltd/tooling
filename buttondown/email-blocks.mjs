@@ -36,7 +36,7 @@ const MANAGE = '{{ manage_subscription_url }}';
  * has one producer.
  */
 const THEME_PATHS = [
-  "fonts.body", "fonts.heading", "colours.page", "colours.ink",
+  "fonts.body", "fonts.heading", "colours.ink",
   "colours.heading", "leading.body", "leading.prose",
 ];
 
@@ -53,7 +53,7 @@ export function requirePaths(what, value, paths) {
   if (missing.length) throw new Error(`${what} needs ${missing.join(", ")}`);
 }
 
-/** Checks an email theme: {fonts: {body, heading}, colours: {page, ink,
+/** Checks an email theme: {fonts: {body, heading}, colours: {ink,
  *  heading}, leading: {body, prose}}. */
 export function requireTheme(what, theme) {
   requirePaths(what, {theme}, THEME_PATHS.map((p) => `theme.${p}`));
@@ -63,7 +63,7 @@ export function requireTheme(what, theme) {
  * The blocks for one site. Every option is required:
  *
  *   theme:   the site's email theme (see requireTheme): the body and
- *            heading fonts, the page, ink and heading colours, and the
+ *            heading fonts, the ink and heading colours, and the
  *            prose line height
  *   colours: {titleGround, action, actionInk, footerGround, footerRule}
  *   rhythm:  {cardPadding, buttonCell, buttonSize, buttonPadding,
@@ -112,12 +112,12 @@ export function createEmailBlocks(options = {}) {
     );
   }
 
-  /** White air between bands: a cell with a height, because a margin on
-   *  the table above would be dropped by several clients. */
+  /** Air between bands, on the mail app's own ground like the rest of the
+   *  letter: a cell with a height, because a margin on the table above
+   *  would be dropped by several clients. */
   function spacer(height) {
     return (
-      `${TABLE}\n`
-      + `       style="background-color:${theme.colours.page};"><tr><td`
+      `${TABLE}><tr><td`
       + ` style="height:${height}px;line-height:${height}px;`
       + "font-size:0;\">&nbsp;</td></tr></table>\n\n"
     );

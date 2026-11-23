@@ -39,6 +39,14 @@ const IMPORTANT = "!important";
  *  Checked apart from the selector's own pattern, which stays linear. */
 const HREF_FLAG = /^(?:\s+[is])?\s*$/i;
 
+/** The media types of Media Queries level 4, with `only`, which can stand
+ *  only before one (https://www.w3.org/TR/mediaqueries-4/#media-types).
+ *  `not` is left out: it also negates a bare feature query, which a
+ *  type-free query may hold. A type word stands at the head of a query or
+ *  after a comma, never inside a feature's parentheses, hence the lead. */
+const MEDIA_TYPE_WORDS = ["all", "print", "screen", "only"];
+const MEDIA_TYPE = new RegExp(`(^|[\\s,])(${MEDIA_TYPE_WORDS.join("|")})\\b`, "i");
+
 /** The generated block of the web skin, from the site's tokens. */
 export function tokensBlock(settings, css) {
   return tokenLines(css, settings.tokens, {start: START, end: END}, settings.extra);
@@ -66,6 +74,7 @@ export async function skinProblems(settings, {css, payload}) {
     ...tokenProblems(settings, css, skins.web),
     ...await paletteProblems(settings, css, skins),
     ...hideProblems(settings, skins),
+    ...mediaTypeProblems(skins.email),
     ...hrefProblems(settings, payload, skins.web),
     ...linkClassProblems(settings, skins.email),
   ];
@@ -185,6 +194,19 @@ function hideProblems(settings, {web, email}) {
     ...injections(text)
       .map((selector) => `${where} injects text with content: in ${selector}`),
   ]);
+}
+
+/** Each @media in the email skin whose query names a media type. Why that
+ *  breaks the email: docs/buttondown-platform.md, "A media type in an
+ *  `@media` query". Only `only screen and` has been seen to break it; the
+ *  other types are refused untested, as the same kind of query. */
+function mediaTypeProblems(email) {
+  return [...stripComments(email).matchAll(/@media([^{]*)\{/gi)]
+    .map((m) => m[1].trim())
+    .filter((query) => MEDIA_TYPE.test(query))
+    .map((query) => `the email skin's @media ${query} names a media type, `
+      + "which stops Buttondown inlining the email skin; use a bare feature "
+      + "query such as @media (max-width: 600px)");
 }
 
 /** Each href selector in the web skin that names neither a socials URL
