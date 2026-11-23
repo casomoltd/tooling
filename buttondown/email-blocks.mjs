@@ -1,9 +1,9 @@
 /**
  * The bands an email is built from, for a repo whose Buttondown emails
- * draw their own header and footer: the title on a ground, white air,
- * paragraphs, one action, a sign-off and the small print. The site
- * supplies its tokens, its mark band and its colophon; this supplies the
- * layout they share.
+ * draw their own header and footer: the title on a ground, the air
+ * between them, paragraphs, one action, a sign-off and the small print.
+ * The site supplies its tokens, its mark band and its colophon; this
+ * supplies the layout they share.
  *
  * Every rule is an inline `style` attribute, because inline is the only
  * thing every mail client honours, and vertical rhythm is carried on

@@ -15,6 +15,10 @@ const WEB_BASE = readFileSync(
   new URL("./base-web.css", import.meta.url), "utf8",
 );
 
+/** The email's one side margin, on the template's container: enough to
+ *  keep text off a phone's edge, small enough to spare its column. */
+const CONTAINER_MARGIN = "16px";
+
 /** WEB_CHROME_HIDES as rules. Important, so a site's own rules for the
  *  same elements can't show them unless those are important too. */
 const WEB_HIDES = Object.keys(WEB_CHROME_HIDES)
@@ -93,7 +97,7 @@ export function emailBaseCss(theme) {
     // The one margin, no border and no ground. Buttondown emits its own
     // padding shorthand after these, so the padding is a shorthand too,
     // and its own border longhands, so the border is reset with longhands.
-    ".email-container { padding: 0 16px !important; "
+    `.email-container { padding: 0 ${CONTAINER_MARGIN} !important; `
       + "border-width: 0 !important; border-style: none !important; "
       + "background-color: transparent !important; }",
     ".newsletter-footer { border: 0 !important; "
