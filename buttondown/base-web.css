@@ -104,7 +104,7 @@ button.button.tinted,
 }
 
 /* An archive entry, set as an article is: a large left-aligned title and
-   justified, hyphenated prose. */
+   ragged prose, as the email's is. */
 .email-body .subject {
   font-family: var(--bd-font-heading);
   font-size: 36px;
@@ -129,7 +129,5 @@ button.button.tinted,
 }
 
 .email-body-content p {
-  text-align: justify;
-  hyphens: auto;
-  -webkit-hyphens: auto;
+  text-align: left;
 }
