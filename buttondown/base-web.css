@@ -131,3 +131,11 @@ button.button.tinted,
 .email-body-content p {
   text-align: left;
 }
+
+/* A figure's caption is ragged as the prose is. The second selector
+   matches the weight of a site's own caption rule, so no theme rule that
+   the site's rule outranked can centre or justify it. */
+.email-body-content figcaption,
+.email-body-content .casomo-figure figcaption {
+  text-align: left;
+}
