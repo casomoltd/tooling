@@ -178,6 +178,14 @@ export type DateQuestion = QuestionBase & {
 /** Days a date question refuses: the ones after today. */
 export type DisabledDays = keyof typeof DISABLED_DAYS;
 
+/**
+ * Files the respondent adds: any number of images or PDFs. Required only
+ * where the respondent chose to add one and has another way on, since a
+ * required upload stops anyone with nothing to add. No condition may read
+ * one: none has been pushed to Tally.
+ */
+export type FileUploadQuestion = QuestionBase & { kind: "fileUpload" };
+
 /** One answer from a list. */
 export type ChoiceQuestion = QuestionBase & { kind: "choice"; options: Option[] };
 /** One answer from a list too long to lay out: a menu. */
@@ -199,6 +207,7 @@ export type Question =
   | MoneyQuestion
   | NumberQuestion
   | DateQuestion
+  | FileUploadQuestion
   | ChoiceQuestion
   | DropdownQuestion
   | CheckboxQuestion;
@@ -420,6 +429,7 @@ export declare const BLOCK_TYPES: {
   readonly Textarea: "TEXTAREA";
   readonly InputNumber: "INPUT_NUMBER";
   readonly InputDate: "INPUT_DATE";
+  readonly FileUpload: "FILE_UPLOAD";
   readonly ChoiceOption: "MULTIPLE_CHOICE_OPTION";
   readonly DropdownOption: "DROPDOWN_OPTION";
   readonly Checkbox: "CHECKBOX";

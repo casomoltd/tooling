@@ -56,6 +56,18 @@ assert.deepEqual(breaks.at(-1)?.payload,
   {index: 2, isFirst: false, isLast: true, isThankYouPage: true});
 assert.equal(breaks.filter((b) => b.payload.isLast === true).length, 1);
 
+// An upload is a FILE_UPLOAD block in a FILE_UPLOAD group that takes any
+// number of images or PDFs; this one is not required.
+const upload = blockAt("papers/input/block");
+assert.equal(upload.type, BLOCK_TYPES.FileUpload);
+assert.equal(upload.groupType, BLOCK_TYPES.FileUpload);
+assert.deepEqual(upload.payload, {
+  isRequired: false,
+  isHidden: false,
+  hasMultipleFiles: true,
+  allowedFiles: {"image/*": ["*"], "application/*": [".pdf"]},
+});
+
 // A conditional question's title, help and input hide together, and its
 // show logic, placed before it, names every one of their groups.
 const hidden = blocks.filter((b) => [id("plan_date/title/group"),
@@ -174,6 +186,10 @@ refuses({...fixtureForm, pages: [first, {...rest[0], items: rest[0].items.map((q
     ? {...q, showWhen: [{kind: /** @type {const} */ ("chose"), question: "plan",
       options: ["maybe"]}]}
     : q)}, rest[1]]}, /has no option maybe/);
+refuses({...fixtureForm, pages: [first, {...rest[0], items: rest[0].items.map((q) =>
+  q.kind === "date"
+    ? {...q, showWhen: [{kind: /** @type {const} */ ("answered"), question: "papers"}]}
+    : q)}, rest[1]]}, /cannot read "papers", an upload/);
 refuses({...fixtureForm, pages: [{...first, rules: [
   {kind: "jump", key: "nowhere", to: "missing", when: []}]}, ...rest]},
 /no page missing/);

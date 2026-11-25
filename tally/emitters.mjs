@@ -49,10 +49,22 @@ export const INPUTS = {
   number: (t, q, hidden) => [t.single(q, numberPayload(q, hidden))],
   date: (t, q, hidden) =>
     [t.single(q, datePayload(q, hidden, t.form.locale.dateFormat))],
+  fileUpload: (t, q, hidden) => [t.single(q, {
+    ...base(q, hidden),
+    hasMultipleFiles: true,
+    allowedFiles: UPLOAD_FILES,
+  })],
   choice: (t, q, hidden) => t.options(q, hidden, BLOCK_TYPES.ChoiceOption),
   dropdown: (t, q, hidden) => t.options(q, hidden, BLOCK_TYPES.DropdownOption),
   checkbox: (t, q, hidden) => t.options(q, hidden, BLOCK_TYPES.Checkbox),
 };
+
+/** What an upload takes, as the API's `allowedFiles` spells it: a photo or
+ *  screenshot in any image format, or a PDF. */
+const UPLOAD_FILES = Object.freeze({
+  "image/*": Object.freeze(["*"]),
+  "application/*": Object.freeze([".pdf"]),
+});
 
 /**
  * How each kind of condition becomes the body of Tally's conditional.

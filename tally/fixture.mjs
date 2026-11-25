@@ -66,6 +66,8 @@ export const fixtureForm = {
               {kind: "dateAfter", question: "started", date: "2008-03-31"},
             ]},
           ]},
+        {kind: "fileUpload", key: "papers", title: "Any papers to add?",
+          required: false},
         {kind: "dropdown", key: "region", title: "Region", required: true,
           options: [{key: "north", label: "North"}, {key: "south", label: "South"}]},
       ],

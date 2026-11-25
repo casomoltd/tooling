@@ -399,7 +399,14 @@ export class Translator {
    *  @param {string} key @param {string} path */
   fieldOf(key, path) {
     const item = this.hidden.get(key);
-    return item ? this.hiddenRef(key, item) : answerRef(this.at, this.find(key, path));
+    if (item) return this.hiddenRef(key, item);
+    const question = this.find(key, path);
+    // Every shape this engine writes is one Tally has accepted, and a
+    // condition on an upload is not among them yet.
+    if (question.kind === "fileUpload") {
+      throw new Error(`${path}: a condition cannot read "${key}", an upload`);
+    }
+    return answerRef(this.at, question);
   }
 
   /** A number to calculate with: a number question, or a hidden field, whose
