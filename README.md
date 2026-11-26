@@ -156,7 +156,7 @@ The hooks are the gate and CI the backstop. What each hook runs, why `check` own
 
 ## Usage
 
-**.prettierrc.js**
+**.prettierrc.cjs**, named `.cjs` so it loads whether or not the repo's `package.json` says `"type": "module"`
 ```js
 module.exports = require('@casomoltd/tooling/prettier');
 ```
