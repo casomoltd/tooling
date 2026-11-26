@@ -5,7 +5,7 @@ import {strict as assert} from "node:assert";
 import {mkdtempSync, rmSync, writeFileSync} from "node:fs";
 import {tmpdir} from "node:os";
 import {join} from "node:path";
-import {tallyApiKey} from "./config.mjs";
+import {loadTallySettings, tallyApiKey} from "./config.mjs";
 
 const dir = mkdtempSync(join(tmpdir(), "tally-key-"));
 const keyFile = join(dir, "tally.key");
@@ -22,6 +22,7 @@ assert.equal(await tallyApiKey(settings(join(dir, "absent")), env), "from-env");
 assert.equal(await tallyApiKey(settings(undefined), env), "from-env");
 
 // `~/` is the account's home, and a path against no root is refused.
+const home = process.env.HOME;
 process.env.HOME = dir;
 assert.equal(await tallyApiKey(settings("~/tally.key"), env), "from-file");
 await assert.rejects(tallyApiKey(settings("tally.key"), env), /must start with/);
@@ -39,5 +40,20 @@ await assert.rejects(tallyApiKey(settings(join(dir, "absent")), {}),
 await assert.rejects(tallyApiKey(settings(undefined), {}),
   /^Error: TALLY_API_KEY is not set/);
 
+// A key file setting that is blank or not a path is refused, not read as none.
+/** @param {unknown} apiKeyFile */
+const site = (apiKeyFile) => {
+  const root = mkdtempSync(join(tmpdir(), "tally-site-"));
+  const tally = {forms: "f", registry: "r", pushed: "p", globals: "g",
+    stylesheet: "s", apiKeyFile};
+  writeFileSync(join(root, "casomo.config.mjs"),
+    `export default {tally: ${JSON.stringify(tally)}};`);
+  return root;
+};
+await assert.rejects(loadTallySettings(site("")), /non-empty path/);
+await assert.rejects(loadTallySettings(site(true)), /non-empty path/);
+assert.equal((await loadTallySettings(site("~/k"))).apiKeyFile, "~/k");
+
+process.env.HOME = home;
 rmSync(dir, {recursive: true});
 console.log("tally config tests OK");

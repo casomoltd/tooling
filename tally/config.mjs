@@ -2,8 +2,9 @@
  * A site's half of the engine, read from `tally` in its casomo.config.mjs:
  * where its forms, their ids, the last-push record and its form stylesheet
  * live, which of its design tokens the stylesheet copies, and where the
- * account's API key comes from. Every path is
- * resolved against the site, never against this package.
+ * account's API key comes from. Every path to a site file is resolved
+ * against the site, never against this package; the key file is the account's
+ * own, under its home or absolute.
  */
 import {readFile, writeFile} from "node:fs/promises";
 import os from "node:os";
@@ -49,32 +50,8 @@ export async function loadTallySettings(root = process.cwd()) {
     apiKeyEnv: config.apiKeyEnv ?? DEFAULT_KEY_ENV,
     /** The file holding a key kept per account, as written in the config, or
      *  undefined for none. */
-    apiKeyFile: config.apiKeyFile,
+    apiKeyFile: apiKeyFileOf(config.apiKeyFile),
   };
-}
-
-/**
- * The key in an account's key file, or undefined where the account has none.
- * A file that is there but empty or unreadable is refused: it marks an account
- * holding a key of wider reach than the variable's, which a push must not
- * quietly swap for the narrower one.
- * @param {string} file `~/` or absolute: it belongs to the account, not the site
- */
-async function readKeyFile(file) {
-  if (!path.isAbsolute(file)) {
-    throw new Error(`tally.apiKeyFile must start with ~/ or /, not ${file}`);
-  }
-  try {
-    const key = (await readFile(file, "utf8")).trim();
-    if (!key) throw new Error(`${file} is empty`);
-    return key;
-  } catch (error) {
-    // No file is an account that keeps its key in the variable.
-    if (/** @type {NodeJS.ErrnoException} */ (error).code === "ENOENT") {
-      return undefined;
-    }
-    throw error;
-  }
 }
 
 /**
@@ -178,4 +155,42 @@ export function formRegistry(file) {
  */
 function inSite(root, p) {
   return path.resolve(root, p);
+}
+
+/**
+ * The key in an account's key file, or undefined where the account has none.
+ * A file that is there but empty or unreadable is refused: it marks an account
+ * holding a key of wider reach than the variable's, which a push must not
+ * quietly swap for the narrower one.
+ * @param {string} file the key file, its `~/` already expanded; refused unless
+ *   absolute, since it belongs to the account and not the site
+ */
+async function readKeyFile(file) {
+  if (!path.isAbsolute(file)) {
+    throw new Error(`tally.apiKeyFile must start with ~/ or /, not ${file}`);
+  }
+  try {
+    const key = (await readFile(file, "utf8")).trim();
+    if (!key) throw new Error(`${file} is empty`);
+    return key;
+  } catch (error) {
+    // No file is an account that keeps its key in the variable.
+    if (/** @type {NodeJS.ErrnoException} */ (error).code === "ENOENT") {
+      return undefined;
+    }
+    throw error;
+  }
+}
+
+/**
+ * The `apiKeyFile` setting: a non-empty string, or absent. Anything else is
+ * refused, since a blank would quietly fall back to the variable.
+ * @param {unknown} value
+ */
+function apiKeyFileOf(value) {
+  if (value === undefined) return undefined;
+  if (typeof value !== "string" || !value) {
+    throw new Error("tally.apiKeyFile must be a non-empty path");
+  }
+  return value;
 }
