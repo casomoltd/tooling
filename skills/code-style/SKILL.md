@@ -32,7 +32,7 @@ Owns the rules more than one language shares, and the review duties that hold fo
 A module answers one question, and that cuts both ways.
 
 - **Split** a module that answers several: IO, domain logic and presentation in one file, or a function that fetches and parses and formats.
-- **Merge** modules that answer the same one. Before adding a file, search the package's exports and module headers for the concept, and extend the module that already answers it.
+- **Merge** modules that answer the same one. Before adding a file, search the package's exports and module headers for the concept, and extend the module that already answers it. The same holds below the file: a new component, helper or type that answers a question an existing one already answers extends that one, unless a reason below keeps them apart. The `typescript` standard owns the cases it names, such as a parallel type for a published one.
 
 ```text
 Good: shipping/tiers      "what does each shipping tier allow?"

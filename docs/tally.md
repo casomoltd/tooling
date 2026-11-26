@@ -43,7 +43,7 @@ The forms module may be TypeScript: it runs from the site's own tree, where Node
 
 ## The API key
 
-The key comes from the file `apiKeyFile` names (`~/` is the account's home) where the account has one, and otherwise from the variable `apiKeyEnv` names, `TALLY_API_KEY` by default. A key file marks an account whose key reaches more than the variable's does, so a file that exists but is empty or unreadable is refused, never skipped for the variable: a push would otherwise go out under the narrower key without saying so. A path that is neither absolute nor under `~/` is refused, since the file belongs to the account and not the site. A script that calls Tally itself reads the key the same way, loading `tallyApiKey` from the package's `tally/config.mjs` by path.
+The key comes from the file `apiKeyFile` names (`~/` is the account's home) where the account has one, and otherwise from the variable `apiKeyEnv` names, `TALLY_API_KEY` by default. A Tally key has no scope of its own: it reaches whatever the login that made it reaches, so the workspaces are the boundary. A key file marks an account whose key reaches more than the variable's does, so a file that exists but is empty or unreadable is refused, never skipped for the variable: a push would otherwise go out under the narrower key without saying so. A path that is neither absolute nor under `~/` is refused, since the file belongs to the account and not the site. A script that calls Tally itself reads the key the same way, loading `tallyApiKey` from the package's `tally/config.mjs` by path.
 
 ## The command
 
