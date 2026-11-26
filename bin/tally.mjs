@@ -2,7 +2,8 @@
 /**
  * Keep a site's Tally forms as code. Settings are under `tally` in the repo's
  * casomo.config.mjs (see tally/config.mjs); the API key is read from the
- * environment variable they name.
+ * file `apiKeyFile` names where the account has one, else from the variable
+ * `apiKeyEnv` names.
  *
  *   tally push <form> [--discard-edits] [--delete-answers]
  *                                 push a form, read it back, report any
@@ -30,7 +31,9 @@ import {
   baseline, CHANGE_KINDS, codeVersion, droppedAnswers, formChanges, liveVersion,
   pushedStore, pushRefusal, unportedEdits,
 } from "../tally/compare.mjs";
-import {formRegistry, loadForms, loadTallySettings} from "../tally/config.mjs";
+import {
+  formRegistry, loadForms, loadTallySettings, tallyApiKey,
+} from "../tally/config.mjs";
 import {toSettings, translate} from "../tally/translator.mjs";
 import {findBlock, TOKENS_END, tokensBlock} from "../tokens/block.mjs";
 
@@ -100,8 +103,7 @@ async function formCommand(settings, formKey) {
     const known = [...forms.keys()].join(", ") || "none: check tally.forms";
     throw new Error(`no form ${formKey}; the forms are ${known}`);
   }
-  const apiKey = process.env[settings.apiKeyEnv];
-  if (!apiKey) throw new Error(`${settings.apiKeyEnv} is not set`);
+  const apiKey = await tallyApiKey(settings);
   const {blocks, name: blockName} = translate(form);
   const settingsOut = toSettings(form);
   return {

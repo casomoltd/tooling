@@ -31,13 +31,19 @@ export default {
     stylesheet: 'tally/styles.css',
     // Variable the form stylesheet reads, then the site token it copies.
     tokens: [['--form-ink', '--color-brand-text-dark']],
-    // Optional: the environment variable holding the API key.
+    // Optional: the environment variable holding the API key (default below).
     apiKeyEnv: 'TALLY_API_KEY',
+    // Optional: a key file for an account that keeps its own (see The API key).
+    apiKeyFile: '~/.config/tally.key',
   },
 };
 ```
 
 The forms module may be TypeScript: it runs from the site's own tree, where Node strips the types, unlike a file under `node_modules`.
+
+## The API key
+
+The key comes from the file `apiKeyFile` names (`~/` is the account's home) where the account has one, and otherwise from the variable `apiKeyEnv` names, `TALLY_API_KEY` by default. A key file marks an account whose key reaches more than the variable's does, so a file that exists but is empty or unreadable is refused, never skipped for the variable: a push would otherwise go out under the narrower key without saying so. A path that is neither absolute nor under `~/` is refused, since the file belongs to the account and not the site. A script that calls Tally itself reads the key the same way, loading `tallyApiKey` from the package's `tally/config.mjs` by path.
 
 ## The command
 

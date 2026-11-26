@@ -1,10 +1,12 @@
 /**
  * A site's half of the engine, read from `tally` in its casomo.config.mjs:
  * where its forms, their ids, the last-push record and its form stylesheet
- * live, and which of its design tokens the stylesheet copies. Every path is
+ * live, which of its design tokens the stylesheet copies, and where the
+ * account's API key comes from. Every path is
  * resolved against the site, never against this package.
  */
 import {readFile, writeFile} from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import {pathToFileURL} from "node:url";
 import {CASOMO_CONFIG_KEYS, loadCasomoConfig} from "../lib/casomo-config.mjs";
@@ -45,7 +47,52 @@ export async function loadTallySettings(root = process.cwd()) {
     /** @type {readonly (readonly [string, string])[]} */
     tokens: config.tokens ?? [],
     apiKeyEnv: config.apiKeyEnv ?? DEFAULT_KEY_ENV,
+    /** The file holding a key kept per account, as written in the config, or
+     *  undefined for none. */
+    apiKeyFile: config.apiKeyFile,
   };
+}
+
+/**
+ * The key in an account's key file, or undefined where the account has none.
+ * A file that is there but empty or unreadable is refused: it marks an account
+ * holding a key of wider reach than the variable's, which a push must not
+ * quietly swap for the narrower one.
+ * @param {string} file `~/` or absolute: it belongs to the account, not the site
+ */
+async function readKeyFile(file) {
+  if (!path.isAbsolute(file)) {
+    throw new Error(`tally.apiKeyFile must start with ~/ or /, not ${file}`);
+  }
+  try {
+    const key = (await readFile(file, "utf8")).trim();
+    if (!key) throw new Error(`${file} is empty`);
+    return key;
+  } catch (error) {
+    // No file is an account that keeps its key in the variable.
+    if (/** @type {NodeJS.ErrnoException} */ (error).code === "ENOENT") {
+      return undefined;
+    }
+    throw error;
+  }
+}
+
+/**
+ * The API key: the file `apiKeyFile` names, where this account has one, else
+ * the variable `apiKeyEnv` names.
+ * @param {Pick<TallySiteSettings, "apiKeyEnv" | "apiKeyFile">} settings
+ * @param {NodeJS.ProcessEnv} [env]
+ */
+export async function tallyApiKey(settings, env = process.env) {
+  const file = settings.apiKeyFile?.replace(/^~(?=\/)/, os.homedir());
+  const fromFile = file ? await readKeyFile(file) : undefined;
+  if (fromFile) return fromFile;
+  const fromEnv = env[settings.apiKeyEnv];
+  if (!fromEnv) {
+    const where = file ? `${file} is absent and ` : "";
+    throw new Error(`${where}${settings.apiKeyEnv} is not set`);
+  }
+  return fromEnv;
 }
 
 /** @typedef {Awaited<ReturnType<typeof loadTallySettings>>} TallySiteSettings */
