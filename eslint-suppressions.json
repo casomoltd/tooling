@@ -21,11 +21,6 @@
       "count": 1
     }
   },
-  "bin/render-report.mjs": {
-    "@typescript-eslint/no-magic-numbers": {
-      "count": 1
-    }
-  },
   "bin/screenshot.mjs": {
     "@typescript-eslint/no-magic-numbers": {
       "count": 1
