@@ -91,6 +91,10 @@
       "types": "./tally/events.d.mts",
       "default": "./tally/embed.mjs"
     },
+    "./tally/api-key": {
+      "types": "./tally/api-key.d.mts",
+      "default": "./tally/key-source.mjs"
+    },
     "./signature": {
       "types": "./signature/index.d.mts",
       "default": "./signature/index.mjs"

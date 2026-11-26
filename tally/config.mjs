@@ -14,6 +14,7 @@ import {CASOMO_CONFIG_KEYS, loadCasomoConfig} from "../lib/casomo-config.mjs";
 import {uniqueBy} from "./fields.mjs";
 
 /** @import {FormDefinition} from "./index.d.mts" */
+/** @import {TallyKeySource} from "./api-key.d.mts" */
 
 /** The indent the id registry is written with, so a new id is a one-line
  *  diff. */
@@ -57,7 +58,7 @@ export async function loadTallySettings(root = process.cwd()) {
 /**
  * The API key: the file `apiKeyFile` names, where this account has one, else
  * the variable `apiKeyEnv` names.
- * @param {Pick<TallySiteSettings, "apiKeyEnv" | "apiKeyFile">} settings
+ * @param {TallyKeySource} settings
  * @param {NodeJS.ProcessEnv} [env]
  */
 export async function tallyApiKey(settings, env = process.env) {
