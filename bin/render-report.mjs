@@ -6,7 +6,7 @@
  * render unreliably in editor previews. The page is meant to be published as
  * an artifact by the caller; the agents themselves cannot publish.
  *
- * Two properties the output depends on, both learned the hard way.
+ * Two properties the output depends on.
  *
  * The markdown is converted HERE, in node, not in the page. A page that builds
  * its own body at load time has no `pre.mermaid` in it when the artifact host
@@ -33,10 +33,13 @@
  *   1  Bad arguments or the input file is missing
  */
 import {existsSync, readFileSync, writeFileSync} from "node:fs";
-import {marked} from "marked";
 import {dirname, resolve} from "node:path";
 import {fileURLToPath} from "node:url";
 import {openPath} from "./utils.mjs";
+// A copy of `marked`, not the installed package: an agent runs this script
+// from a plugin's checkout, which has no `node_modules`, and from any
+// directory. `render-report.test.mjs` holds the copy to the installed one.
+import {marked} from "./vendor/marked.mjs";
 
 /** `node` and this script come first in `process.argv`. */
 const OWN_ARGS_FROM = 2;

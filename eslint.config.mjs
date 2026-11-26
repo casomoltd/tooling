@@ -20,6 +20,9 @@ const NODE_FREE = `${HTML_MODULE} ships as ${PKG.name}${htmlExport.slice(1)}`
 
 /* The repo that ships the house config lints itself with it. */
 export default [
+  // A third party's generated build, copied whole (`bin/render-report.mjs`
+  // says why), so none of it is ours to lint.
+  {ignores: ['bin/vendor/**']},
   ...createLibConfig({tseslint, sonarjs}),
   {
     // The CLIs exist to run git and npm from the PATH a developer has.
