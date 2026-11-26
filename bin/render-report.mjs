@@ -38,7 +38,9 @@ import {dirname, resolve} from "node:path";
 import {fileURLToPath} from "node:url";
 import {openPath} from "./utils.mjs";
 
-const args = process.argv.slice(2);
+/** `node` and this script come first in `process.argv`. */
+const OWN_ARGS_FROM = 2;
+const args = process.argv.slice(OWN_ARGS_FROM);
 const noOpen = args.includes("--no-open");
 const mdPath = args.find((a) => !a.startsWith("--"));
 
